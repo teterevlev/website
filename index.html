@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Custom electronics and complex software development.">
+  <title>Oleg Teterevlev</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <script>
+    (function () {
+      var hash = window.location.hash;
+      var isRussian = false;
+
+      if (hash === '#en') {
+        isRussian = false;
+      } else if (hash === '#ru') {
+        isRussian = true;
+      } else {
+        var userLang = navigator.language || navigator.userLanguage;
+        if (userLang && userLang.toLowerCase().indexOf('ru') === 0) {
+          isRussian = true;
+          // Set hash to #ru without reloading
+          if (history.replaceState) {
+            history.replaceState(null, null, '#ru');
+          } else {
+            window.location.hash = 'ru';
+          }
+        }
+      }
+
+      if (isRussian) {
+        document.documentElement.lang = 'ru';
+        document.title = 'Олег Тетеревлёв';
+        
+        document.addEventListener('DOMContentLoaded', function () {
+          var desc = document.querySelector('meta[name="description"]');
+          if (desc) desc.setAttribute('content', 'Разработка нестандартной электроники и сложного ПО.');
+          
+          document.querySelectorAll('[data-ru]').forEach(function (el) {
+            el.innerHTML = el.getAttribute('data-ru');
+          });
+        });
+      }
+
+      // Reload page on hash change to apply manual language overrides instantly
+      window.addEventListener('hashchange', function () {
+        window.location.reload();
+      }, false);
+    })();
+  </script>
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+  <div class="grain-overlay"></div>
+
+  <div class="content-layer">
+    <main class="hero" id="hero-section">
+      <h1 class="hero-title" id="hero-title" data-en="Oleg Teterevlev" data-ru="Олег Тетеревлёв">Oleg Teterevlev</h1>
+      <p class="hero-subtitle" id="hero-subtitle" data-en="Custom electronics &amp; complex software development." data-ru="Разработка нестандартной электроники и сложного ПО.">Custom electronics &amp; complex software development.</p>
+    </main>
+
+    <footer class="bottom-bar" id="bottom-bar">
+      <div class="footer-links">
+        <a href="https://www.linkedin.com/in/teterevlev/" class="footer-link" target="_blank" rel="noopener noreferrer" id="linkedin-link">LinkedIn</a>
+        <a href="https://t.me/tech0marketing" class="footer-link" target="_blank" rel="noopener noreferrer" id="telegram-link">Telegram</a>
+      </div>
+    </footer>
+  </div>
+
+  <script src="background.js"></script>
+  <script src="entrance.js"></script>
+</body>
+</html>
