@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PCB portfolio — custom electronics boards by Oleg Teterevlev.">
+  <title>PCB Portfolio — Oleg Teterevlev</title>
+
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="shortcut icon" href="favicon.ico">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;450;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <canvas id="bg-canvas"></canvas>
+  <div class="grain-overlay"></div>
+
+  <div class="content-layer">
+
+    <!-- Header -->
+    <header class="site-header">
+      <a href="https://revlev.ru/" class="header-back">Oleg Teterevlev</a>
+      <div class="header-title">PCB Portfolio</div>
+      <div class="header-counter"><span id="counter-current">1</span> / <span id="counter-total">9</span></div>
+    </header>
+
+    <!-- Global Social Links -->
+    <div class="global-social-links" id="global-social-links">
+      <a href="https://www.linkedin.com/in/teterevlev/" class="header-back" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a href="https://t.me/tech0marketing" class="header-back" target="_blank" rel="noopener noreferrer">Telegram</a>
+    </div>
+
+    <!-- Slides -->
+    <div class="slides-container" id="slides-container">
+
+      <!-- Slide 1 -->
+      <article class="slide active" id="stepper-controller">
+        <div class="slide-inner">
+          <div class="slide-text">
+            <div class="slide-index">01 — Stepper Controller</div>
+            <h1 class="slide-title"><a href="#stepper-controller">Stepper Motor Controller<br>for Precise Wheel Steering</a></h1>
+            <p class="slide-desc">Within the Mobile Robot project, for motor wheel block steering, a Stepper Motor Controller was developed for precise control of the stepper motor.<br><br>The L297 has been selected due to chip shortage.<br><br>The STM32F303 receives commands from the robot’s main controller and generates the phase control sequence for stepper drive via L297+298. ISO1450 provides galvanic isolation for RS-485 communication between the STM32F303 and other robot modules.<br><br>To optimize the thermal operating conditions and maximize the power output of an obsolete controller, a fan was mounted on a massive heatsink with cutouts for oversized components. During steering, the driver was temporarily pushed to critical current levels, while a reduced-current mode was used for holding torque.</p>
+          </div>
+          <div class="slide-image">
+            <img src="img/1.webp" alt="Stepper Motor Controller PCB" draggable="false">
+          </div>
+        </div>
+      </article>
+
+      <!-- Slide 2 -->
+      <article class="slide" id="power-quality-monitor">
+        <div class="slide-inner">
+          <div class="slide-text">
+            <div class="slide-index">02 — Power Quality Monitor</div>
+            <h2 class="slide-title"><a href="#power-quality-monitor">Advanced Power Quality<br>Monitoring System</a></h2>
+            <p class="slide-desc">Three-Phase Power Quality Measurement Module for a Digital Substation Computer.<br><br>The STM32F746 microcontroller is placed on the hot side of the isolation barrier to enable real-time data processing and control directly interfacing with power lines. This decision was made to ensure the system can handle real-time data effectively while maintaining compatibility with existing isolation components and ensuring safe communication across isolated domains.<br><br>The STM32F746 microcontroller and 5CEBA2 FPGA collaborate to provide high-speed data processing and custom logic implementation for power quality monitoring. The STM32F746 processes measurement data and transfers it through the ADUM1401 digital isolator to the FPGA. The FPGA converts the parallel interface to LVDS and transmits the data to the processor board over the cross-board connection.<br><br>To maintain isolation integrity and reduce noise, the ADUM1401 digital isolator was placed directly between the STM32F746 and the 5CEBA2 FPGA, minimizing trace lengths and ensuring a clear separation from high-frequency components.</p>
+          </div>
+          <div class="slide-image">
+            <img src="img/7.webp" alt="Power Quality Monitoring PCB" draggable="false">
+          </div>
+        </div>
+      </article>
+
+      <!-- Slide 3 -->
+      <article class="slide" id="central-control">
+        <div class="slide-inner">
+          <div class="slide-text">
+            <div class="slide-index">03 — Central Control</div>
+            <h2 class="slide-title"><a href="#central-control">Central Control Motherboard<br>for Mobile Robot</a></h2>
+            <p class="slide-desc">Within the Mobile Robot project, for designing a central control motherboard for RPi CM4. The Motherboard was developed for managing and controlling the robot's peripheral systems.<br><br>The LM3150 was selected for a custom high-current buck converter powering the motherboard. Its controller-based architecture allowed both the power stage and the compensation network to be adapted to the electrical characteristics of the board.<br><br>Particular attention was paid to high-speed PCB layout, including ESD protection, controlled-impedance routing, reference plane continuity, and length matching for USB and HDMI interfaces.</p>
+          </div>
+          <div class="slide-image">
+            <img src="img/2.webp" alt="Central Control Motherboard PCB" draggable="false">
+          </div>
+        </div>
+      </article>
+
+      <!-- Slide 4 -->
+      <article class="slide" id="wifi-bridge">
+        <div class="slide-inner">
+          <div class="slide-text">
+            <div class="slide-index">04 — Wi-Fi Bridge</div>
+            <h2 class="slide-title"><a href="#wifi-bridge">Wi-Fi Bridge<br>for Mobile Robot MVP</a></h2>
+            <p class="slide-desc">Within the Mobile Robot MVP project, for managing the Wi-Fi connection, a Wi-Fi Bridge was developed to enable wireless communication for the central control module.<br><br>The decision to integrate the ESP32-WROOM-32E for Wi-Fi connectivity and SN75176BDR for RS-485 compatibility was made because the ESP32 allows faster development and maintains compatibility with the existing RS-485 infrastructure. Quick integration using available components was necessary to meet project deadlines.</p>
+          </div>
+          <div class="slide-image">
+            <img src="img/0.webp" alt="Wi-Fi Bridge PCB" draggable="false">
+          </div>
+        </div>
+      </article>
+
+      <!-- Slide 5 -->
+      <article class="slide" id="prototyping-motherboard">
+        <div class="slide-inner">
+          <div class="slide-text">
+            <div class="slide-index">05 — Prototyping Motherboard</div>
+            <h2 class="slide-title"><a href="#prototyping-motherboard">Fast Prototyping Motherboard<br>for Mobile Robot</a></h2>
+            <p class="slide-desc">Within the Mobile Robot MVP project, for fast connection of peripherals to the Nucleo board, the Fast Prototyping Motherboard was developed to enable rapid integration of motors, sensors, and modules for mobile robot development.<br><br>The STM32H743-NUCLEO was utilized for its rapid prototyping capabilities, allowing quick demonstration of functionality using existing components without the need for new hardware development. This decision was constrained by the requirement to integrate legacy control of the VNH3SP30 without developing a new driver.<br><br>The STM32H743-NUCLEO board supports rapid prototyping by allowing quick integration of sensors and motor drivers. It facilitates the connection of the VNH3SP30 motor driver and the ICM-20602 motion sensor, enabling efficient control and motion tracking. The ICM-20602 is used for real-time orientation correction of the robot.<br><br>Thick copper layers were used to carry high motor currents within the limited PCB area while maintaining acceptable temperature rise.</p>
+          </div>
+          <div class="slide-image">
+            <img src="img/0.webp" alt="Fast Prototyping Motherboard PCB" draggable="false">
+          </div>
+        </div>
+      </article>
+
+      <!-- Slide 6 -->
+      <article class="slide" id="motor-control">
+        <div class="slide-inner">
+          <div class="slide-text">
+            <div class="slide-index">06 — Motor Control System</div>
+            <h2 class="slide-title"><a href="#motor-control">Motor Control System<br>for Steering &amp; Drive</a></h2>
+            <p class="slide-desc">The STM32F303 receives motion commands from the robot's main controller and coordinates the steering and drive subsystems. The UCC2626 controls the brushless drive motor, while the L6480 drives the steering stepper motor.<br><br>The BLDC controller is built around the UCC2626 Hall-sensor commutation controller, with the surrounding analog circuitry implementing the complete speed control loop. The analog stages perform speed error amplification, bidirectional command processing, PWM generation, Hall sensor conditioning, and current limiting before driving the three-phase power stage.</p>
+          </div>
+          <div class="slide-image">
+            <img src="img/6.webp" alt="Motor Control System PCB" draggable="false">
+          </div>
+        </div>
+      </article>
+
+      <!-- Slide 7 -->
+      <article class="slide" id="emergency-breaker">
+        <div class="slide-inner">
+          <div class="slide-text">
+            <div class="slide-index">07 — Emergency Breaker</div>
+            <h2 class="slide-title"><a href="#emergency-breaker">RF-Controlled Emergency<br>Breaker</a></h2>
+            <p class="slide-desc">Within the Mobile Robot project, for the task of shutdown on emergency and keeping power supply, an RF-controlled emergency breaker was developed to ensure power supply continuity to critical modules during emergencies of the battery management module.<br><br>BSC066 was chosen for its availability and compatibility with existing designs, as it has proven reliability in similar applications and helps avoid redesign costs. The decision was constrained by the need for compatibility with existing designs and a quick development cycle.<br><br>The LT8609 provides voltage regulation, converting the 12V power bus to lower voltages, while the BSC066 manages power switching. Together, they efficiently manage power in the robot's circuits. One LT8609 exclusively powers the battery management module and shut it down on RF signal, while another keeps supplying critical modules.<br><br>The power distribution layout was optimized to reduce voltage disturbances caused by emergency disconnection of high-power loads.</p>
+          </div>
+          <div class="slide-image">
+            <img src="img/5.webp" alt="RF-Controlled Emergency Breaker PCB" draggable="false">
+          </div>
+        </div>
+      </article>
+
+      <!-- Slide 8 -->
+      <article class="slide" id="universal-smt">
+        <div class="slide-inner">
+          <div class="slide-text">
+            <div class="slide-index">08 — Universal SMT Module</div>
+            <h2 class="slide-title"><a href="#universal-smt">Small-Size Universal<br>SMT Module</a></h2>
+            <p class="slide-desc">Within the Mobile Robot project, for the task of developing a small-size universal SMT Module, a device was developed to facilitate communication and control for any peripheral board of the robot.<br><br>The STM32F303 microcontroller manages RS-485 communication through the MAX485ED transceiver. This setup allows the SMT to interface with various peripheral boards, ensuring data exchange across the robot's network.</p>
+          </div>
+          <div class="slide-image">
+            <img src="img/4.webp" alt="Universal SMT Module PCB" draggable="false">
+          </div>
+        </div>
+      </article>
+
+      <!-- Slide 9 -->
+      <article class="slide" id="battery-management">
+        <div class="slide-inner">
+          <div class="slide-text">
+            <div class="slide-index">09 — Battery Management</div>
+            <h2 class="slide-title"><a href="#battery-management">Battery Management Module<br>for Mobile Robot</a></h2>
+            <p class="slide-desc">Within the Mobile Robot project, for efficient power control, the Battery Management Module was developed for managing and optimizing battery usage in a mobile robot.<br><br>An ideal diode controller was incorporated for power path management and reverse current protection to ensure efficient power distribution and protection against reverse currents. The architecture had to be compatible with the voltage requirements of the mobile robot's battery system.<br><br>The STM32F303 monitors battery parameters using its ADCs and supervises the battery management logic. High-current power path control is implemented by the LTC4359HMS8 ideal diode controller driving the IRFS7430 MOSFET.<br><br>The STM32F303 exchanges battery status and diagnostic information with the robot's central controller. If the RF emergency breaker removes power from the Battery Management Module, the power distribution automatically transitions to the emergency shutdown state, isolating non-critical loads while preserving power for critical systems.</p>
+          </div>
+          <div class="slide-image">
+            <img src="img/3.webp" alt="Battery Management Module PCB" draggable="false">
+          </div>
+        </div>
+      </article>
+
+      <!-- Slide 10 -->
+      <article class="slide" id="more">
+        <div class="slide-inner">
+          <div class="slide-text" style="grid-column: 1 / -1; align-self: center; height: auto; text-align: center; margin: 0 auto; padding: 0; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <h2 class="slide-title" style="margin-bottom: 2rem;"><a href="#more">Portfolio is being updated...</a></h2>
+            <div class="footer-links" style="display: flex; gap: 2rem; justify-content: center;">
+              <a href="https://www.linkedin.com/in/teterevlev/" class="header-back" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              <a href="https://t.me/tech0marketing" class="header-back" target="_blank" rel="noopener noreferrer">Telegram</a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+    </div><!-- /.slides-container -->
+
+    <!-- Progress dots -->
+    <div class="progress-dots" id="progress-dots" role="tablist" aria-label="Slide navigation">
+      <div class="dot active" role="tab" aria-selected="true"  data-index="0"></div>
+      <div class="dot"        role="tab" aria-selected="false" data-index="1"></div>
+      <div class="dot"        role="tab" aria-selected="false" data-index="2"></div>
+      <div class="dot"        role="tab" aria-selected="false" data-index="3"></div>
+      <div class="dot"        role="tab" aria-selected="false" data-index="4"></div>
+      <div class="dot"        role="tab" aria-selected="false" data-index="5"></div>
+      <div class="dot"        role="tab" aria-selected="false" data-index="6"></div>
+      <div class="dot"        role="tab" aria-selected="false" data-index="7"></div>
+      <div class="dot"        role="tab" aria-selected="false" data-index="8"></div>
+      <div class="dot"        role="tab" aria-selected="false" data-index="9"></div>
+    </div>
+
+    <!-- Arrow navigation -->
+    <div class="nav-arrows" id="nav-arrows">
+      <button class="nav-arrow disabled" id="arrow-prev" aria-label="Previous slide">
+        <!-- chevron up -->
+        <svg viewBox="0 0 16 16"><polyline points="3,10 8,5 13,10"/></svg>
+      </button>
+      <button class="nav-arrow" id="arrow-next" aria-label="Next slide">
+        <!-- chevron down -->
+        <svg viewBox="0 0 16 16"><polyline points="3,6 8,11 13,6"/></svg>
+      </button>
+    </div>
+
+  </div><!-- /.content-layer -->
+
+  <script src="background.js"></script>
+  <script>
+    (function () {
+      'use strict';
+
+      const TOTAL = 10;
+      let current = 0;
+
+      const container = document.getElementById('slides-container');
+      const slides    = Array.from(document.querySelectorAll('.slide'));
+      const dots      = Array.from(document.querySelectorAll('.dot'));
+      const counter   = document.getElementById('slide-counter');
+      const btnPrev   = document.getElementById('arrow-prev');
+      const btnNext   = document.getElementById('arrow-next');
+      
+      document.getElementById('counter-total').textContent = TOTAL - 1; // 9 boards
+      const globalSocial = document.getElementById('global-social-links');
+
+      /* ---- Update UI (dots, counter, arrows, hash) ---- */
+      function syncHash(index) {
+        var id = slides[index] && slides[index].id;
+        if (!id) return;
+        var next = '#' + id;
+        if (location.hash === next) return;
+        history.replaceState(null, '', next);
+      }
+
+      function indexFromHash() {
+        var hash = location.hash.replace(/^#/, '');
+        if (!hash) return -1;
+        return slides.findIndex(function (s) { return s.id === hash; });
+      }
+
+      function updateUI(index) {
+        current = index;
+        document.getElementById('counter-current').textContent = (index + 1);
+        globalSocial.style.display = (index === TOTAL - 1) ? 'none' : 'flex';
+        
+        dots.forEach(function (d, i) {
+          d.classList.toggle('active', i === index);
+          d.setAttribute('aria-selected', i === index ? 'true' : 'false');
+        });
+        btnPrev.classList.toggle('disabled', index === 0);
+        btnNext.classList.toggle('disabled', index === TOTAL - 1);
+        updateDescFade(slides[index] && slides[index].querySelector('.slide-desc'));
+        syncHash(index);
+      }
+
+      /* ---- Navigate to slide index ---- */
+      function goTo(index, instant) {
+        if (index < 0 || index >= TOTAL) return;
+        container.scrollTo({
+          top: index * container.clientHeight,
+          behavior: instant ? 'auto' : 'smooth'
+        });
+      }
+
+      if ('scrollRestoration' in history) {
+        history.scrollRestoration = 'manual';
+      }
+
+      /* Open slide from URL hash on load */
+      var startIdx = indexFromHash();
+      if (startIdx >= 0) {
+        goTo(startIdx, true);
+        updateUI(startIdx);
+      }
+
+      window.addEventListener('hashchange', function () {
+        var idx = indexFromHash();
+        if (idx >= 0 && idx !== current) goTo(idx);
+      });
+
+      /* ---- IntersectionObserver — tracks visible slide ---- */
+      var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (entry.isIntersecting) {
+            var idx = slides.indexOf(entry.target);
+            var dir = idx > current ? 'in-view-down' : (idx < current ? 'in-view-up' : 'in-view-down');
+            entry.target.classList.add(dir);
+            updateUI(idx);
+          } else {
+            entry.target.classList.remove('in-view-down', 'in-view-up');
+          }
+        });
+      }, { threshold: 0.5, root: container });
+
+      slides.forEach(function (slide) { observer.observe(slide); });
+
+      /* ---- Arrow buttons ---- */
+      btnPrev.addEventListener('click', function () { goTo(current - 1); });
+      btnNext.addEventListener('click', function () { goTo(current + 1); });
+
+      /* ---- Dot clicks ---- */
+      dots.forEach(function (dot) {
+        dot.addEventListener('click', function () {
+          goTo(parseInt(dot.dataset.index, 10));
+        });
+      });
+
+      /* ---- Keyboard ---- */
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'ArrowDown') goTo(current + 1);
+        if (e.key === 'ArrowUp')   goTo(current - 1);
+      });
+
+      /* ---- Nested text scroll → slide flip at edges ----
+         One wheel gesture = either text scroll OR one flip.
+         Trackpad inertia stays inside that gesture, but a new intentional
+         movement (direction change or delta spike) resets and takes over. */
+      var gestureMode = null; // null | 'text' | 'flip'
+      var gestureTimer = null;
+      var lastDeltaY = 0;
+      var smoothAbs = 0;
+      var GESTURE_GAP_MS = 100;
+
+      function activeDesc() {
+        var slide = slides[current];
+        return slide ? slide.querySelector('.slide-desc') : null;
+      }
+
+      function descCanScroll(el) {
+        return el.scrollHeight > el.clientHeight + 1;
+      }
+
+      function descAtTop(el) {
+        return el.scrollTop <= 1;
+      }
+
+      function descAtBottom(el) {
+        return el.scrollTop + el.clientHeight >= el.scrollHeight - 1;
+      }
+
+      function shouldFlipSlide(deltaY, desc) {
+        if (!desc || !descCanScroll(desc)) return true;
+        if (deltaY > 0) return descAtBottom(desc);
+        if (deltaY < 0) return descAtTop(desc);
+        return false;
+      }
+
+      function resetGestureTracking() {
+        gestureMode = null;
+        lastDeltaY = 0;
+        smoothAbs = 0;
+        gestureTimer = null;
+      }
+
+      function bumpGesture() {
+        clearTimeout(gestureTimer);
+        gestureTimer = setTimeout(resetGestureTracking, GESTURE_GAP_MS);
+      }
+
+      function isNewIntent(deltaY) {
+        var abs = Math.abs(deltaY);
+        var reversed = lastDeltaY !== 0 && (deltaY > 0) !== (lastDeltaY > 0);
+        // Fresh flick during decaying inertia: delta jumps above the smooth envelope
+        var spiked = smoothAbs > 0 && abs > Math.max(smoothAbs * 1.6, smoothAbs + 6);
+        return reversed || spiked;
+      }
+
+      function noteDelta(deltaY) {
+        lastDeltaY = deltaY;
+        var abs = Math.abs(deltaY);
+        smoothAbs = smoothAbs === 0 ? abs : smoothAbs * 0.65 + abs * 0.35;
+      }
+
+      function updateDescFade(desc) {
+        if (!desc) return;
+        var can = descCanScroll(desc);
+        desc.classList.toggle('fade-top', can && !descAtTop(desc));
+        desc.classList.toggle('fade-bottom', can && !descAtBottom(desc));
+      }
+
+      function scrollDesc(desc, deltaY) {
+        if (!desc) return;
+        var max = desc.scrollHeight - desc.clientHeight;
+        desc.scrollTop = Math.max(0, Math.min(max, desc.scrollTop + deltaY));
+        updateDescFade(desc);
+      }
+
+      document.querySelectorAll('.slide-desc').forEach(function (desc) {
+        updateDescFade(desc);
+        desc.addEventListener('scroll', function () { updateDescFade(desc); }, { passive: true });
+      });
+
+      window.addEventListener('resize', function () {
+        document.querySelectorAll('.slide-desc').forEach(updateDescFade);
+      }, { passive: true });
+
+      function beginGesture(deltaY, desc) {
+        if (!shouldFlipSlide(deltaY, desc)) {
+          gestureMode = 'text';
+          scrollDesc(desc, deltaY);
+          return;
+        }
+        gestureMode = 'flip';
+        if (deltaY > 0) goTo(current + 1);
+        else goTo(current - 1);
+      }
+
+      container.addEventListener('wheel', function (e) {
+        if (!e.deltaY) return;
+        e.preventDefault();
+
+        // New intentional movement cancels leftover inertia mode
+        if (gestureMode && isNewIntent(e.deltaY)) {
+          gestureMode = null;
+        }
+
+        noteDelta(e.deltaY);
+        bumpGesture();
+
+        var desc = activeDesc();
+
+        // Inertia of a flip gesture: swallow, don't scroll container/text
+        if (gestureMode === 'flip') return;
+
+        // Inertia of a text gesture: keep scrolling text, never flip at edge
+        if (gestureMode === 'text') {
+          if (desc && descCanScroll(desc) && !shouldFlipSlide(e.deltaY, desc)) {
+            scrollDesc(desc, e.deltaY);
+          }
+          return;
+        }
+
+        beginGesture(e.deltaY, desc);
+      }, { passive: false });
+
+      /* ---- Touch swipe on text → flip when text can't scroll ---- */
+      var touchStartY = 0;
+      var touchMode = null; // null | 'text' | 'flip'
+      var touchOnDesc = false;
+      var TOUCH_LOCK_PX = 8;
+      var TOUCH_FLIP_PX = 48;
+
+      container.addEventListener('touchstart', function (e) {
+        if (!e.touches.length) return;
+        touchStartY = e.touches[0].clientY;
+        touchMode = null;
+        touchOnDesc = !!(e.target.closest && e.target.closest('.slide-desc'));
+      }, { passive: true });
+
+      container.addEventListener('touchmove', function (e) {
+        if (!touchOnDesc || !e.touches.length) return;
+
+        var y = e.touches[0].clientY;
+        var deltaY = touchStartY - y; // finger up → positive → next slide
+
+        if (touchMode === null) {
+          if (Math.abs(deltaY) < TOUCH_LOCK_PX) return;
+          touchMode = shouldFlipSlide(deltaY, activeDesc()) ? 'flip' : 'text';
+        }
+
+        // Text can scroll — let native .slide-desc handle it
+        if (touchMode === 'text') return;
+
+        // Text can't scroll in this direction — own the gesture for slide flip
+        e.preventDefault();
+      }, { passive: false });
+
+      container.addEventListener('touchend', function (e) {
+        if (touchMode === 'flip' && e.changedTouches.length) {
+          var dy = touchStartY - e.changedTouches[0].clientY;
+          if (Math.abs(dy) >= TOUCH_FLIP_PX) {
+            if (dy > 0) goTo(current + 1);
+            else goTo(current - 1);
+          }
+        }
+        touchMode = null;
+        touchOnDesc = false;
+      }, { passive: true });
+
+    })();
+  </script>
+</body>
+</html>
