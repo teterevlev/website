@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Интерактивный макет</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --white: #FFFFFF;
+            --snow: #FAFBFC;
+            --ash: #F2F3F5;
+            --mist: #E8EAED;
+            --smoke: #C4C8CF;
+            --slate: #8A8F98;
+            --ink: #1f3a52;
+            --blue-pale: #EDF2FF;
+            --blue-light: #B4C6FC;
+            --blue: #4A6CF7;
+            --blue-deep: #2A4AD4;
+            --blue-ink: #1B2F80;
+            --font: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            --font-display: "Russo One", sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body,
+        html {
+            font-family: var(--font);
+            background: var(--white);
+            color: var(--ink);
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            overscroll-behavior: none;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .grain-overlay {
+            position: fixed;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.022;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 256px 256px;
+        }
+
+        .scroll-container {
+            position: relative;
+            z-index: 2;
+            height: 100vh;
+            overflow-y: auto;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .screen {
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem 2rem;
+            width: 100%;
+        }
+
+        .screen-content {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem 4rem;
+            align-content: center;
+            height: 100%;
+        }
+
+        .block-a,
+        .block-b {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        h1,
+        h2 {
+            font-family: var(--font-display);
+            font-weight: 400;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        h1 {
+            font-size: clamp(2.5rem, 4vw, 3.5rem);
+        }
+
+        h2 {
+            font-size: clamp(2rem, 3.5vw, 3rem);
+        }
+
+        p {
+            font-size: 1.125rem;
+            line-height: 1.6;
+            margin-bottom: 1.25rem;
+            color: var(--ink);
+        }
+
+        .block-16x9 {
+            aspect-ratio: 16 / 9;
+            max-width: 380px;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 12px;
+            margin-top: 1rem;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .snap {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.75rem;
+            border-radius: 100px;
+            font-weight: 500;
+            cursor: pointer;
+            border: none;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-size: 0.9375rem;
+            line-height: 1.4;
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: #ffff7b;
+            color: var(--ink);
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-primary:hover {
+            background: #fdfd5f;
+            transform: translateY(-2px);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+        }
+
+        .btn-secondary {
+            background: #2c5c85;
+            color: var(--white);
+            border: none;
+        }
+
+        .btn-secondary:hover {
+            background: #1f4363;
+        }
+
+        .btn-dark {
+            background: var(--ink);
+            color: var(--white);
+        }
+
+        .btn-dark:hover {
+            background: #000;
+            transform: translateY(-2px);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: nowrap;
+        }
+
+        /* Анимация стрелки "вниз" */
+        .scroll-down {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            animation: bounce 2s infinite;
+            opacity: 0.7;
+            z-index: 90;
+            pointer-events: none;
+            color: var(--ink);
+            /* Темный цвет для белого шейдера */
+            transition: opacity 0.3s ease;
+        }
+
+        .scroll-down svg {
+            width: 32px;
+            height: 32px;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            20%,
+            50%,
+            80%,
+            100% {
+                transform: translateY(0) translateX(-50%);
+            }
+
+            40% {
+                transform: translateY(-15px) translateX(-50%);
+            }
+
+            60% {
+                transform: translateY(-7px) translateX(-50%);
+            }
+        }
+
+        .screen-1,
+        .screen-2,
+        .screen-3 {
+            background: transparent;
+        }
+
+        .screen-4 {
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--white);
+        }
+
+        .screen-4 p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .screen-4 h1,
+        .screen-4 h2 {
+            color: var(--white);
+        }
+
+        .screen-5 {
+            background: var(--white);
+            color: var(--ink);
+        }
+
+        .screen-5 .block-16x9 {
+            background: var(--snow);
+            border-color: var(--mist);
+            color: var(--ink);
+        }
+
+        .form-container {
+            margin-top: 2rem;
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .form-container input,
+        .form-container textarea {
+            width: 100%;
+            padding: 0.875rem 1.25rem;
+            border: 1px solid var(--smoke);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            background: var(--snow);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-container input:focus,
+        .form-container textarea:focus {
+            border-color: var(--blue);
+        }
+
+        /* ===================== MOBILE ===================== */
+
+        /* --- Landscape (телефон горизонтально) --- */
+        @media (max-width: 900px) and (orientation: landscape) {
+
+            /* Скрываем стрелку вниз и обычные кнопки */
+            .scroll-down {
+                display: none;
+            }
+
+            .btn-secondary {
+                display: none !important;
+            }
+
+            .screen {
+                padding: 1rem 1.25rem;
+            }
+
+            h1 {
+                font-size: clamp(1.1rem, 3.5vw, 1.75rem);
+            }
+
+            h2 {
+                font-size: clamp(1rem, 3vw, 1.5rem);
+            }
+
+            p {
+                font-size: 0.8125rem;
+                margin-bottom: 0.5rem;
+            }
+
+            h1,
+            h2 {
+                margin-bottom: 0.5rem;
+            }
+
+            .screen-content {
+                grid-template-columns: 1fr 1fr;
+                /* Строго 50/50 */
+                gap: 0.75rem 2rem;
+                align-content: center;
+                height: 100%;
+            }
+
+            /* Блок 16:9 — width = min(100%, 32vh * 16/9) */
+            .block-16x9 {
+                width: min(100%, calc(32vh * 16 / 9));
+                max-width: 100%;
+                aspect-ratio: 16 / 9;
+                height: auto;
+                margin-top: 0.4rem;
+            }
+
+            /* CTA — в правой половине экрана */
+            .btn-group.main-actions {
+                display: flex;
+                justify-content: flex-end;
+                grid-column: 2;
+                width: 100%;
+            }
+
+            .btn-group.main-actions>.btn-primary {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .btn {
+                padding: 0.55rem 1.1rem;
+                font-size: 0.8125rem;
+            }
+
+            .form-container {
+                max-width: 100%;
+                margin-top: 0.5rem;
+            }
+        }
+
+        /* --- Portrait (телефон вертикально) --- */
+        @media (max-width: 900px) and (orientation: portrait) {
+
+            /* Скрываем стрелку вниз и обычные кнопки */
+            .scroll-down {
+                display: none;
+            }
+
+            .btn-secondary {
+                display: none !important;
+            }
+
+            .screen {
+                padding: 1.25rem 1.25rem;
+                align-items: stretch;
+            }
+
+            /* Шрифты масштабируются по высоте экрана (vh), чтобы текст
+               всегда помещался в свою половину block-a */
+            h1 {
+                font-size: clamp(1.1rem, 3.2vh, 2rem);
+                margin-bottom: clamp(0.5rem, 1.2vh, 0.75rem);
+            }
+
+            h2 {
+                font-size: clamp(1rem, 2.8vh, 1.75rem);
+                margin-bottom: clamp(0.4rem, 1vh, 0.75rem);
+            }
+
+            p {
+                font-size: clamp(0.75rem, 1.8vh, 0.9rem);
+                margin-bottom: clamp(0.3rem, 0.8vh, 0.6rem);
+                line-height: 1.5;
+            }
+
+            /* Блок Б — сверху, Блок А — снизу, строго 50% высоты */
+            .screen-content {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+                gap: 0;
+                height: 100%;
+            }
+
+            .block-a,
+            .block-b {
+                min-height: 0;
+                overflow: hidden;
+            }
+
+            .block-b {
+                order: -1;
+                justify-content: flex-end;
+                padding-bottom: 0.75rem;
+            }
+
+            .block-a {
+                justify-content: flex-start;
+                padding-top: 0.75rem;
+            }
+
+            /* block-16x9: высота задана через vh — block всегда занимает ровно 22vh.
+               Ширина вычисляется из aspect-ratio автоматически, без конкуренции с max-height.
+               Итог: текст получает ~28vh - padding, block-16x9 получает 22vh. */
+            .block-16x9 {
+                height: max(22vh, 80px);
+                /* 22% экрана, минимум 80px */
+                width: auto;
+                /* ← ширина вычисляется из aspect-ratio */
+                aspect-ratio: 16 / 9;
+                max-width: 100%;
+                align-self: flex-start;
+                /* не растягивать по ширине контейнера */
+                flex-shrink: 0;
+                /* не сжиматься */
+                margin-top: auto;
+                /* прижать к тексту снизу */
+            }
+
+            /* btn-group — по центру экрана */
+            .btn-group.main-actions {
+                display: flex;
+                justify-content: center;
+                grid-column: 1;
+                width: 100%;
+                margin-top: 1rem;
+            }
+
+            .btn-group.main-actions>.btn-primary {
+                min-width: 200px;
+            }
+
+            .btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 0.9375rem;
+                text-align: center;
+            }
+
+            .form-container {
+                max-width: 100%;
+                margin-top: 0.75rem;
+            }
+        }
+
+        /* === Мобильная CTA: CSS всегда управляет кнопкой на мобиле === */
+        /* JS позиционирование полностью отключается на экранах ≤ 900px */
+        @media (max-width: 900px) {
+            #btn-voice {
+                display: none !important;
+            }
+
+            #spacer-voice,
+            #spacer-cta {
+                display: none !important;
+            }
+
+            /* CTA в портретной: по центру экрана внизу */
+            #btn-cta {
+                position: fixed !important;
+                top: auto !important;
+                left: 50% !important;
+                transform: translateX(-50%) !important;
+                bottom: 1.75rem !important;
+                width: auto !important;
+                white-space: nowrap;
+                z-index: 200;
+            }
+        }
+
+        /* CTA в альбомной: в правой половине внизу, фиксированная ширина */
+        @media (max-width: 900px) and (orientation: landscape) {
+            #btn-cta {
+                left: auto !important;
+                transform: none !important;
+                right: 1.5rem !important;
+                bottom: 1.25rem !important;
+                width: calc(50% - 3rem) !important;
+                /* фиксированная ширина = не меняется */
+                justify-content: center !important;
+            }
+        }
+    </style>
+</head>
+
+<body data-screen="1">
+
+    <canvas id="bg-canvas"></canvas>
+    <div class="grain-overlay"></div>
+
+    <div class="scroll-container">
+        <!-- Screen 1 -->
+        <section class="screen snap screen-1">
+            <div class="screen-content">
+                <div class="block-a">
+                    <h1>Интерактивный макет помогает покупателям нагляднее выбрать квартиру</h1>
+                    <p>Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет
+                        внимание застройщика к деталям.</p>
+                    <p>Даже если макет уже изготовлен, его можно сделать управляемым.</p>
+                </div>
+                <div class="block-b"></div>
+                <!-- Кнопки вынесены из блока А (grid-column: 1 / -1), чтобы не распирать колонку -->
+                <div class="btn-group main-actions" style="position: relative; grid-column: 1 / -1;">
+                    <a href="#" class="btn btn-secondary">Управляемая подсветка</a>
+                    <a href="#" class="btn btn-secondary" id="spacer-voice" style="visibility: hidden;">Голосовое
+                        управление</a>
+                    <a href="#" class="btn btn-primary" id="spacer-cta" style="visibility: hidden;">Получить
+                        консультацию</a>
+
+                    <a href="#" class="btn btn-secondary" id="btn-voice"
+                        style="position: absolute; z-index: 100; transition: none;">Голосовое управление</a>
+                    <a href="#" class="btn btn-primary" id="btn-cta"
+                        style="position: absolute; z-index: 100; transition: none;">Получить консультацию</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 2 -->
+        <section class="screen snap screen-2">
+            <div class="screen-content">
+                <div class="block-a">
+                    <h2>Управляйте макетом прямо с вашего сайта</h2>
+                    <div class="block-16x9"></div>
+                    <p style="margin-top: 1.5rem;">Выберите квартиру в каталоге — соответствующее окно сразу загорится
+                        на архитектурном макете.</p>
+                </div>
+                <div class="block-b"></div>
+                <div class="btn-group main-actions" style="visibility: hidden; grid-column: 1 / -1;">
+                    <a href="#" class="btn btn-secondary">Управляемая подсветка</a>
+                    <a href="#" class="btn btn-secondary">Голосовое управление</a>
+                    <a href="#" class="btn btn-primary">Получить консультацию</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 3 -->
+        <section class="screen snap screen-3">
+            <div class="screen-content">
+                <div class="block-a">
+                    <h2>Управляйте макетом голосом</h2>
+                    <div class="block-16x9"></div>
+                    <p style="margin-top: 1.5rem;">Голосовое управление можно добавить и к уже установленной системе.
+                        Замена существующего контроллера, как правило, не требуется.</p>
+                </div>
+                <div class="block-b"></div>
+                <div class="btn-group main-actions" style="visibility: hidden; grid-column: 1 / -1;">
+                    <a href="#" class="btn btn-secondary">Управляемая подсветка</a>
+                    <a href="#" class="btn btn-secondary">Голосовое управление</a>
+                    <a href="#" class="btn btn-primary">Получить консультацию</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 4 -->
+        <section class="screen screen-4">
+            <div class="screen-content">
+                <div class="block-a">
+                    <h2>Работаем как часть вашей команды</h2>
+                    <p>Мы внимательно изучаем проект, учитываем особенности конструкции и существующей электроники,
+                        после чего предлагаем решение, оптимальное именно для вашего макета.</p>
+                    <div class="btn-group">
+                        <a href="#" class="btn btn-primary">Запланировать<br>консультацию онлайн</a>
+                        <a href="#" class="btn btn-secondary">Отправить запрос</a>
+                    </div>
+                </div>
+                <div class="block-b" style="justify-content: flex-start; padding-top: 2rem;">
+                    <p>Если существующая система подходит для поставленной задачи — используем её. Если требуется новое
+                        решение — разработаем и поставим собственное.</p>
+                    <p>Мы ценим работу макетной мастерской, заранее согласовываем технические решения и сопровождаем
+                        проект до полного запуска.</p>
+                    <a href="#" class="btn btn-primary" style="margin-top: auto; align-self: flex-start;">Получить
+                        консультацию</a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Screen 5 -->
+        <section class="screen screen-5">
+            <div class="screen-content">
+                <div class="block-a">
+                    <h2>Обсудим ваш проект</h2>
+                    <p>Расскажите о вашем архитектурном макете или задаче, которую необходимо решить.</p>
+                    <p>Мы предложим подходящий вариант реализации, ответим на технические вопросы и поможем выбрать
+                        оптимальный способ внедрения.</p>
+
+                    <form class="form-container">
+                        <input type="text" placeholder="Имя / Компания" required>
+                        <input type="text" placeholder="Телефон или Email" required>
+                        <textarea rows="4" placeholder="Краткое описание задачи"></textarea>
+                        <button type="submit" class="btn btn-dark"
+                            style="align-self: flex-start; margin-top: 0.5rem;">Отправить</button>
+                    </form>
+                </div>
+                <div class="block-b" style="justify-content: flex-start; padding-top: 2rem;">
+                    <h2>Запланировать встречу</h2>
+                    <p>Выберите удобное время для короткого онлайн-обсуждения проекта.</p>
+                    <a href="#" class="btn btn-primary" style="margin-top: 2rem; align-self: flex-start;">Выбрать
+                        время</a>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Стрелка "вниз" -->
+    <div class="scroll-down" id="scroll-down-arrow">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+        </svg>
+    </div>
+
+    <script src="background.js"></script>
+
+    <script>
+        const container = document.querySelector('.scroll-container');
+        const screen2 = document.querySelector('.screen-2');
+        const screen3 = document.querySelector('.screen-3');
+
+        const btnVoice = document.getElementById('btn-voice');
+        const spacerVoice = document.getElementById('spacer-voice');
+        const btnCta = document.getElementById('btn-cta');
+        const spacerCta = document.getElementById('spacer-cta');
+        const scrollDownArrow = document.getElementById('scroll-down-arrow');
+
+        let voiceOrigTop, voiceOrigLeft, voiceFixedTop, voiceFixedLeft;
+        let ctaOrigTop, ctaOrigLeft, ctaFixedTop, ctaFixedLeft;
+
+        function handleScroll() {
+            const isMobile = window.matchMedia('(max-width: 900px)').matches;
+            let st = container.scrollTop;
+
+            // Прячем стрелку (на мобиле она уже скрыта через CSS, но display:none не влияет на opacity)
+            if (st > 50) {
+                scrollDownArrow.style.opacity = '0';
+            } else {
+                scrollDownArrow.style.opacity = '0.7';
+            }
+
+            // Отключаем жесткий snap при скролле ниже 3-го экрана
+            if (st > screen3.offsetTop + 5) {
+                container.style.scrollSnapType = 'none';
+            } else {
+                container.style.scrollSnapType = 'y mandatory';
+            }
+
+            // На мобиле CSS сам управляет кнопками — JS выходит
+            if (isMobile) return;
+            if (st === 0) {
+                btnVoice.style.position = 'absolute';
+                btnVoice.style.top = voiceOrigTop + 'px';
+                btnVoice.style.left = voiceOrigLeft + 'px';
+            } else if (st > 0 && st < screen2.offsetTop) {
+                btnVoice.style.position = 'fixed';
+                btnVoice.style.top = voiceFixedTop + 'px';
+                btnVoice.style.left = voiceFixedLeft + 'px';
+            } else if (st >= screen2.offsetTop) {
+                btnVoice.style.position = 'absolute';
+                btnVoice.style.top = (voiceOrigTop + screen2.offsetTop) + 'px';
+                btnVoice.style.left = voiceOrigLeft + 'px';
+            }
+
+            // Логика кнопки CTA:
+            if (st === 0) {
+                btnCta.style.position = 'absolute';
+                btnCta.style.top = ctaOrigTop + 'px';
+                btnCta.style.left = ctaOrigLeft + 'px';
+            } else if (st > 0 && st < screen3.offsetTop) {
+                btnCta.style.position = 'fixed';
+                btnCta.style.top = ctaFixedTop + 'px';
+                btnCta.style.left = ctaFixedLeft + 'px';
+            } else if (st >= screen3.offsetTop) {
+                btnCta.style.position = 'absolute';
+                btnCta.style.top = (ctaOrigTop + screen3.offsetTop) + 'px';
+                btnCta.style.left = ctaOrigLeft + 'px';
+            }
+        }
+
+        function updateVoicePositions() {
+            const isMobile = window.matchMedia('(max-width: 900px)').matches;
+            let st = container.scrollTop;
+
+            if (!isMobile) {
+                // Голосовое управление
+                voiceOrigTop = spacerVoice.offsetTop;
+                voiceOrigLeft = spacerVoice.offsetLeft;
+                let rectV = spacerVoice.getBoundingClientRect();
+                voiceFixedTop = rectV.top + st;
+                voiceFixedLeft = rectV.left;
+
+                // Получить консультацию (CTA)
+                ctaOrigTop = spacerCta.offsetTop;
+                ctaOrigLeft = spacerCta.offsetLeft;
+                let rectC = spacerCta.getBoundingClientRect();
+                ctaFixedTop = rectC.top + st;
+                ctaFixedLeft = rectC.left;
+            } else {
+                // На мобиле: сбрасываем инлайн-стили с кнопок, чтобы CSS забрал управление
+                btnCta.style.removeProperty('position');
+                btnCta.style.removeProperty('top');
+                btnCta.style.removeProperty('left');
+                btnVoice.style.removeProperty('position');
+                btnVoice.style.removeProperty('top');
+                btnVoice.style.removeProperty('left');
+            }
+
+            // Принудительно применяем стили под текущий скролл после перерасчета
+            handleScroll();
+        }
+
+        window.addEventListener('resize', updateVoicePositions);
+        // Даем браузеру отрендерить шрифты перед расчетом позиций
+        setTimeout(updateVoicePositions, 100);
+
+        container.addEventListener('scroll', handleScroll);
+    </script>
+</body>
+
+</html>
