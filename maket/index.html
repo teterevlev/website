@@ -1652,6 +1652,7 @@
         const screen2 = document.querySelector('.screen-2');
         const screen3 = document.querySelector('.screen-3');
         const screen4 = document.querySelector('.screen-4');
+        const screen5 = document.querySelector('.screen-5');
 
         // Dismiss hook for screen2 cursor demo (заполняется ниже)
         let dismissScreen2Demo = function () {};
@@ -1659,6 +1660,82 @@
         function isExactlyOnScreen(el) {
             if (!el) return false;
             return Math.abs(container.scrollTop - el.offsetTop) <= 4;
+        }
+
+        let programmaticScroll = false;
+        let programmaticScrollTimer = null;
+
+        function syncScrollSnap() {
+            if (programmaticScroll) {
+                container.style.scrollSnapType = 'none';
+                return;
+            }
+            if (container.scrollTop > screen3.offsetTop + 5) {
+                container.style.scrollSnapType = 'none';
+            } else {
+                container.style.scrollSnapType = 'y mandatory';
+            }
+        }
+
+        function endProgrammaticScroll() {
+            programmaticScroll = false;
+            if (programmaticScrollTimer) {
+                clearTimeout(programmaticScrollTimer);
+                programmaticScrollTimer = null;
+            }
+            syncScrollSnap();
+        }
+
+        function scrollToScreen(el) {
+            if (!el || !container) return;
+            const targetTop = el.offsetTop;
+            programmaticScroll = true;
+            container.style.scrollSnapType = 'none';
+            container.scrollTo({ top: targetTop, behavior: 'smooth' });
+
+            const finish = () => {
+                if (Math.abs(container.scrollTop - targetTop) > 4) {
+                    container.scrollTo({ top: targetTop, behavior: 'auto' });
+                }
+                endProgrammaticScroll();
+            };
+
+            if (programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
+
+            const onScrollEnd = () => {
+                container.removeEventListener('scrollend', onScrollEnd);
+                if (programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
+                finish();
+            };
+            container.addEventListener('scrollend', onScrollEnd);
+
+            // Ждём остановки рядом с целью (длинный путь screen1→5)
+            let lastTop = container.scrollTop;
+            let stable = 0;
+            const started = Date.now();
+            const poll = () => {
+                if (!programmaticScroll) return;
+                const top = container.scrollTop;
+                const near = Math.abs(top - targetTop) <= 4;
+                if (Math.abs(top - lastTop) < 1) stable += 1;
+                else stable = 0;
+                lastTop = top;
+                if (near || stable >= 6 || Date.now() - started > 3000) {
+                    container.removeEventListener('scrollend', onScrollEnd);
+                    finish();
+                    return;
+                }
+                programmaticScrollTimer = setTimeout(poll, 50);
+            };
+            programmaticScrollTimer = setTimeout(poll, 80);
+        }
+
+        function bindScrollTo(el, target) {
+            if (!el || !target) return;
+            el.addEventListener('click', (e) => {
+                e.preventDefault();
+                scrollToScreen(target);
+            });
         }
 
         // Как CSS: ≤900px или низкий landscape (напр. 932×430)
@@ -1832,6 +1909,18 @@
         const spacerCtaDock = document.getElementById('spacer-cta-dock');
         const ctaGroup = document.querySelector('.screen-1 .btn-group.main-actions');
         const scrollDownArrow = document.getElementById('scroll-down-arrow');
+        const btnLighting = ctaGroup
+            ? ctaGroup.querySelector('.btn-secondary:not([id])')
+            : null;
+
+        // Навигация по кнопкам: lighting → 2, voice → 3, CTA + screen4 → 5
+        bindScrollTo(btnLighting, screen2);
+        bindScrollTo(btnVoice, screen3);
+        bindScrollTo(btnCta, screen5);
+        document.querySelectorAll('.screen-4 a.btn').forEach((btn) => {
+            if (btn.id === 'spacer-cta-dock') return;
+            bindScrollTo(btn, screen5);
+        });
 
         let voiceOrigTop, voiceOrigLeft, voiceFixedTop, voiceFixedLeft;
         let ctaOrigTop, ctaOrigLeft, ctaFixedTop, ctaFixedLeft;
@@ -1877,11 +1966,7 @@
                 scrollDownArrow.style.opacity = '0.7';
             }
 
-            if (st > screen3.offsetTop + 5) {
-                container.style.scrollSnapType = 'none';
-            } else {
-                container.style.scrollSnapType = 'y mandatory';
-            }
+            syncScrollSnap();
 
             updatePcbOverlay();
 
