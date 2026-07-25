@@ -442,6 +442,64 @@
             background: rgba(44, 92, 133, 0.12);
         }
 
+        /* Hero2 cursor demo (screen 2) */
+        .hero2CursorDemo {
+            position: absolute;
+            inset: 0;
+            z-index: 20;
+            pointer-events: none;
+            overflow: hidden;
+            opacity: 1;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+
+        .hero2CursorDemo.is-offscreen,
+        .hero2CursorDemo.is-dismissed {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .hero2DemoCursor {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 28px;
+            height: 28px;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.22));
+            transform: translate(-4px, -4px);
+            transition:
+                left 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+                top 0.65s cubic-bezier(0.4, 0, 0.2, 1),
+                transform 0.12s ease;
+            transform-origin: 4px 4px;
+        }
+
+        .hero2DemoCursor.is-clicking {
+            transform: translate(-4px, -2px) scale(0.88);
+        }
+
+        .hero2DemoClickRing {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 30px;
+            height: 30px;
+            border: 2px solid rgba(44, 92, 133, 0.55);
+            border-radius: 50%;
+            opacity: 0;
+            pointer-events: none;
+            transform: translate(-4px, -4px);
+        }
+
+        .hero2DemoClickRing.is-active {
+            animation: hero2DemoClickPulse 450ms ease-out forwards;
+        }
+
+        @keyframes hero2DemoClickPulse {
+            0% { transform: translate(-4px, -4px) scale(0.35); opacity: 0.8; }
+            100% { transform: translate(-4px, -4px) scale(1.55); opacity: 0; }
+        }
+
         /* Screen 3: браузер-оболочка внутри block-16x9 */
         .screen-3 .block-16x9.flatsTableWrap {
             background: #1a1a1a;
@@ -1358,6 +1416,14 @@
                     <h2>Управляйте макетом прямо с вашего сайта</h2>
                     <div class="wrap-original-transform">
                         <div class="flatsTableWrap original-transform">
+                            <div class="hero2CursorDemo" id="hero2CursorDemo" aria-hidden="true">
+                                <div class="hero2DemoClickRing" id="hero2DemoClickRing"></div>
+                                <svg class="hero2DemoCursor" id="hero2DemoCursor" width="28" height="28"
+                                    viewBox="0 0 28 28" aria-hidden="true">
+                                    <path d="M4 2 L4 21 L9 16 L13 25 L16 23 L11 14 L19 14 Z" fill="#1f3a52"
+                                        stroke="#fff" stroke-width="1.1" />
+                                </svg>
+                            </div>
                             <div class="flatsTableInner">
                                 <div class="browserChrome">
                                     <div class="browserToolbar">
@@ -1576,9 +1642,18 @@
 
     <script>
         const container = document.querySelector('.scroll-container');
+        const screen1 = document.querySelector('.screen-1');
         const screen2 = document.querySelector('.screen-2');
         const screen3 = document.querySelector('.screen-3');
         const screen4 = document.querySelector('.screen-4');
+
+        // Dismiss hook for screen2 cursor demo (заполняется ниже)
+        let dismissScreen2Demo = function () {};
+
+        function isExactlyOnScreen(el) {
+            if (!el) return false;
+            return Math.abs(container.scrollTop - el.offsetTop) <= 4;
+        }
 
         // Как CSS: ≤900px или низкий landscape (напр. 932×430)
         function isCompactLayout() {
@@ -2037,6 +2112,7 @@
             tbody.addEventListener('click', (e) => {
                 const row = e.target.closest('tr');
                 if (!row) return;
+                dismissScreen2Demo();
                 tbody.querySelectorAll('tr.is-selected').forEach((tr) => tr.classList.remove('is-selected'));
                 row.classList.add('is-selected');
 
@@ -2045,25 +2121,28 @@
                     .map((v) => parseInt(v, 10))
                     .filter((v) => v > 0);
 
-                emitSignalWavesAlongPath({
+                const waveMs = emitSignalWavesAlongPath({
                     duration: 1200,
-                    shouldContinue: () => true,
+                    shouldContinue: () => isExactlyOnScreen(screen2),
                     refreshWaypoints: () => {
                         const table = getRowScreenCenter(row);
                         const pcb = getPcbScreenCenter();
-                        const house = getBlockBScreenCenter(document.querySelector('.screen-2'));
+                        const house = getBlockBScreenCenter(screen2);
                         if (!table || !pcb || !house) return null;
                         return [table, pcb, house];
                     }
-                });
+                }) || 1200;
 
                 if (building && nums.length) {
-                    building.lightFlatWindows(nums);
+                    setTimeout(() => {
+                        if (!isExactlyOnScreen(screen2)) return;
+                        building.lightFlatWindows(nums);
+                    }, waveMs);
                 }
             });
         })();
 
-        // ---------- Signal waves + Screen 3 voice demo ----------
+        // ---------- Signal waves + Screen demos ----------
         const signalWavesLayer = document.getElementById('signalWavesLayer');
         const WAVE_REF_PATH_PX = 520;
         const WAVE_STAGGER_MS = 90;
@@ -2191,7 +2270,338 @@
             return totalDuration;
         }
 
-        // Screen 3 voice loop (IntersectionObserver — без scroll-index)
+        // Screen 1 — hero1: волны PCB→block-b + цикл окон
+        (function screen1FlatDemo() {
+            const HERO1_WAVE_MS = 500;
+            const HERO1_WAVE_STAGGER = 110;
+            const HERO1_WAVE_REF = 380;
+            const HERO1_INTERVAL = 2000;
+
+            let screen1Active = false;
+            let loopRunning = false;
+            let cycleRunning = false;
+            let nextAction = 'off';
+            let flatInterval = null;
+            const lit = new Set();
+            const timers = [];
+
+            function clearTimers() {
+                while (timers.length) clearTimeout(timers.pop());
+            }
+
+            function schedule(fn, ms) {
+                const id = setTimeout(fn, ms);
+                timers.push(id);
+                return id;
+            }
+
+            function shuffle(list) {
+                const arr = list.slice();
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    const tmp = arr[i];
+                    arr[i] = arr[j];
+                    arr[j] = tmp;
+                }
+                return arr;
+            }
+
+            function allWindowNumbers() {
+                if (!building || !building.windows) return [];
+                return building.windows.map((_, i) => i + 1);
+            }
+
+            function frontWindowNumbers() {
+                if (!building || !building.windows) return [];
+                const out = [];
+                building.windows.forEach((w, i) => {
+                    if (w.userData && w.userData.face === 'front') out.push(i + 1);
+                });
+                return out;
+            }
+
+            function pickRandom(list) {
+                if (!list.length) return null;
+                return list[Math.floor(Math.random() * list.length)];
+            }
+
+            function emitHero1Waves() {
+                return emitSignalWavesAlongPath({
+                    duration: HERO1_WAVE_MS,
+                    staggerMs: HERO1_WAVE_STAGGER,
+                    refPathLength: HERO1_WAVE_REF,
+                    shouldContinue: () => screen1Active,
+                    refreshWaypoints: () => {
+                        const pcb = getPcbScreenCenter();
+                        const house = getBlockBScreenCenter(screen1);
+                        if (!pcb || !house) return null;
+                        return [pcb, house];
+                    }
+                });
+            }
+
+            function applyOps(ops, delayMs) {
+                ops.forEach((op) => {
+                    schedule(() => {
+                        if (!screen1Active || !building) return;
+                        if (op.type === 'on') {
+                            building.lightWindowByNumber(op.n);
+                            lit.add(op.n);
+                        } else {
+                            building.turnOffWindowByNumber(op.n);
+                            lit.delete(op.n);
+                        }
+                    }, delayMs);
+                });
+            }
+
+            function runCycle(isInit) {
+                if (!screen1Active || cycleRunning || !building) return;
+                const ops = [];
+                if (isInit) {
+                    building.turnOffAllWindows();
+                    lit.clear();
+                    const picked = shuffle(allWindowNumbers())
+                        .slice(0, Math.ceil(allWindowNumbers().length / 2));
+                    picked.forEach((n) => ops.push({ type: 'on', n: n }));
+                    nextAction = 'off';
+                } else {
+                    const pool = frontWindowNumbers();
+                    if (nextAction === 'off') {
+                        const litFront = pool.filter((n) => lit.has(n));
+                        const offN = pickRandom(litFront);
+                        if (offN) ops.push({ type: 'off', n: offN });
+                        nextAction = 'on';
+                    } else {
+                        const unlitFront = pool.filter((n) => !lit.has(n));
+                        const onN = pickRandom(unlitFront);
+                        if (onN) ops.push({ type: 'on', n: onN });
+                        nextAction = 'off';
+                    }
+                }
+                if (!ops.length) return;
+
+                cycleRunning = true;
+                const waveMs = emitHero1Waves() || HERO1_WAVE_MS;
+                applyOps(ops, waveMs);
+                schedule(() => { cycleRunning = false; }, waveMs + 50);
+            }
+
+            function startLoop() {
+                if (loopRunning || !building) return;
+                loopRunning = true;
+                clearTimers();
+                cycleRunning = false;
+                runCycle(true);
+                flatInterval = setInterval(() => {
+                    if (!screen1Active) return;
+                    runCycle(false);
+                }, HERO1_INTERVAL);
+            }
+
+            function stopLoop() {
+                loopRunning = false;
+                cycleRunning = false;
+                if (flatInterval) {
+                    clearInterval(flatInterval);
+                    flatInterval = null;
+                }
+                clearTimers();
+                if (building) building.turnOffAllWindows();
+                lit.clear();
+            }
+
+            function syncScreen1Demo() {
+                const on = isExactlyOnScreen(screen1);
+                if (on === screen1Active) return;
+                screen1Active = on;
+                if (screen1Active) startLoop();
+                else stopLoop();
+            }
+
+            container.addEventListener('scroll', syncScreen1Demo, { passive: true });
+            window.addEventListener('resize', syncScreen1Demo);
+            setTimeout(syncScreen1Demo, 150);
+        })();
+
+        // Screen 2 — hero2 cursor demo
+        (function screen2CursorDemo() {
+            const HERO2_DEMO_ROW_INDICES = [0, 1];
+            const cursorDemo = document.getElementById('hero2CursorDemo');
+            const demoCursor = document.getElementById('hero2DemoCursor');
+            const demoRing = document.getElementById('hero2DemoClickRing');
+            const tbody = document.getElementById('flatsTableBody');
+            if (!cursorDemo || !demoCursor || !screen2 || !tbody) return;
+
+            let demoActive = true;
+            let screen2Active = false;
+            let loopRunning = false;
+            let targetIndex = 0;
+            let stepTimer = null;
+            let clickTimer = null;
+
+            function clearDemoTimers() {
+                clearTimeout(stepTimer);
+                clearTimeout(clickTimer);
+                stepTimer = null;
+                clickTimer = null;
+            }
+
+            function dismissDemo() {
+                if (!demoActive) return;
+                demoActive = false;
+                clearDemoTimers();
+                cursorDemo.classList.add('is-dismissed');
+                loopRunning = false;
+            }
+
+            dismissScreen2Demo = dismissDemo;
+
+            function positionCursor(row) {
+                const wrap = screen2.querySelector('.flatsTableWrap');
+                if (!wrap || !row) return;
+                const wrapRect = wrap.getBoundingClientRect();
+                const rowRect = row.getBoundingClientRect();
+                demoCursor.style.left = (rowRect.left - wrapRect.left + rowRect.width * 0.38) + 'px';
+                demoCursor.style.top = (rowRect.top - wrapRect.top + rowRect.height * 0.55) + 'px';
+            }
+
+            function syncRing() {
+                if (!demoRing) return;
+                demoRing.style.left = demoCursor.style.left;
+                demoRing.style.top = demoCursor.style.top;
+            }
+
+            function selectRow(row) {
+                tbody.querySelectorAll('tr.is-selected').forEach((tr) => tr.classList.remove('is-selected'));
+                row.classList.add('is-selected');
+                const nums = (row.getAttribute('data-flat-windows') || '')
+                    .split(',')
+                    .map((v) => parseInt(v, 10))
+                    .filter((v) => v > 0);
+
+                const waveMs = emitSignalWavesAlongPath({
+                    duration: 1200,
+                    shouldContinue: () => screen2Active && isExactlyOnScreen(screen2),
+                    refreshWaypoints: () => {
+                        const table = getRowScreenCenter(row);
+                        const pcb = getPcbScreenCenter();
+                        const house = getBlockBScreenCenter(screen2);
+                        if (!table || !pcb || !house) return null;
+                        return [table, pcb, house];
+                    }
+                }) || 1200;
+
+                if (building && nums.length) {
+                    setTimeout(() => {
+                        if (!isExactlyOnScreen(screen2)) return;
+                        building.lightFlatWindows(nums);
+                    }, waveMs);
+                }
+            }
+
+            function playClick(row) {
+                if (!demoActive) return;
+                demoCursor.classList.add('is-clicking');
+                syncRing();
+                if (demoRing) {
+                    demoRing.classList.remove('is-active');
+                    void demoRing.offsetWidth;
+                    demoRing.classList.add('is-active');
+                }
+                selectRow(row);
+                clickTimer = setTimeout(() => {
+                    demoCursor.classList.remove('is-clicking');
+                }, 180);
+            }
+
+            function scheduleStep(delay) {
+                clearTimeout(stepTimer);
+                stepTimer = setTimeout(runStep, delay);
+            }
+
+            function runStep() {
+                if (!demoActive || !loopRunning) return;
+                if (!isExactlyOnScreen(screen2)) {
+                    cursorDemo.classList.add('is-offscreen');
+                    scheduleStep(350);
+                    return;
+                }
+                cursorDemo.classList.remove('is-offscreen');
+
+                const rows = tbody.querySelectorAll('tr');
+                if (rows.length < 2) {
+                    scheduleStep(400);
+                    return;
+                }
+
+                const rowIndex = HERO2_DEMO_ROW_INDICES[targetIndex % HERO2_DEMO_ROW_INDICES.length];
+                const row = rows[rowIndex];
+                positionCursor(row);
+
+                clickTimer = setTimeout(() => {
+                    if (!demoActive || !loopRunning) return;
+                    playClick(row);
+                    targetIndex++;
+                    scheduleStep(targetIndex % HERO2_DEMO_ROW_INDICES.length === 0 ? 1500 : 850);
+                }, 700);
+            }
+
+            function startLoop() {
+                if (!demoActive || loopRunning) return;
+                loopRunning = true;
+                screen2Active = true;
+                cursorDemo.classList.remove('is-offscreen');
+                targetIndex = 0;
+                const rows = tbody.querySelectorAll('tr');
+                if (rows[0]) positionCursor(rows[0]);
+                scheduleStep(700);
+            }
+
+            function stopLoop() {
+                screen2Active = false;
+                loopRunning = false;
+                clearDemoTimers();
+                cursorDemo.classList.add('is-offscreen');
+                if (building) building.turnOffAllWindows();
+                tbody.querySelectorAll('tr.is-selected').forEach((tr) => tr.classList.remove('is-selected'));
+            }
+
+            function syncScreen2Demo() {
+                const on = isExactlyOnScreen(screen2);
+                if (on) {
+                    if (!loopRunning && demoActive) startLoop();
+                    else if (!demoActive) {
+                        /* dismissed — only gate waves for manual clicks */
+                    }
+                } else if (loopRunning || screen2Active) {
+                    stopLoop();
+                }
+            }
+
+            ['click', 'touchstart', 'mousedown', 'keydown'].forEach((type) => {
+                screen2.addEventListener(type, () => {
+                    if (!demoActive) return;
+                    dismissDemo();
+                }, true);
+            });
+            const browserContent = screen2.querySelector('.browserContent');
+            if (browserContent) {
+                browserContent.addEventListener('scroll', () => dismissDemo(), { passive: true });
+            }
+
+            container.addEventListener('scroll', syncScreen2Demo, { passive: true });
+            window.addEventListener('resize', () => {
+                syncScreen2Demo();
+                if (!demoActive || !isExactlyOnScreen(screen2)) return;
+                const rows = tbody.querySelectorAll('tr');
+                const idx = HERO2_DEMO_ROW_INDICES[(targetIndex + HERO2_DEMO_ROW_INDICES.length - 1) % HERO2_DEMO_ROW_INDICES.length];
+                if (rows[idx]) positionCursor(rows[idx]);
+            });
+            setTimeout(syncScreen2Demo, 200);
+        })();
+
+        // Screen 3 voice demo
         (function screen3VoiceDemo() {
             const HERO_MIC_PHRASES = [
                 'включи квартиру девять',
@@ -2379,12 +2789,8 @@
                 resetIdle();
             }
 
-            function isExactlyOnScreen3() {
-                return Math.abs(container.scrollTop - screen3.offsetTop) <= 4;
-            }
-
             function syncScreen3Demo() {
-                const on = isExactlyOnScreen3();
+                const on = isExactlyOnScreen(screen3);
                 if (on === screen3Active) return;
                 screen3Active = on;
                 if (screen3Active) startLoop();
