@@ -71,10 +71,46 @@
             background-size: 256px 256px;
         }
 
+        /* 3D-дом: над фоном, под текстом */
+        #sceneLayer {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        #threeCanvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+            pointer-events: none;
+        }
+
+        /* PCB: над фоном/3D, под текстом; уезжает вниз после screen 3 */
+        #pcbOverlay {
+            position: fixed;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 1;
+            visibility: visible;
+            will-change: transform, opacity, top, left, width;
+        }
+
+        #pcbOverlay img {
+            display: block;
+            width: 100%;
+            height: auto;
+            filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.18));
+        }
+
         .scroll-container {
             position: relative;
             z-index: 2;
             height: 100vh;
+            overflow-x: hidden;
             overflow-y: auto;
             scroll-snap-type: y mandatory;
             scroll-behavior: smooth;
@@ -144,13 +180,193 @@
             -webkit-backdrop-filter: blur(12px);
         }
 
-        .screen-2 .block-16x9 {
-            overflow-y: auto;
-            overscroll-behavior-y: contain;
-            padding: 0.75rem 1rem;
-            font-size: 0.9375rem;
-            line-height: 1.5;
+        .media-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+            width: 100%;
+            max-width: 520px;
+        }
+
+        .media-row .block-16x9 {
+            margin-top: 0;
+            flex: 1 1 auto;
+            min-width: 0;
+            max-width: 380px;
+        }
+
+        .media-row .mic-inline-wrap {
+            flex: 0 0 auto;
+            display: flex;
+            align-items: flex-end;
+        }
+
+        .media-row .mic-inline {
+            display: block;
+            height: auto;
+            width: auto;
+            object-fit: contain;
+            filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.16));
+        }
+
+        #micOverlay {
+            display: none !important;
+        }
+
+        .mic-portrait {
+            display: none;
+        }
+
+        /* flatsTableWrap / original-transform — как в building-3d */
+        .wrap-original-transform {
+            width: 100%;
+            max-width: 480px;
+            margin-top: 1rem;
+        }
+
+        .flatsTableWrap {
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            background: #1a1a1a;
+            padding: 8px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+            overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
+            border-radius: 12px;
+        }
+
+        .flatsTableInner {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.06);
+        }
+
+        .browserChrome {
+            flex-shrink: 0;
+            background: linear-gradient(180deg, #ececef 0%, #e3e3e8 100%);
+            padding: 8px 10px 7px;
+            border-bottom: 1px solid #c8c8cd;
+        }
+
+        .browserToolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 7px;
+        }
+
+        .browserTraffic {
+            display: flex;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .browserTraffic span {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.12);
+        }
+
+        .browserTraffic span:nth-child(1) { background: #ff5f57; }
+        .browserTraffic span:nth-child(2) { background: #febc2e; }
+        .browserTraffic span:nth-child(3) { background: #28c840; }
+
+        .browserAddressBar {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff;
+            border: 1px solid #c8c8cd;
+            border-radius: 6px;
+            padding: 4px 8px;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+
+        .browserLock {
+            flex-shrink: 0;
+            width: 10px;
+            height: 11px;
+            color: #28a745;
+        }
+
+        .browserUrl {
+            min-width: 0;
+            font-size: 11px;
+            line-height: 1.3;
+            color: #1f3a52;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .browserUrlPrefix {
+            color: #6b7c8f;
+            font-weight: 400;
+        }
+
+        .browserContent {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+            padding: 0 12px;
+            background: #fff;
+        }
+
+        .flatsTableTitle {
+            margin: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            color: #1f3a52;
+        }
+
+        .flatsTable {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .flatsTable th,
+        .flatsTable td {
+            padding: 6px 10px;
+            text-align: left;
+            border-bottom: 1px solid rgba(31, 58, 82, 0.1);
+            white-space: nowrap;
+        }
+
+        .flatsTable th {
+            position: sticky;
+            top: 0;
+            background: #fff;
+            color: #1f3a52;
+            font-weight: 600;
+        }
+
+        .flatsTable td {
+            color: #3d5568;
+        }
+
+        .flatsTable tbody tr {
+            cursor: pointer;
+            transition: background 120ms ease;
+        }
+
+        .flatsTable tbody tr.is-selected {
+            background: rgba(44, 92, 133, 0.12);
         }
 
         .snap {
@@ -225,6 +441,10 @@
             .btn-dark:hover {
                 background: #000;
                 transform: translateY(-2px);
+            }
+
+            .flatsTable tbody tr:hover {
+                background: rgba(31, 58, 82, 0.06);
             }
         }
 
@@ -339,7 +559,9 @@
         /* ===================== MOBILE ===================== */
 
         /* --- Landscape (телефон горизонтально) --- */
-        @media (max-width: 900px) and (orientation: landscape) {
+        /* max-height: ловит широкие телефоны (напр. 932×430), где width > 900 */
+        @media (max-width: 900px) and (orientation: landscape),
+               (orientation: landscape) and (max-height: 500px) {
 
             .scroll-down {
                 display: none;
@@ -357,15 +579,15 @@
             }
 
             h1 {
-                font-size: clamp(1.1rem, 3.5vw, 1.75rem);
+                font-size: clamp(1.1rem, 5.5vh, 1.75rem);
             }
 
             h2 {
-                font-size: clamp(1rem, 3vw, 1.5rem);
+                font-size: clamp(1rem, 5vh, 1.5rem);
             }
 
             p {
-                font-size: 0.8125rem;
+                font-size: clamp(0.75rem, 3.2vh, 0.8125rem);
                 margin-bottom: 0.5rem;
             }
 
@@ -382,7 +604,7 @@
                 height: 100%;
             }
 
-            /* Блок 16:9 — width = min(100%, 32vh * 16/9) */
+            /* Высота от vh, не от ширины колонки — иначе на широком landscape блок раздувается */
             .block-16x9 {
                 width: min(100%, calc(32vh * 16 / 9));
                 max-width: 100%;
@@ -390,6 +612,37 @@
                 height: auto;
                 margin-top: 0.4rem;
             }
+
+            .media-row {
+                max-width: 100%;
+                gap: 0.5rem;
+                margin-top: 0.4rem;
+            }
+
+            .media-row .block-16x9 {
+                margin-top: 0;
+                max-width: min(100%, calc(32vh * 16 / 9));
+                flex: 0 1 auto;
+            }
+
+            .wrap-original-transform {
+                width: min(100%, calc(32vh * 16 / 9));
+                max-width: 100%;
+                margin-top: 0.4rem;
+            }
+
+            .wrap-original-transform .flatsTableWrap {
+                width: 100%;
+                max-width: 100%;
+                margin-top: 0;
+            }
+
+            .flatsTableTitle { font-size: 12px; margin: 6px; }
+            .flatsTable { font-size: 10px; }
+            .flatsTable th,
+            .flatsTable td { padding: 4px 6px; }
+            .browserChrome { padding: 5px 7px 4px; }
+            .browserToolbar { gap: 6px; margin-bottom: 4px; }
 
             /* CTA — в правой половине экрана */
             .btn-group.main-actions {
@@ -412,6 +665,15 @@
             .form-container {
                 max-width: 100%;
                 margin-top: 0.5rem;
+            }
+
+            #btn-voice {
+                display: none !important;
+            }
+
+            #spacer-voice,
+            #spacer-cta {
+                display: none !important;
             }
         }
 
@@ -533,7 +795,8 @@
             /* block-16x9: высота задана через vh — block всегда занимает ровно 22vh.
                Ширина вычисляется из aspect-ratio автоматически, без конкуренции с max-height.
                Итог: текст получает ~28vh - padding, block-16x9 получает 22vh. */
-            .block-16x9 {
+            .block-16x9,
+            .flatsTableWrap {
                 height: max(22vh, 80px);
                 /* 22% экрана, минимум 80px */
                 width: auto;
@@ -547,6 +810,57 @@
                 margin-top: auto;
                 /* прижать к тексту снизу */
             }
+
+            .media-row {
+                max-width: 100%;
+                margin-top: auto;
+                align-self: flex-start;
+                flex-shrink: 0;
+            }
+
+            .media-row .block-16x9 {
+                margin-top: 0;
+            }
+
+            .media-row .mic-inline-wrap {
+                display: none;
+            }
+
+            /* Mic только на screen 3: низ block-b, отступ снизу = ½ высоты mic */
+            .screen-3 .mic-portrait {
+                display: block;
+                position: absolute;
+                left: 12px; /* как PCB */
+                width: 25vw; /* как PCB */
+                height: auto;
+                aspect-ratio: 409 / 610;
+                object-fit: contain;
+                /* низ block-b; отступ = половина фактической высоты (width × h/w) */
+                bottom: calc(25vw * 610 / 409 / 2);
+                margin: 0;
+                filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.16));
+                pointer-events: none;
+                z-index: 1;
+            }
+
+            .wrap-original-transform {
+                width: auto;
+                max-width: 100%;
+                margin-top: auto;
+                align-self: flex-start;
+                flex-shrink: 0;
+            }
+
+            .wrap-original-transform .flatsTableWrap {
+                margin-top: 0;
+            }
+
+            .flatsTableTitle { font-size: 12px; margin: 6px; }
+            .flatsTable { font-size: 10px; }
+            .flatsTable th,
+            .flatsTable td { padding: 4px 6px; }
+            .browserChrome { padding: 5px 7px 4px; }
+            .browserToolbar { gap: 6px; margin-bottom: 4px; }
 
             /* btn-group — по центру экрана */
             .btn-group.main-actions {
@@ -574,7 +888,8 @@
         }
 
         /* Мобилка: голос скрыт; стартовые spacer'ы не нужны — «полочка» CTA внизу экрана */
-        @media (max-width: 900px) {
+        @media (max-width: 900px),
+               (orientation: landscape) and (max-height: 500px) {
             #btn-voice {
                 display: none !important;
             }
@@ -640,6 +955,10 @@
 
     <canvas id="bg-canvas"></canvas>
     <div class="grain-overlay"></div>
+    <div id="sceneLayer" aria-hidden="true"></div>
+    <div id="pcbOverlay" aria-hidden="true">
+        <img src="pcb.png" alt="">
+    </div>
 
     <div class="scroll-container">
         <!-- Screen 1 -->
@@ -673,19 +992,42 @@
             <div class="screen-content">
                 <div class="block-a">
                     <h2>Управляйте макетом прямо с вашего сайта</h2>
-                    <div class="block-16x9">Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
-
-                        Даже если макет уже изготовлен, его можно сделать управляемым.Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
-
-                        Даже если макет уже изготовлен, его можно сделать управляемым.Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
-
-Даже если макет уже изготовлен, его можно сделать управляемым.Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
-
-Даже если макет уже изготовлен, его можно сделать управляемым.Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
-
-Даже если макет уже изготовлен, его можно сделать управляемым.Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
-
-                        Даже если макет уже изготовлен, его можно сделать управляемым.</div>
+                    <div class="wrap-original-transform">
+                        <div class="flatsTableWrap original-transform">
+                            <div class="flatsTableInner">
+                                <div class="browserChrome">
+                                    <div class="browserToolbar">
+                                        <div class="browserTraffic" aria-hidden="true">
+                                            <span></span><span></span><span></span>
+                                        </div>
+                                        <div class="browserAddressBar">
+                                            <svg class="browserLock" viewBox="0 0 12 14" aria-hidden="true">
+                                                <path fill="currentColor"
+                                                    d="M3 6.2V4.8a3 3 0 1 1 6 0V6.2h1c.66 0 1.2.54 1.2 1.2v5.6c0 .66-.54 1.2-1.2 1.2H2c-.66 0-1.2-.54-1.2-1.2V7.4c0-.66.54-1.2 1.2-1.2h1Zm1.5 0h3V4.8a1.5 1.5 0 0 0-3 0v1.4Z" />
+                                            </svg>
+                                            <div class="browserUrl">
+                                                <span class="browserUrlPrefix">https://</span>лучший-застройщик.рф
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="browserContent">
+                                    <div class="flatsTableTitle">Выбрать квартиру</div>
+                                    <table class="flatsTable">
+                                        <thead>
+                                            <tr>
+                                                <th>номер</th>
+                                                <th>этаж</th>
+                                                <th>комнат</th>
+                                                <th>площадь</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="flatsTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <p style="margin-top: 1.5rem;">Выберите квартиру в каталоге — соответствующее окно сразу загорится
                         на архитектурном макете.</p>
                 </div>
@@ -703,11 +1045,18 @@
             <div class="screen-content">
                 <div class="block-a">
                     <h2>Управляйте макетом голосом</h2>
-                    <div class="block-16x9"></div>
+                    <div class="media-row">
+                        <div class="block-16x9"></div>
+                        <div class="mic-inline-wrap">
+                            <img class="mic-inline" src="mic.png" alt="">
+                        </div>
+                    </div>
                     <p style="margin-top: 1.5rem;">Голосовое управление можно добавить и к уже установленной системе.
                         Замена существующего контроллера, как правило, не требуется.</p>
                 </div>
-                <div class="block-b"></div>
+                <div class="block-b">
+                    <img class="mic-portrait" src="mic.png" alt="">
+                </div>
                 <div class="btn-group main-actions" style="visibility: hidden; grid-column: 1 / -1;">
                     <a href="#" class="btn btn-secondary">Управляемая подсветка</a>
                     <a href="#" class="btn btn-secondary">Голосовое управление</a>
@@ -777,17 +1126,185 @@
     </div>
 
     <script src="background.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="building-scene.js"></script>
 
     <script>
         const container = document.querySelector('.scroll-container');
         const screen2 = document.querySelector('.screen-2');
         const screen3 = document.querySelector('.screen-3');
+        const screen4 = document.querySelector('.screen-4');
+
+        // Как CSS: ≤900px или низкий landscape (напр. 932×430)
+        function isCompactLayout() {
+            return (
+                window.matchMedia('(max-width: 900px)').matches ||
+                window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches
+            );
+        }
+
+        function isPortraitCompact() {
+            return window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches;
+        }
+
+        if (window.BuildingScene) {
+            BuildingScene.init({
+                sceneLayer: document.getElementById('sceneLayer'),
+                scrollContainer: container,
+                exitStartEl: screen3,
+                exitEndEl: screen4
+            });
+        }
+
+        // ---------- PCB overlay (fixed во вьюпорте; на scroll только exit) ----------
+        // Подбор уезда после screen3:
+        const PCB_EXIT_SPEED = 3;      // скорость по скроллу: 1 ≈ как дом, 2 = в 2 раза быстрее доедет до конца
+        const PCB_EXIT_DISTANCE = 1.2; // дистанция уезда вниз (доли высоты окна)
+        const PCB_EXIT_ACCEL = 1.3;    // ускорение easing: 1 = smootherstep; >1 резче разгон к концу; <1 мягче
+
+        const pcbOverlay = document.getElementById('pcbOverlay');
+        const pcbImg = pcbOverlay ? pcbOverlay.querySelector('img') : null;
+        let pcbBaseLeft = 0;
+        let pcbBaseTop = 0;
+        let pcbBaseWidth = 120;
+        let pcbBaseHeight = 66;
+
+        function smootherstep(t) {
+            return t * t * t * (t * (t * 6 - 15) + 10);
+        }
+
+        function getPcbExitProgress() {
+            // Базовый диапазон как у 3D (screen3 → screen4 + 0.55vh), укороченный через SPEED
+            const exitStart = screen3.offsetTop;
+            const baseEnd = screen4.offsetTop + container.clientHeight * 0.55;
+            const range = Math.max(baseEnd - exitStart, 1) / Math.max(PCB_EXIT_SPEED, 0.01);
+            return Math.max(0, Math.min(1, (container.scrollTop - exitStart) / range));
+        }
+
+        function easePcbExit(t) {
+            const s = smootherstep(t);
+            if (PCB_EXIT_ACCEL === 1) return s;
+            return Math.pow(s, Math.max(PCB_EXIT_ACCEL, 0.01));
+        }
+
+        function remToPx(n) {
+            return n * parseFloat(getComputedStyle(document.documentElement).fontSize);
+        }
+
+        // Позиция от геометрии вьюпорта/сетки — не от getBoundingClientRect скроллящихся блоков
+        function measurePcbBase() {
+            if (!pcbOverlay || !pcbImg) return;
+
+            const isMobile = isCompactLayout();
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const gap = 12;
+            const naturalRatio =
+                pcbImg.naturalWidth && pcbImg.naturalHeight
+                    ? pcbImg.naturalHeight / pcbImg.naturalWidth
+                    : 0.55;
+
+            if (isPortraitCompact()) {
+                // Сетка 50/50: Б сверху, А снизу. PCB над А, слева, 25% ширины экрана
+                const padY = remToPx(1.25);
+                const blockATop = padY + (vh - padY * 2) * 0.5;
+                pcbBaseWidth = vw * 0.25;
+                pcbBaseHeight = pcbBaseWidth * naturalRatio;
+                pcbBaseLeft = gap;
+                pcbBaseTop = Math.max(gap, blockATop - gap - pcbBaseHeight);
+            } else {
+                // Правая колонка: левый край, нижняя часть блока Б (не у самого низа экрана)
+                const padX = isMobile ? remToPx(1.25) : remToPx(2);
+                const padY = isMobile ? remToPx(1) : remToPx(4);
+                const gapX = isMobile ? remToPx(2) : remToPx(4);
+                const contentMax = 1200;
+                const contentW = Math.min(contentMax, vw - padX * 2);
+                const contentLeft = (vw - contentW) / 2;
+                const colW = (contentW - gapX) / 2;
+                const blockBLeft = contentLeft + colW + gapX;
+                const blockBTop = padY;
+                const blockBH = vh - padY * 2;
+
+                pcbBaseWidth = Math.max(80, colW * 0.3);
+                pcbBaseHeight = pcbBaseWidth * naturalRatio;
+                pcbBaseLeft = blockBLeft + gap;
+                // Нижний край PCB ≈ 78% высоты блока Б
+                pcbBaseTop = blockBTop + blockBH * 0.78 - pcbBaseHeight;
+                pcbBaseTop = Math.max(
+                    blockBTop + gap,
+                    Math.min(pcbBaseTop, blockBTop + blockBH - gap - pcbBaseHeight)
+                );
+            }
+
+            pcbOverlay.style.width = pcbBaseWidth + 'px';
+            pcbOverlay.style.left = pcbBaseLeft + 'px';
+            pcbOverlay.style.top = pcbBaseTop + 'px';
+            pcbOverlay.style.right = 'auto';
+            pcbOverlay.style.bottom = 'auto';
+        }
+
+        function getBlock16x9Height() {
+            const block = document.querySelector('.screen-3 .media-row .block-16x9');
+            if (block) {
+                const h = block.getBoundingClientRect().height;
+                if (h > 1) return h;
+            }
+            // fallback: те же правила, что у .block-16x9
+            if (isPortraitCompact()) return Math.max(window.innerHeight * 0.22, 80);
+            if (isCompactLayout()) return window.innerHeight * 0.32;
+            const w = Math.min(380, window.innerWidth * 0.4);
+            return (w * 9) / 16;
+        }
+
+        function syncMicInlineHeight() {
+            const mic = document.querySelector('.screen-3 .mic-inline');
+            if (!mic) return;
+            const h = getBlock16x9Height();
+            mic.style.height = h + 'px';
+            mic.style.width = 'auto';
+        }
+
+        function updatePcbOverlay() {
+            if (!pcbOverlay) return;
+
+            const progress = getPcbExitProgress();
+            const eased = easePcbExit(progress);
+            const exitY = eased * window.innerHeight * PCB_EXIT_DISTANCE;
+
+            // top/left/width не трогаем на scroll — только сдвиг вниз при exit
+            pcbOverlay.style.transform = 'translateY(' + exitY + 'px)';
+
+            if (progress >= 0.98) {
+                pcbOverlay.style.visibility = 'hidden';
+                pcbOverlay.style.opacity = '0';
+            } else {
+                pcbOverlay.style.visibility = 'visible';
+                const fade = progress > 0.7 ? 1 - (progress - 0.7) / 0.28 : 1;
+                pcbOverlay.style.opacity = String(Math.max(0, fade));
+            }
+        }
+
+        if (pcbImg) {
+            if (pcbImg.complete) {
+                measurePcbBase();
+                syncMicInlineHeight();
+                updatePcbOverlay();
+            } else {
+                pcbImg.addEventListener('load', () => {
+                    measurePcbBase();
+                    syncMicInlineHeight();
+                    updatePcbOverlay();
+                });
+            }
+        }
 
         const btnVoice = document.getElementById('btn-voice');
         const spacerVoice = document.getElementById('spacer-voice');
         const btnCta = document.getElementById('btn-cta');
         const spacerCta = document.getElementById('spacer-cta');
         const spacerCtaDock = document.getElementById('spacer-cta-dock');
+        const ctaGroup = document.querySelector('.screen-1 .btn-group.main-actions');
         const scrollDownArrow = document.getElementById('scroll-down-arrow');
 
         let voiceOrigTop, voiceOrigLeft, voiceFixedTop, voiceFixedLeft;
@@ -825,7 +1342,7 @@
         }
 
         function handleScroll() {
-            const isMobile = window.matchMedia('(max-width: 900px)').matches;
+            const isMobile = isCompactLayout();
             let st = container.scrollTop;
 
             if (st > 50) {
@@ -839,6 +1356,8 @@
             } else {
                 container.style.scrollSnapType = 'y mandatory';
             }
+
+            updatePcbOverlay();
 
             // Голосовая кнопка — только desktop
             if (!isMobile) {
@@ -887,11 +1406,18 @@
         }
 
         function updateVoicePositions() {
-            const isMobile = window.matchMedia('(max-width: 900px)').matches;
+            const isMobile = isCompactLayout();
             const st = container.scrollTop;
             const containerRect = container.getBoundingClientRect();
 
+            if (!ctaGroup || !spacerCtaDock || !btnCta) return;
+
             if (!isMobile) {
+                // Убираем мобильные инлайны, иначе left/width от «полочки» раздувают scrollWidth
+                clearCtaShelfExtras();
+                btnVoice.style.removeProperty('width');
+                btnVoice.style.removeProperty('transform');
+
                 voiceOrigTop = spacerVoice.offsetTop;
                 voiceOrigLeft = spacerVoice.offsetLeft;
                 const rectV = spacerVoice.getBoundingClientRect();
@@ -928,13 +1454,11 @@
                 }
             }
 
-            // Якорь на screen 4
-            const group = btnCta.offsetParent;
-            const groupRect = group.getBoundingClientRect();
+            // Якорь: не offsetParent (у fixed он null), а стабильная группа с screen-1
+            const groupRect = ctaGroup.getBoundingClientRect();
             const dockRect = spacerCtaDock.getBoundingClientRect();
             ctaDockTop = dockRect.top - groupRect.top;
             if (ctaLockX) {
-                // Альбомная: X как у полочки, не уезжаем к правому краю якоря
                 ctaDockLeft = ctaFixedLeft - groupRect.left;
                 ctaDockFixedLeft = ctaFixedLeft;
             } else {
@@ -948,9 +1472,9 @@
             handleScroll();
         }
 
-        // Вложенный скролл screen-2 .block-16x9: на краях отдаём жест родителю (snap)
+        // Вложенный скролл .browserContent: на краях отдаём жест родителю (snap)
         (function bindNestedBlockScroll() {
-            const nest = document.querySelector('.screen-2 .block-16x9');
+            const nest = document.querySelector('.screen-2 .browserContent');
             if (!nest) return;
 
             function overflows() {
@@ -992,9 +1516,80 @@
             }, { passive: false });
         })();
 
-        window.addEventListener('resize', updateVoicePositions);
-        window.addEventListener('orientationchange', () => setTimeout(updateVoicePositions, 100));
-        setTimeout(updateVoicePositions, 100);
+        // Таблица квартир — как в building-3d
+        (function renderFlatsTable() {
+            const flats = [
+                { "1":  { floor: 1, numberOnFloor: 1, windows: [3, 4, 55] } },
+                { "2":  { floor: 1, numberOnFloor: 2, windows: [5, 6, 7] } },
+                { "3":  { floor: 1, numberOnFloor: 3, windows: [32, 33, 56, 57] } },
+                { "4":  { floor: 1, numberOnFloor: 4, windows: [34, 35, 72, 73] } },
+                { "5":  { floor: 2, numberOnFloor: 1, windows: [8, 9, 58] } },
+                { "6":  { floor: 2, numberOnFloor: 2, windows: [10, 11, 12] } },
+                { "7":  { floor: 2, numberOnFloor: 3, windows: [36, 37, 59, 60] } },
+                { "8":  { floor: 2, numberOnFloor: 4, windows: [38, 39, 74, 75] } },
+                { "9":  { floor: 3, numberOnFloor: 1, windows: [13, 14, 61] } },
+                { "10": { floor: 3, numberOnFloor: 2, windows: [15, 16, 17] } },
+                { "11": { floor: 3, numberOnFloor: 3, windows: [40, 41, 62, 63] } },
+                { "12": { floor: 3, numberOnFloor: 4, windows: [42, 43, 76, 77] } },
+                { "13": { floor: 4, numberOnFloor: 1, windows: [18, 19, 64] } },
+                { "14": { floor: 4, numberOnFloor: 2, windows: [20, 21, 22] } },
+                { "15": { floor: 4, numberOnFloor: 3, windows: [44, 45, 65, 66] } },
+                { "16": { floor: 4, numberOnFloor: 4, windows: [46, 47, 78, 79] } },
+                { "17": { floor: 5, numberOnFloor: 1, windows: [23, 24, 67] } },
+                { "18": { floor: 5, numberOnFloor: 2, windows: [25, 26, 27] } },
+                { "19": { floor: 5, numberOnFloor: 3, windows: [48, 49, 68, 69] } },
+                { "20": { floor: 5, numberOnFloor: 4, windows: [50, 51, 80, 81] } }
+            ];
+
+            const tbody = document.getElementById('flatsTableBody');
+            if (!tbody) return;
+
+            const sorted = flats.slice().sort((a, b) => {
+                const flatA = a[Object.keys(a)[0]];
+                const flatB = b[Object.keys(b)[0]];
+                if (flatA.numberOnFloor !== flatB.numberOnFloor) {
+                    return flatA.numberOnFloor - flatB.numberOnFloor;
+                }
+                return flatA.floor - flatB.floor;
+            });
+
+            tbody.innerHTML = sorted.map((entry) => {
+                const number = Object.keys(entry)[0];
+                const flat = entry[number];
+                const winCount = flat.windows.length;
+                const rooms = winCount - 2;
+                const area = (winCount - 1) * 19;
+                return '<tr data-flat-number="' + number + '" data-flat-windows="' +
+                    flat.windows.join(',') + '"><td>' + number + '</td><td>' + flat.floor +
+                    '</td><td>' + rooms + '</td><td>' + area + '</td></tr>';
+            }).join('');
+
+            tbody.addEventListener('click', (e) => {
+                const row = e.target.closest('tr');
+                if (!row) return;
+                tbody.querySelectorAll('tr.is-selected').forEach((tr) => tr.classList.remove('is-selected'));
+                row.classList.add('is-selected');
+            });
+        })();
+
+        window.addEventListener('resize', () => {
+            measurePcbBase();
+            syncMicInlineHeight();
+            updatePcbOverlay();
+            updateVoicePositions();
+        });
+        window.addEventListener('orientationchange', () => setTimeout(() => {
+            measurePcbBase();
+            syncMicInlineHeight();
+            updatePcbOverlay();
+            updateVoicePositions();
+        }, 100));
+        setTimeout(() => {
+            measurePcbBase();
+            syncMicInlineHeight();
+            updatePcbOverlay();
+            updateVoicePositions();
+        }, 100);
 
         container.addEventListener('scroll', handleScroll);
     </script>
