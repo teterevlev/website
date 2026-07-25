@@ -200,6 +200,7 @@
             flex: 0 0 auto;
             display: flex;
             align-items: flex-end;
+            position: relative;
         }
 
         .media-row .mic-inline {
@@ -210,12 +211,80 @@
             filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.16));
         }
 
+        /* Caption typewriter у mic (без mic-fly) */
+        .mic-caption {
+            position: absolute;
+            box-sizing: border-box;
+            padding: 8px 12px;
+            border: 2px solid #1e4a72;
+            border-radius: 10px;
+            background: rgba(44, 92, 133, 0.94);
+            color: #fff;
+            font-size: 14px;
+            line-height: 1.35;
+            text-align: left;
+            box-shadow: 0 6px 18px rgba(31, 58, 82, 0.22);
+            pointer-events: none;
+            z-index: 9;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+            white-space: nowrap;
+        }
+
+        .mic-caption.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .mic-caption--inline {
+            /* left: calc(100% + 8px); */
+            bottom: 30%;
+            min-width: 260px;
+        }
+
+        .mic-caption--portrait {
+            display: none;
+            /* left: calc(12px + 25vw + 8px); */
+            bottom: 30%;
+            min-width: 260px;
+            white-space: normal;
+            font-size: 12px;
+        }
+
+        .mic-caret {
+            display: inline-block;
+            margin-left: 1px;
+            animation: micCaretBlink 0.9s step-end infinite;
+        }
+
+        @keyframes micCaretBlink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
         #micOverlay {
             display: none !important;
         }
 
         .mic-portrait {
             display: none;
+        }
+
+        #signalWavesLayer {
+            position: fixed;
+            inset: 0;
+            z-index: 2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .signalWave {
+            position: fixed;
+            border-radius: 50%;
+            border: 2px solid rgba(0, 0, 255, 0.42);
+            background: rgba(0, 0, 255, 0.14);
+            box-shadow: 0 0 18px rgba(0, 0, 255, 0.16);
+            pointer-events: none;
+            will-change: left, top, transform, opacity;
         }
 
         /* flatsTableWrap / original-transform — как в building-3d */
@@ -319,11 +388,15 @@
         .browserContent {
             flex: 1;
             min-height: 0;
+            padding: 0 12px;
+            background: #fff;
+        }
+
+        /* Внутренний скролл только у таблицы на screen 2 */
+        .screen-2 .browserContent {
             overflow: auto;
             overscroll-behavior: contain;
             -webkit-overflow-scrolling: touch;
-            padding: 0 12px;
-            background: #fff;
         }
 
         .flatsTableTitle {
@@ -367,6 +440,283 @@
 
         .flatsTable tbody tr.is-selected {
             background: rgba(44, 92, 133, 0.12);
+        }
+
+        /* Screen 3: браузер-оболочка внутри block-16x9 */
+        .screen-3 .block-16x9.flatsTableWrap {
+            background: #1a1a1a;
+            border: none;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+            padding: 8px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
+            overflow: hidden;
+            isolation: isolate;
+            /* размер только от aspect-ratio / родителя — контент URL/страниц не двигает коробку */
+            min-width: 0;
+            contain: layout;
+        }
+
+        .screen-3 .block-16x9.flatsTableWrap .browserChrome,
+        .screen-3 .block-16x9.flatsTableWrap .browserToolbar,
+        .screen-3 .block-16x9.flatsTableWrap .browserAddressBar,
+        .screen-3 .block-16x9.flatsTableWrap .browserUrl {
+            min-width: 0;
+        }
+
+        /* «9» и «14» одной ширины — иначе URL чуть раздвигает chrome */
+        #hero3BrowserFlatSlug {
+            display: inline-block;
+            min-width: 2ch;
+            text-align: left;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .screen-3 .browserAddressBar.is-loading::after {
+            pointer-events: none;
+        }
+
+        .screen-3 .hero3BrowserContent {
+            position: relative;
+            overflow: hidden;
+            overscroll-behavior: none;
+            padding: 0;
+            flex: 1;
+            min-height: 0;
+            /* не перехватывать вертикальный жест страницы */
+            touch-action: none;
+        }
+
+        .screen-3 .block-16x9.flatsTableWrap,
+        .screen-3 .flatsTableInner {
+            overscroll-behavior: none;
+            touch-action: none;
+        }
+
+        .screen-3 .hero3IntroScreen {
+            position: absolute;
+            inset: 0;
+            z-index: 4;
+            background: #fff;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.35s ease, visibility 0.35s ease;
+        }
+
+        .screen-3 .hero3IntroScreen.is-active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .screen-3 .hero3BrowserContent.is-awaiting-flat {
+            background: #fff;
+        }
+
+        .screen-3 .hero3BrowserContent.is-awaiting-flat .flatPage {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .screen-3 .flatPage {
+            position: absolute;
+            inset: 0;
+            box-sizing: border-box;
+            padding: 8px 10px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.38s ease, visibility 0.38s ease;
+            pointer-events: none;
+        }
+
+        .screen-3 .flatPage.is-active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .screen-3 .hero3PageLoader {
+            position: absolute;
+            inset: 0;
+            z-index: 6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 9px;
+            background: #fff;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.22s ease, visibility 0.22s ease;
+        }
+
+        .screen-3 .hero3PageLoader.is-active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .screen-3 .hero3PageLoaderSpinner {
+            width: 22px;
+            height: 22px;
+            border: 2px solid rgba(44, 92, 133, 0.16);
+            border-top-color: #2c5c85;
+            border-radius: 50%;
+            animation: hero3PageSpin 0.72s linear infinite;
+        }
+
+        .screen-3 .hero3PageLoaderText {
+            font-size: 10px;
+            color: #6b7c8f;
+            letter-spacing: 0.02em;
+        }
+
+        .screen-3 .hero3PageLoaderBar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(44, 92, 133, 0.08);
+            overflow: hidden;
+        }
+
+        .screen-3 .hero3PageLoaderBar span {
+            display: block;
+            height: 100%;
+            width: 36%;
+            background: linear-gradient(90deg, #2c5c85, #4a8ec4);
+            animation: hero3PageLoadBar 0.8s ease-in-out infinite;
+        }
+
+        .screen-3 .flatsTableInner.is-loading .hero3BrowserContent .flatPage {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .screen-3 .browserAddressBar.is-loading {
+            position: relative;
+        }
+
+        .screen-3 .browserAddressBar.is-loading::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -1px;
+            height: 2px;
+            background: rgba(44, 92, 133, 0.1);
+            border-radius: 0 0 4px 4px;
+        }
+
+        @keyframes hero3PageSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes hero3PageLoadBar {
+            0% { transform: translateX(-120%); }
+            100% { transform: translateX(320%); }
+        }
+
+        .flatPageSiteNav {
+            flex-shrink: 0;
+            font-size: 8px;
+            line-height: 1.3;
+            color: #6b7c8f;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .flatPageSiteNav span {
+            color: #2c5c85;
+        }
+
+        .flatPageBody {
+            flex: 1;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 1.05fr 0.88fr;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        .flatPagePlan {
+            min-height: 0;
+            margin: 0;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(44, 92, 133, 0.14);
+            background: #f6f9fc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .flatPagePlan img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .flatPageInfo {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .flatPageTitle {
+            margin: 0;
+            font-size: 13px;
+            line-height: 1.15;
+            font-weight: 700;
+            color: #1f3a52;
+            font-family: var(--font);
+            letter-spacing: 0;
+        }
+
+        .flatPageSpecs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+        }
+
+        .flatPageSpec {
+            background: #f2f6fa;
+            border-radius: 5px;
+            padding: 4px;
+            text-align: center;
+        }
+
+        .flatPageSpec strong {
+            display: block;
+            font-size: 11px;
+            line-height: 1.15;
+            color: #1f3a52;
+        }
+
+        .flatPageSpec span {
+            font-size: 8px;
+            color: #6b7c8f;
+            text-transform: lowercase;
+        }
+
+        .flatPageTag {
+            margin: 0;
+            font-size: 9px;
+            line-height: 1.35;
+            color: #3d5568;
+        }
+
+        .flatPageTag span {
+            display: block;
         }
 
         .snap {
@@ -843,6 +1193,19 @@
                 z-index: 1;
             }
 
+            .screen-3 .block-b {
+                position: relative;
+                overflow: visible;
+            }
+
+            .mic-caption--inline {
+                display: none;
+            }
+
+            .mic-caption--portrait {
+                display: block;
+            }
+
             .wrap-original-transform {
                 width: auto;
                 max-width: 100%;
@@ -959,6 +1322,7 @@
     <div id="pcbOverlay" aria-hidden="true">
         <img src="pcb.png" alt="">
     </div>
+    <div id="signalWavesLayer" aria-hidden="true"></div>
 
     <div class="scroll-container">
         <!-- Screen 1 -->
@@ -1046,9 +1410,86 @@
                 <div class="block-a">
                     <h2>Управляйте макетом голосом</h2>
                     <div class="media-row">
-                        <div class="block-16x9"></div>
+                        <div class="block-16x9 flatsTableWrap">
+                            <div class="flatsTableInner" id="hero3BrowserShell">
+                                <div class="browserChrome">
+                                    <div class="browserToolbar">
+                                        <div class="browserTraffic" aria-hidden="true">
+                                            <span></span><span></span><span></span>
+                                        </div>
+                                        <div class="browserAddressBar" id="hero3AddressBar">
+                                            <svg class="browserLock" viewBox="0 0 12 14" aria-hidden="true">
+                                                <path fill="currentColor"
+                                                    d="M3 6.2V4.8a3 3 0 1 1 6 0V6.2h1c.66 0 1.2.54 1.2 1.2v5.6c0 .66-.54 1.2-1.2 1.2H2c-.66 0-1.2-.54-1.2-1.2V7.4c0-.66.54-1.2 1.2-1.2h1Zm1.5 0h3V4.8a1.5 1.5 0 0 0-3 0v1.4Z" />
+                                            </svg>
+                                            <div class="browserUrl" id="hero3BrowserUrl">
+                                                <span class="browserUrlPrefix">https://</span>лучший-застройщик.рф/flats/<span
+                                                    id="hero3BrowserFlatSlug">9</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="browserContent hero3BrowserContent is-awaiting-flat" id="hero3BrowserContent">
+                                    <div class="hero3IntroScreen" id="hero3IntroScreen" aria-hidden="true"></div>
+                                    <div class="hero3PageLoader" id="hero3PageLoader" aria-hidden="true">
+                                        <div class="hero3PageLoaderBar"><span></span></div>
+                                        <div class="hero3PageLoaderSpinner"></div>
+                                        <div class="hero3PageLoaderText">загрузка страницы…</div>
+                                    </div>
+                                    <div class="flatPage" data-flat="9" id="hero3FlatPage9">
+                                        <div class="flatPageSiteNav">лучший-застройщик.рф / <span>каталог</span> /
+                                            квартира 9</div>
+                                        <div class="flatPageBody">
+                                            <div class="flatPagePlan">
+                                                <img src="building-3d/flat1.jpg" alt="Планировка квартиры 9">
+                                            </div>
+                                            <div class="flatPageInfo">
+                                                <h2 class="flatPageTitle">Квартира №9</h2>
+                                                <div class="flatPageSpecs">
+                                                    <div class="flatPageSpec"><strong>3</strong><span>этаж</span></div>
+                                                    <div class="flatPageSpec"><strong>1</strong><span>комната</span>
+                                                    </div>
+                                                    <div class="flatPageSpec"><strong>38</strong><span>м²</span></div>
+                                                </div>
+                                                <p class="flatPageTag">
+                                                    <span>Вид на двор</span>
+                                                    <span>высокие потолки</span>
+                                                    <span>готова к показу на макете</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flatPage" data-flat="14" id="hero3FlatPage14">
+                                        <div class="flatPageSiteNav">лучший-застройщик.рф / <span>каталог</span> /
+                                            квартира 14</div>
+                                        <div class="flatPageBody">
+                                            <div class="flatPagePlan">
+                                                <img src="building-3d/flat2.jpg" alt="Планировка квартиры 14">
+                                            </div>
+                                            <div class="flatPageInfo">
+                                                <h2 class="flatPageTitle">Квартира №14</h2>
+                                                <div class="flatPageSpecs">
+                                                    <div class="flatPageSpec"><strong>4</strong><span>этаж</span></div>
+                                                    <div class="flatPageSpec"><strong>1</strong><span>комната</span>
+                                                    </div>
+                                                    <div class="flatPageSpec"><strong>38</strong><span>м²</span></div>
+                                                </div>
+                                                <p class="flatPageTag">
+                                                    <span>Угловая</span>
+                                                    <span>панорамные окна</span>
+                                                    <span>подсветка на макете</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <div class="mic-inline-wrap">
                             <img class="mic-inline" src="mic.png" alt="">
+                            <div class="mic-caption mic-caption--inline is-hidden" aria-live="polite">
+                                <span class="mic-typed-text"></span><span class="mic-caret" aria-hidden="true">|</span>
+                            </div>
                         </div>
                     </div>
                     <p style="margin-top: 1.5rem;">Голосовое управление можно добавить и к уже установленной системе.
@@ -1056,6 +1497,9 @@
                 </div>
                 <div class="block-b">
                     <img class="mic-portrait" src="mic.png" alt="">
+                    <div class="mic-caption mic-caption--portrait is-hidden" aria-live="polite">
+                        <span class="mic-typed-text"></span><span class="mic-caret" aria-hidden="true">|</span>
+                    </div>
                 </div>
                 <div class="btn-group main-actions" style="visibility: hidden; grid-column: 1 / -1;">
                     <a href="#" class="btn btn-secondary">Управляемая подсветка</a>
@@ -1148,8 +1592,9 @@
             return window.matchMedia('(max-width: 900px) and (orientation: portrait)').matches;
         }
 
+        let building = null;
         if (window.BuildingScene) {
-            BuildingScene.init({
+            building = BuildingScene.init({
                 sceneLayer: document.getElementById('sceneLayer'),
                 scrollContainer: container,
                 exitStartEl: screen3,
@@ -1472,7 +1917,7 @@
             handleScroll();
         }
 
-        // Вложенный скролл .browserContent: на краях отдаём жест родителю (snap)
+        // Вложенный скролл только screen-2 .browserContent: на краях — жест родителю
         (function bindNestedBlockScroll() {
             const nest = document.querySelector('.screen-2 .browserContent');
             if (!nest) return;
@@ -1513,6 +1958,31 @@
                     e.preventDefault();
                     container.scrollTop += dy;
                 }
+            }, { passive: false });
+        })();
+
+        // Screen 3: браузер без внутреннего скролла — колесо/тач сразу на страницу
+        (function bindScreen3BrowserPassThrough() {
+            const wrap = document.querySelector('.screen-3 .block-16x9.flatsTableWrap');
+            if (!wrap) return;
+
+            wrap.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                container.scrollTop += e.deltaY;
+            }, { passive: false });
+
+            let touchY = 0;
+            wrap.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) touchY = e.touches[0].clientY;
+            }, { passive: true });
+
+            wrap.addEventListener('touchmove', (e) => {
+                if (e.touches.length !== 1) return;
+                const y = e.touches[0].clientY;
+                const dy = touchY - y;
+                touchY = y;
+                e.preventDefault();
+                container.scrollTop += dy;
             }, { passive: false });
         })();
 
@@ -1569,7 +2039,363 @@
                 if (!row) return;
                 tbody.querySelectorAll('tr.is-selected').forEach((tr) => tr.classList.remove('is-selected'));
                 row.classList.add('is-selected');
+
+                const nums = (row.getAttribute('data-flat-windows') || '')
+                    .split(',')
+                    .map((v) => parseInt(v, 10))
+                    .filter((v) => v > 0);
+
+                emitSignalWavesAlongPath({
+                    duration: 1200,
+                    shouldContinue: () => true,
+                    refreshWaypoints: () => {
+                        const table = getRowScreenCenter(row);
+                        const pcb = getPcbScreenCenter();
+                        const house = getBlockBScreenCenter(document.querySelector('.screen-2'));
+                        if (!table || !pcb || !house) return null;
+                        return [table, pcb, house];
+                    }
+                });
+
+                if (building && nums.length) {
+                    building.lightFlatWindows(nums);
+                }
             });
+        })();
+
+        // ---------- Signal waves + Screen 3 voice demo ----------
+        const signalWavesLayer = document.getElementById('signalWavesLayer');
+        const WAVE_REF_PATH_PX = 520;
+        const WAVE_STAGGER_MS = 90;
+
+        function getElementCenter(el) {
+            if (!el) return null;
+            const rect = el.getBoundingClientRect();
+            if (rect.width <= 0 || rect.height <= 0) return null;
+            return { x: rect.left + rect.width * 0.5, y: rect.top + rect.height * 0.5 };
+        }
+
+        function getPcbScreenCenter() {
+            return getElementCenter(pcbOverlay);
+        }
+
+        function getBlockBScreenCenter(screenEl) {
+            if (!screenEl) return null;
+            return getElementCenter(screenEl.querySelector('.block-b'));
+        }
+
+        function getRowScreenCenter(row) {
+            return getElementCenter(row);
+        }
+
+        function getMicScreenCenter() {
+            const portrait = isPortraitCompact();
+            const mic = portrait
+                ? document.querySelector('.screen-3 .mic-portrait')
+                : document.querySelector('.screen-3 .mic-inline');
+            return getElementCenter(mic);
+        }
+
+        function emitSignalWavesAlongPath(opts) {
+            if (!signalWavesLayer) return 0;
+            opts = opts || {};
+            const waveCount = opts.waveCount || 4;
+            const baseDuration = opts.duration || 1200;
+            const refPathLength = opts.refPathLength || WAVE_REF_PATH_PX;
+            const staggerMs = opts.staggerMs != null ? opts.staggerMs : WAVE_STAGGER_MS;
+            const shouldContinue = opts.shouldContinue || function () { return true; };
+            const refreshWaypoints = opts.refreshWaypoints;
+
+            function buildSegmentData(waypoints) {
+                const segLens = [];
+                let totalLen = 0;
+                for (let s = 0; s < waypoints.length - 1; s++) {
+                    const dx = waypoints[s + 1].x - waypoints[s].x;
+                    const dy = waypoints[s + 1].y - waypoints[s].y;
+                    const len = Math.sqrt(dx * dx + dy * dy);
+                    segLens.push(len);
+                    totalLen += len;
+                }
+                return { segLens: segLens, totalLen: totalLen };
+            }
+
+            function positionOnPath(waypoints, segData, t) {
+                if (segData.totalLen <= 0) return waypoints[0];
+                let dist = t * segData.totalLen;
+                let acc = 0;
+                for (let i = 0; i < segData.segLens.length; i++) {
+                    if (acc + segData.segLens[i] >= dist || i === segData.segLens.length - 1) {
+                        let segT = segData.segLens[i] > 0 ? (dist - acc) / segData.segLens[i] : 0;
+                        segT = Math.max(0, Math.min(1, segT));
+                        return {
+                            x: waypoints[i].x + (waypoints[i + 1].x - waypoints[i].x) * segT,
+                            y: waypoints[i].y + (waypoints[i + 1].y - waypoints[i].y) * segT
+                        };
+                    }
+                    acc += segData.segLens[i];
+                }
+                return waypoints[waypoints.length - 1];
+            }
+
+            const seedWaypoints = refreshWaypoints ? refreshWaypoints() : null;
+            if (!seedWaypoints || seedWaypoints.length < 2) return 0;
+            const seedSeg = buildSegmentData(seedWaypoints);
+            const pathScale = seedSeg.totalLen > 0
+                ? Math.max(0.45, Math.min(1.35, seedSeg.totalLen / refPathLength))
+                : 1;
+            const totalDuration = Math.round(baseDuration * pathScale);
+
+            for (let i = 0; i < waveCount; i++) {
+                (function (idx) {
+                    setTimeout(function () {
+                        if (!shouldContinue()) return;
+                        const waypoints = refreshWaypoints ? refreshWaypoints() : null;
+                        if (!waypoints || waypoints.length < 2) return;
+
+                        const segData = buildSegmentData(waypoints);
+                        const wave = document.createElement('div');
+                        wave.className = 'signalWave';
+                        signalWavesLayer.appendChild(wave);
+                        const baseSize = 22 + idx * 6;
+                        const startTime = performance.now();
+
+                        function tick(now) {
+                            if (!shouldContinue()) {
+                                wave.remove();
+                                return;
+                            }
+                            const t = Math.min((now - startTime) / totalDuration, 1);
+                            const ease = 1 - Math.pow(1 - t, 1.65);
+                            const pos = positionOnPath(waypoints, segData, ease);
+                            const scale = 0.35 + ease * 2.4;
+                            const fade = ease < 0.86
+                                ? 0.55 * (1 - ease * 0.45)
+                                : 0.55 * (1 - ease * 0.45) * Math.max(0, (1 - ease) / 0.14);
+                            wave.style.left = pos.x + 'px';
+                            wave.style.top = pos.y + 'px';
+                            wave.style.width = baseSize + 'px';
+                            wave.style.height = baseSize + 'px';
+                            wave.style.transform = 'translate(-50%, -50%) scale(' + scale + ')';
+                            wave.style.opacity = String(Math.max(0, fade));
+                            if (t < 1 && ease < 0.995) {
+                                requestAnimationFrame(tick);
+                            } else {
+                                wave.remove();
+                            }
+                        }
+                        requestAnimationFrame(tick);
+                    }, idx * staggerMs);
+                })(i);
+            }
+
+            return totalDuration;
+        }
+
+        // Screen 3 voice loop (IntersectionObserver — без scroll-index)
+        (function screen3VoiceDemo() {
+            const HERO_MIC_PHRASES = [
+                'включи квартиру девять',
+                'включи квартиру четырнадцать'
+            ];
+            const HERO_MIC_FLAT_NUMBERS = [9, 14];
+            const TYPE_MS = 65;
+            const WAVE_MS = 1200;
+            const PAGE_LOAD_MS = 780;
+            const POST_LOAD_PAUSE_MS = 3000;
+            const DELETE_PAUSE_MS = 350;
+
+            const FLAT_WINDOWS = {
+                9: [13, 14, 61],
+                14: [20, 21, 22]
+            };
+
+            let screen3Active = false;
+            let loopRunning = false;
+            let phraseIndex = 0;
+            let typedLen = 0;
+            let phase = 'typing'; // typing | waiting | deleting
+            let hero3ActiveFlatNumber = null;
+            const timers = [];
+
+            const browserContent = document.getElementById('hero3BrowserContent');
+            const introScreen = document.getElementById('hero3IntroScreen');
+            const pageLoader = document.getElementById('hero3PageLoader');
+            const browserShell = document.getElementById('hero3BrowserShell');
+            const addressBar = document.getElementById('hero3AddressBar');
+            const flatSlug = document.getElementById('hero3BrowserFlatSlug');
+            const flatPages = document.querySelectorAll('.screen-3 .flatPage');
+            const captions = document.querySelectorAll('.mic-caption');
+            const typedNodes = document.querySelectorAll('.mic-typed-text');
+
+            function clearTimers() {
+                while (timers.length) {
+                    clearTimeout(timers.pop());
+                }
+            }
+
+            function schedule(fn, ms) {
+                const id = setTimeout(fn, ms);
+                timers.push(id);
+                return id;
+            }
+
+            function setCaptionText(text) {
+                typedNodes.forEach((n) => { n.textContent = text; });
+            }
+
+            function showCaptions(show) {
+                captions.forEach((c) => c.classList.toggle('is-hidden', !show));
+            }
+
+            function resetBrowserAwaiting() {
+                if (browserContent) browserContent.classList.add('is-awaiting-flat');
+                flatPages.forEach((p) => p.classList.remove('is-active'));
+                clearPageLoad();
+                hero3ActiveFlatNumber = null;
+            }
+
+            function clearPageLoad() {
+                if (pageLoader) {
+                    pageLoader.classList.remove('is-active');
+                    pageLoader.setAttribute('aria-hidden', 'true');
+                }
+                if (browserShell) browserShell.classList.remove('is-loading');
+                if (addressBar) addressBar.classList.remove('is-loading');
+            }
+
+            function revealFlatPage(flatNumber) {
+                clearPageLoad();
+                if (browserContent) browserContent.classList.remove('is-awaiting-flat');
+                flatPages.forEach((page) => {
+                    page.classList.toggle('is-active', page.getAttribute('data-flat') === String(flatNumber));
+                });
+                hero3ActiveFlatNumber = flatNumber;
+            }
+
+            function showFlatPage(flatNumber) {
+                if (flatSlug) flatSlug.textContent = String(flatNumber);
+                flatPages.forEach((p) => p.classList.remove('is-active'));
+                if (pageLoader) {
+                    pageLoader.classList.add('is-active');
+                    pageLoader.setAttribute('aria-hidden', 'false');
+                }
+                if (browserShell) browserShell.classList.add('is-loading');
+                if (addressBar) addressBar.classList.add('is-loading');
+                schedule(() => revealFlatPage(flatNumber), PAGE_LOAD_MS);
+            }
+
+            function lightFlat(flatNumber) {
+                if (!building) return;
+                const nums = FLAT_WINDOWS[flatNumber];
+                if (nums) building.lightFlatWindows(nums);
+            }
+
+            function emitVoiceWaves() {
+                return emitSignalWavesAlongPath({
+                    duration: WAVE_MS,
+                    shouldContinue: () => screen3Active,
+                    refreshWaypoints: () => {
+                        const start = getMicScreenCenter();
+                        const pcb = getPcbScreenCenter();
+                        const house = getBlockBScreenCenter(screen3);
+                        if (!start || !pcb || !house) return null;
+                        return [start, pcb, house];
+                    }
+                });
+            }
+
+            function resetIdle() {
+                clearTimers();
+                setCaptionText('');
+                showCaptions(false);
+                if (introScreen) {
+                    introScreen.classList.remove('is-active');
+                    introScreen.setAttribute('aria-hidden', 'true');
+                }
+                resetBrowserAwaiting();
+                if (building) building.turnOffAllWindows();
+                phraseIndex = 0;
+                typedLen = 0;
+                phase = 'typing';
+            }
+
+            function tickTypewriter() {
+                if (!loopRunning || !screen3Active) return;
+                const phrase = HERO_MIC_PHRASES[phraseIndex];
+                const flatNum = HERO_MIC_FLAT_NUMBERS[phraseIndex];
+
+                if (phase === 'typing') {
+                    typedLen = Math.min(typedLen + 1, phrase.length);
+                    setCaptionText(phrase.slice(0, typedLen));
+                    if (typedLen >= phrase.length) {
+                        phase = 'waiting';
+                        emitVoiceWaves();
+                        schedule(() => {
+                            if (!screen3Active) return;
+                            if (hero3ActiveFlatNumber !== flatNum) showFlatPage(flatNum);
+                            lightFlat(flatNum);
+                            schedule(() => {
+                                if (!screen3Active) return;
+                                phase = 'deleting';
+                                typedLen = 0;
+                                setCaptionText('');
+                                schedule(() => {
+                                    if (!screen3Active) return;
+                                    phraseIndex = (phraseIndex + 1) % HERO_MIC_PHRASES.length;
+                                    phase = 'typing';
+                                    tickTypewriter();
+                                }, DELETE_PAUSE_MS);
+                            }, POST_LOAD_PAUSE_MS);
+                        }, WAVE_MS);
+                        return;
+                    }
+                    schedule(tickTypewriter, TYPE_MS);
+                }
+            }
+
+            function startLoop() {
+                if (loopRunning) return;
+                loopRunning = true;
+                resetIdle();
+                if (introScreen) {
+                    introScreen.classList.add('is-active');
+                    introScreen.setAttribute('aria-hidden', 'false');
+                }
+                schedule(() => {
+                    if (!screen3Active) return;
+                    if (introScreen) {
+                        introScreen.classList.remove('is-active');
+                        introScreen.setAttribute('aria-hidden', 'true');
+                    }
+                    showCaptions(true);
+                    typedLen = 0;
+                    phase = 'typing';
+                    tickTypewriter();
+                }, 1000);
+            }
+
+            function stopLoop() {
+                loopRunning = false;
+                resetIdle();
+            }
+
+            function isExactlyOnScreen3() {
+                return Math.abs(container.scrollTop - screen3.offsetTop) <= 4;
+            }
+
+            function syncScreen3Demo() {
+                const on = isExactlyOnScreen3();
+                if (on === screen3Active) return;
+                screen3Active = on;
+                if (screen3Active) startLoop();
+                else stopLoop();
+            }
+
+            if (!browserContent) return;
+
+            container.addEventListener('scroll', syncScreen3Demo, { passive: true });
+            window.addEventListener('resize', syncScreen3Demo);
+            syncScreen3Demo();
         })();
 
         window.addEventListener('resize', () => {

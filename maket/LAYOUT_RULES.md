@@ -75,11 +75,13 @@
 
 ## 7. Медиа и декоративные слои
 
-### `.block-16x9` / таблица
+### `.block-16x9` / таблица / браузеры
 
 - `.block-16x9`: строго `aspect-ratio: 16 / 9`.
-- Desktop: `max-width: 380px`, лёгкий glass (`backdrop-filter`, полупрозрачный фон, тонкая рамка, `border-radius: 12px`).
-- Nested scroll у browser/table на screen 2: жест на краях пробрасывается на страницу.
+- Desktop: `max-width: 380px`; glass-плейсхолдер или chrome-браузер.
+- **Screen 2:** `.flatsTableWrap` + таблица квартир; nested scroll у `.browserContent` — жест на краях пробрасывается на страницу. Клик по строке → волны `row → PCB → block-b` + подсветка окон через `BuildingScene`.
+- **Screen 3:** `.block-16x9.flatsTableWrap` — браузер с flat pages (9/14), loader, URL slug; **без** внутреннего скролла (overflow hidden; wheel/touch сразу на страницу). Демо-loop только когда `scrollTop` совпадает с `screen-3.offsetTop` (±4px).
+- Mic **не** летает из центра браузера: остаётся в слотах §7; caption typewriter рядом с видимым mic.
 
 ### PCB (`#pcbOverlay`)
 
@@ -87,17 +89,25 @@
 - Тюнинг exit в JS: `PCB_EXIT_SPEED`, `PCB_EXIT_DISTANCE`, `PCB_EXIT_ACCEL`.
 - **Portrait:** слева над блоком A, ширина `25vw`.
 - **Desktop / landscape:** левый низ колонки B (~78% высоты колонки), ширина ≈ `30%` ширины колонки.
+- Waypoint для `#signalWavesLayer` (не дублировать exit в демо).
 
 ### Mic (`mic.png`)
 
-- **Desktop / landscape:** в `.media-row` справа от `.block-16x9`; высота = высота блока (JS синхронизирует).
+- **Desktop / landscape:** в `.media-row` справа от `.block-16x9`; высота = высота блока (JS синхронизирует); caption `.mic-caption--inline`.
 - **Portrait:** не fixed; только на screen 3 как `.mic-portrait` внутри `.block-b`:
   - `position: absolute` относительно `block-b` (`position: relative`);
   - `left: 12px`, `width: 25vw` (как PCB);
   - `aspect-ratio: 409 / 610` (натуральный размер файла);
   - в **нижней части** `block-b`: `bottom: calc(25vw * 610 / 409 / 2)` — отступ снизу = **половина фактической высоты** mic;
-  - `pointer-events: none`.
+  - `pointer-events: none`;
+  - caption `.mic-caption--portrait`.
 - `#micOverlay` не используется (`display: none`).
+- Не переносить absolute mic-fly / `is-settled` из building-3d hero3.
+
+### WebGL окна (`building-scene.js`)
+
+- API из `BuildingScene.init`: `lightWindowByNumber`, `turnOffAllWindows`, `lightFlatWindows(nums)`.
+- Номера окон 1-based, совместимы с `data-flat-windows` / flats 9→`[13,14,61]`, 14→`[20,21,22]`.
 
 ## 8. Формы
 
@@ -152,6 +162,7 @@
 - Не возвращать secondary на mobile screen 1–3 без пересмотра layout; на 4–5 они должны оставаться.
 - Не задавать одновременно конкурирующие `width`/`max-width`/`max-height` у `.block-16x9` на portrait — высота через `vh`, ширина из ratio.
 - Не позиционировать portrait-mic через `bottom: 50% + …` (середина экрана) — только низ `block-b` с отступом = ½ высоты mic.
+- Не копировать mic-fly / `getNearestHeroIndex` из building-3d — демо screen 3 только при точном snap на screen 3.
 - Не оставлять инлайн `position/top/left` на CTA после перехода в mobile (сбрасывать через `removeProperty`).
 - Не читать `offsetTop` каждый кадр для exit 3D/PCB — кэшировать границы.
 - Не усиливать фон (grain/caustics) так, чтобы ухудшалась читаемость `--ink` на белом.

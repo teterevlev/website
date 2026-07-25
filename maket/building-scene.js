@@ -717,6 +717,41 @@
     var loadingEl = document.getElementById('loading');
     if (loadingEl) loadingEl.style.display = 'none';
 
+    function lightWindowByNumber(n) {
+      var idx = parseInt(n, 10);
+      if (!idx || idx < 1 || idx > windows.length) return false;
+      windows[idx - 1].material = windowMatOn;
+      return true;
+    }
+
+    function turnOffWindowByNumber(n) {
+      var idx = parseInt(n, 10);
+      if (!idx || idx < 1 || idx > windows.length) return false;
+      windows[idx - 1].material = windowMatOff;
+      return true;
+    }
+
+    function turnOffAllWindows() {
+      for (var i = 0; i < windows.length; i++) {
+        windows[i].material = windowMatOff;
+      }
+    }
+
+    function lightFlatWindows(nums, staggerMs) {
+      if (!nums || !nums.length) return;
+      turnOffAllWindows();
+      var delay = staggerMs || 0;
+      nums.forEach(function (n, i) {
+        if (delay <= 0) {
+          lightWindowByNumber(n);
+        } else {
+          setTimeout(function () {
+            lightWindowByNumber(n);
+          }, i * delay);
+        }
+      });
+    }
+
     return {
       scene: scene,
       camera: camera,
@@ -724,7 +759,11 @@
       worldRig: worldRig,
       controls: controls,
       windows: windows,
-      applyResponsiveFraming: applyResponsiveFraming
+      applyResponsiveFraming: applyResponsiveFraming,
+      lightWindowByNumber: lightWindowByNumber,
+      turnOffWindowByNumber: turnOffWindowByNumber,
+      turnOffAllWindows: turnOffAllWindows,
+      lightFlatWindows: lightFlatWindows
     };
   }
 
