@@ -289,6 +289,11 @@
             color: var(--ink);
         }
 
+        .screen-5 .block-a,
+        .screen-5 .block-b {
+            justify-content: flex-start;
+        }
+
         .screen-5 .block-16x9 {
             background: var(--snow);
             border-color: var(--mist);
@@ -569,6 +574,55 @@
             #spacer-cta {
                 display: none !important;
             }
+
+            /* Screen 5: высота по контенту, без обрезки блоков А/Б */
+            .screen-5 {
+                height: auto;
+                min-height: 100vh;
+                align-items: flex-start;
+            }
+
+            .screen-5 .screen-content {
+                height: auto;
+                grid-template-rows: auto auto;
+                align-content: start;
+                gap: 1.5rem 2rem;
+            }
+
+            .screen-5 .block-a,
+            .screen-5 .block-b {
+                overflow: visible;
+                min-height: auto;
+                justify-content: flex-start;
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+
+            .screen-5 .form-container {
+                margin-top: 1rem;
+                gap: 0.5rem;
+                max-width: 100%;
+            }
+
+            .screen-5 p,
+            .screen-5 .form-container input,
+            .screen-5 .form-container textarea {
+                font-size: 0.875rem;
+            }
+
+            .screen-5 .form-container input,
+            .screen-5 .form-container textarea {
+                padding: 0.5rem 0.85rem;
+            }
+
+            .screen-5 .form-container textarea {
+                min-height: 4.5em;
+            }
+
+            .screen-5 .form-container .btn {
+                margin-top: 0.25rem;
+                font-size: 0.875rem;
+            }
         }
     </style>
 </head>
@@ -678,12 +732,12 @@
                     <form class="form-container">
                         <input type="text" placeholder="Имя / Компания" required>
                         <input type="text" placeholder="Телефон или Email" required>
-                        <textarea rows="4" placeholder="Краткое описание задачи"></textarea>
+                        <textarea rows="3" placeholder="Краткое описание задачи"></textarea>
                         <button type="submit" class="btn btn-dark"
                             style="align-self: flex-start; margin-top: 0.5rem;">Отправить</button>
                     </form>
                 </div>
-                <div class="block-b" style="justify-content: flex-start; padding-top: 2rem;">
+                <div class="block-b">
                     <h2>Запланировать встречу</h2>
                     <p>Выберите удобное время для короткого онлайн-обсуждения проекта.</p>
                     <a href="#" class="btn btn-primary" style="margin-top: 2rem; align-self: flex-start;">Выбрать
