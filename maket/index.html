@@ -435,7 +435,7 @@
                 line-height: 1.5;
             }
 
-            /* Блок Б — сверху, Блок А — снизу, строго 50% высоты */
+            /* Блок Б — сверху, Блок А — снизу, строго 50% высоты (экраны 1–3) */
             .screen-content {
                 grid-template-columns: 1fr;
                 grid-template-rows: 1fr 1fr;
@@ -449,15 +449,68 @@
                 overflow: hidden;
             }
 
-            .block-b {
+            .screen-1 .block-b,
+            .screen-2 .block-b,
+            .screen-3 .block-b {
                 order: -1;
                 justify-content: flex-end;
                 padding-bottom: 0.75rem;
             }
 
-            .block-a {
+            .screen-1 .block-a,
+            .screen-2 .block-a,
+            .screen-3 .block-a {
                 justify-content: flex-start;
                 padding-top: 0.75rem;
+            }
+
+            /* Экраны 4–5: наоборот — А сверху, Б снизу */
+            .screen-4 .block-a,
+            .screen-5 .block-a {
+                justify-content: flex-end;
+                padding-bottom: 0.75rem;
+            }
+
+            .screen-4 .block-b,
+            .screen-5 .block-b {
+                justify-content: flex-start;
+                padding-top: 0.75rem;
+            }
+
+            /* Screen 4: смена А/Б не трогает кнопки —
+               кнопка из Б сверху, кнопки из А снизу */
+            .screen-4 .block-a,
+            .screen-4 .block-b {
+                display: contents;
+            }
+
+            .screen-4 .screen-content {
+                grid-template-rows: none;
+                grid-auto-rows: auto;
+                align-content: center;
+                gap: 0.5rem 0;
+            }
+
+            .screen-4 #spacer-cta-dock {
+                order: 1;
+                margin-bottom: 0.75rem;
+            }
+
+            .screen-4 .block-a > h2 {
+                order: 2;
+            }
+
+            .screen-4 .block-a > p {
+                order: 3;
+            }
+
+            .screen-4 .block-b > p {
+                order: 4;
+            }
+
+            .screen-4 .block-a > .btn-group {
+                order: 5;
+                margin-top: 0.75rem;
             }
 
             /* block-16x9: высота задана через vh — block всегда занимает ровно 22vh.
