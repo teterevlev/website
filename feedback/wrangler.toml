@@ -1,0 +1,8 @@
+name = "revlev-feedback"
+main = "src/index.js"
+compatibility_date = "2025-07-01"
+
+# При Git-деплое в Cloudflare: Project name = revlev-feedback, Path = feedback
+
+[vars]
+ALLOW_ORIGINS = "https://maket.revlev.ru,https://revlev.ru,http://localhost:8787,http://127.0.0.1:5500"
