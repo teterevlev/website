@@ -178,17 +178,6 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
         }
 
-        /* scale чуть сильнее translateY — край кнопки не уезжает из-под курсора */
-        .btn-primary:hover {
-            background: #ffe400;
-            filter: saturate(1.45) brightness(1.05);
-            transform: scale(1.05) translateY(-1px);
-            box-shadow:
-                0 0 12px rgba(255, 230, 60, 0.95),
-                0 0 32px rgba(255, 210, 0, 0.7),
-                0 0 56px rgba(255, 200, 0, 0.4);
-        }
-
         .btn-secondary {
             background: #2c5c85;
             color: var(--white);
@@ -196,24 +185,38 @@
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
         }
 
-        .btn-secondary:hover {
-            background: #1a7ec4;
-            filter: saturate(1.35) brightness(1.08);
-            transform: scale(1.05) translateY(-1px);
-            box-shadow:
-                0 0 12px rgba(64, 160, 230, 0.9),
-                0 0 32px rgba(40, 130, 200, 0.65),
-                0 0 56px rgba(30, 110, 180, 0.4);
-        }
-
         .btn-dark {
             background: var(--ink);
             color: var(--white);
         }
 
-        .btn-dark:hover {
-            background: #000;
-            transform: translateY(-2px);
+        /* Hover только там, где есть настоящий курсор (не touch) */
+        @media (hover: hover) and (pointer: fine) {
+            /* scale чуть сильнее translateY — край кнопки не уезжает из-под курсора */
+            .btn-primary:hover {
+                background: #ffe400;
+                filter: saturate(1.45) brightness(1.05);
+                transform: scale(1.05) translateY(-1px);
+                box-shadow:
+                    0 0 12px rgba(255, 230, 60, 0.95),
+                    0 0 32px rgba(255, 210, 0, 0.7),
+                    0 0 56px rgba(255, 200, 0, 0.4);
+            }
+
+            .btn-secondary:hover {
+                background: #1a7ec4;
+                filter: saturate(1.35) brightness(1.08);
+                transform: scale(1.05) translateY(-1px);
+                box-shadow:
+                    0 0 12px rgba(64, 160, 230, 0.9),
+                    0 0 32px rgba(40, 130, 200, 0.65),
+                    0 0 56px rgba(30, 110, 180, 0.4);
+            }
+
+            .btn-dark:hover {
+                background: #000;
+                transform: translateY(-2px);
+            }
         }
 
         .btn-group {
