@@ -717,10 +717,105 @@
     var loadingEl = document.getElementById('loading');
     if (loadingEl) loadingEl.style.display = 'none';
 
-    function lightWindowByNumber(n) {
+    function normalizeAngle(a) {
+      while (a > Math.PI) a -= Math.PI * 2;
+      while (a < -Math.PI) a += Math.PI * 2;
+      return a;
+    }
+
+    var faceLocalAngle = {
+      front: 0,
+      right: Math.PI / 2,
+      back: Math.PI,
+      left: -Math.PI / 2
+    };
+
+    var cameraOrbitGen = 0;
+
+    function animateCameraAzimuth(targetAzimuth, duration) {
+      duration = duration || 900;
+      var sph = getCameraSpherical();
+      var startAzimuth = sph.azimuth;
+      var delta = normalizeAngle(targetAzimuth - startAzimuth);
+      if (Math.abs(delta) < 0.001) return;
+      var radius = sph.radius;
+      var polar = sph.polar;
+      var startTime = null;
+      var gen = ++cameraOrbitGen;
+      function step(ts) {
+        if (gen !== cameraOrbitGen) return;
+        if (!startTime) startTime = ts;
+        var t = Math.min((ts - startTime) / duration, 1);
+        var eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        setCameraFromSpherical(radius, polar, startAzimuth + delta * eased);
+        controls.update();
+        if (t < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    }
+
+    function resetCameraToDefaultView(duration) {
+      duration = duration || 900;
+      var sph = getCameraSpherical();
+      var startAzimuth = sph.azimuth;
+      var startPolar = sph.polar;
+      var deltaAz = normalizeAngle(baseAzimuth - startAzimuth);
+      var deltaPolar = basePolar - startPolar;
+      if (Math.abs(deltaAz) < 0.001 && Math.abs(deltaPolar) < 0.001) return;
+      var radius = sph.radius;
+      var startTime = null;
+      var gen = ++cameraOrbitGen;
+      function step(ts) {
+        if (gen !== cameraOrbitGen) return;
+        if (!startTime) startTime = ts;
+        var t = Math.min((ts - startTime) / duration, 1);
+        var eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        setCameraFromSpherical(
+          radius,
+          startPolar + deltaPolar * eased,
+          startAzimuth + deltaAz * eased
+        );
+        controls.update();
+        if (t < 1) {
+          requestAnimationFrame(step);
+        } else {
+          applyResponsiveFraming(false);
+        }
+      }
+      requestAnimationFrame(step);
+    }
+
+    // Если грань с зажжённым окном плохо видна — орбита камеры вокруг центра дома.
+    // Для фасада возвращаем исходный ракурс (baseAzimuth): иначе после бокового вида
+    // передняя грань ещё «достаточно видна» по широкому порогу и поворота нет.
+    function ensureFaceVisible(face) {
+      if (!face || faceLocalAngle[face] === undefined) return;
+      if (face === 'front') {
+        var sph = getCameraSpherical();
+        if (Math.abs(normalizeAngle(sph.azimuth - baseAzimuth)) < Math.PI / 12) return;
+        animateCameraAzimuth(baseAzimuth);
+        return;
+      }
+      var worldAngle = faceLocalAngle[face];
+      var camAngle = Math.atan2(
+        camera.position.x - controls.target.x,
+        camera.position.z - controls.target.z
+      );
+      var diff = normalizeAngle(camAngle - worldAngle);
+      var visibleThreshold = (Math.PI / 2) * 0.85;
+      if (Math.abs(diff) < visibleThreshold) return;
+      var desiredDiff = (Math.PI / 6) * (diff >= 0 ? 1 : -1);
+      var targetAzimuth = normalizeAngle(worldAngle + desiredDiff);
+      animateCameraAzimuth(targetAzimuth);
+    }
+
+    function lightWindowByNumber(n, ensureFace) {
       var idx = parseInt(n, 10);
       if (!idx || idx < 1 || idx > windows.length) return false;
       windows[idx - 1].material = windowMatOn;
+      if (ensureFace !== false) {
+        ensureFaceVisible(windows[idx - 1].userData.face);
+      }
       return true;
     }
 
@@ -737,16 +832,21 @@
       }
     }
 
-    function lightFlatWindows(nums, staggerMs) {
+    // Окна зажигаются по порядку; ensureFace — только у последнего (боковое после
+    // переднего, или фасад → возврат к исходному ракурсу), без гонки анимаций.
+    function lightFlatWindows(nums, staggerMs, ensureFace) {
       if (!nums || !nums.length) return;
       turnOffAllWindows();
       var delay = staggerMs || 0;
+      var doFace = ensureFace !== false;
+      var last = nums.length - 1;
       nums.forEach(function (n, i) {
+        var faceThis = doFace && i === last;
         if (delay <= 0) {
-          lightWindowByNumber(n);
+          lightWindowByNumber(n, faceThis);
         } else {
           setTimeout(function () {
-            lightWindowByNumber(n);
+            lightWindowByNumber(n, faceThis);
           }, i * delay);
         }
       });
@@ -763,7 +863,9 @@
       lightWindowByNumber: lightWindowByNumber,
       turnOffWindowByNumber: turnOffWindowByNumber,
       turnOffAllWindows: turnOffAllWindows,
-      lightFlatWindows: lightFlatWindows
+      lightFlatWindows: lightFlatWindows,
+      ensureFaceVisible: ensureFaceVisible,
+      resetCameraToDefaultView: resetCameraToDefaultView
     };
   }
 

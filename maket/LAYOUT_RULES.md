@@ -108,8 +108,9 @@
 
 ### WebGL окна (`building-scene.js`)
 
-- API из `BuildingScene.init`: `lightWindowByNumber`, `turnOffAllWindows`, `lightFlatWindows(nums)`.
-- Номера окон 1-based, совместимы с `data-flat-windows` / flats 9→`[13,14,61]`, 14→`[20,21,22]`.
+- API из `BuildingScene.init`: `lightWindowByNumber`, `turnOffAllWindows`, `lightFlatWindows(nums)`, `ensureFaceVisible(face)`.
+- При подсветке квартиры (`lightFlatWindows`) камера орбитой разворачивается к грани окна, если она плохо видна (~как OrbitControls вокруг центра дома).
+- Screen 1 cycle вызывает `lightWindowByNumber(n, false)` — без автоповорота (как hero1).
 
 ## 8. Формы
 

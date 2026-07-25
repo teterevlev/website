@@ -2345,7 +2345,7 @@
                     schedule(() => {
                         if (!screen1Active || !building) return;
                         if (op.type === 'on') {
-                            building.lightWindowByNumber(op.n);
+                            building.lightWindowByNumber(op.n, false);
                             lit.add(op.n);
                         } else {
                             building.turnOffWindowByNumber(op.n);
@@ -2392,6 +2392,10 @@
                 loopRunning = true;
                 clearTimers();
                 cycleRunning = false;
+                // Как hero1: на screen1 камера всегда в исходном положении
+                if (building.resetCameraToDefaultView) {
+                    building.resetCameraToDefaultView();
+                }
                 runCycle(true);
                 flatInterval = setInterval(() => {
                     if (!screen1Active) return;
