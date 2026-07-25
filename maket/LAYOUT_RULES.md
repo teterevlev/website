@@ -81,7 +81,7 @@
 - Desktop: `max-width: 380px`; glass-плейсхолдер или chrome-браузер.
 - **Screen 1:** auto-demo при exact snap: волны `PCB → block-b` + цикл случайных front-окон (каждые 2с; свет после прилёта волны).
 - **Screen 2:** `.flatsTableWrap` + таблица; nested scroll у `.browserContent`. Cursor-demo кликает строки 0/1 (dismiss по клику/тачу/скроллу таблицы). Клик → волны `row → PCB → block-b` + окна. Gate: exact `scrollTop ≈ screen-2.offsetTop`.
-- **Screen 3:** `.block-16x9.flatsTableWrap` — браузер с flat pages (9/14), без внутреннего скролла. Демо-loop только при exact snap: typewriter → волны `mic → PCB → block-b` → страница + окна.
+- **Screen 3:** `.block-16x9.flatsTableWrap` — браузер с flat pages (9/14); `overflow: hidden`, без JS-перехвата жестов — свайп/wheel как у обычного элемента. Демо-loop только при exact snap: typewriter → волны `mic → PCB → block-b` → страница + окна.
 - Все волны заканчиваются в центре `.block-b` текущего экрана.
 - Mic **не** летает из центра браузера: остаётся в слотах ниже; caption typewriter рядом с видимым mic.
 

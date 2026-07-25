@@ -303,8 +303,6 @@
             background: #1a1a1a;
             padding: 8px;
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
-            overscroll-behavior: contain;
-            -webkit-overflow-scrolling: touch;
             border-radius: 12px;
         }
 
@@ -508,11 +506,12 @@
             -webkit-backdrop-filter: none;
             padding: 8px;
             box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
-            overflow: hidden;
+            /* overflow: clip — обрезает, но НЕ создаёт scrollport (в отличие от hidden) */
+            overflow: clip;
             isolation: isolate;
-            /* размер только от aspect-ratio / родителя — контент URL/страниц не двигает коробку */
             min-width: 0;
             contain: layout;
+            overscroll-behavior: auto;
         }
 
         .screen-3 .block-16x9.flatsTableWrap .browserChrome,
@@ -534,21 +533,21 @@
             pointer-events: none;
         }
 
+        .screen-3 .flatsTableInner,
+        .screen-3 .hero3BrowserContent,
+        .screen-3 .flatPage,
+        .screen-3 .flatPagePlan,
+        .screen-3 .hero3PageLoader,
+        .screen-3 .hero3IntroScreen {
+            overflow: clip;
+            overscroll-behavior: auto;
+        }
+
         .screen-3 .hero3BrowserContent {
             position: relative;
-            overflow: hidden;
-            overscroll-behavior: none;
             padding: 0;
             flex: 1;
             min-height: 0;
-            /* не перехватывать вертикальный жест страницы */
-            touch-action: none;
-        }
-
-        .screen-3 .block-16x9.flatsTableWrap,
-        .screen-3 .flatsTableInner {
-            overscroll-behavior: none;
-            touch-action: none;
         }
 
         .screen-3 .hero3IntroScreen {
@@ -594,7 +593,14 @@
         .screen-3 .flatPage.is-active {
             opacity: 1;
             visibility: visible;
-            pointer-events: auto;
+            /* не ловить тач/wheel — жесты как у обычного декора */
+            pointer-events: none;
+        }
+
+        .screen-3 .block-16x9.flatsTableWrap img {
+            -webkit-user-drag: none;
+            user-select: none;
+            pointer-events: none;
         }
 
         .screen-3 .hero3PageLoader {
@@ -707,7 +713,7 @@
             min-height: 0;
             margin: 0;
             border-radius: 6px;
-            overflow: hidden;
+            overflow: clip;
             border: 1px solid rgba(44, 92, 133, 0.14);
             background: #f6f9fc;
             display: flex;
@@ -2033,31 +2039,6 @@
                     e.preventDefault();
                     container.scrollTop += dy;
                 }
-            }, { passive: false });
-        })();
-
-        // Screen 3: браузер без внутреннего скролла — колесо/тач сразу на страницу
-        (function bindScreen3BrowserPassThrough() {
-            const wrap = document.querySelector('.screen-3 .block-16x9.flatsTableWrap');
-            if (!wrap) return;
-
-            wrap.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                container.scrollTop += e.deltaY;
-            }, { passive: false });
-
-            let touchY = 0;
-            wrap.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) touchY = e.touches[0].clientY;
-            }, { passive: true });
-
-            wrap.addEventListener('touchmove', (e) => {
-                if (e.touches.length !== 1) return;
-                const y = e.touches[0].clientY;
-                const dy = touchY - y;
-                touchY = y;
-                e.preventDefault();
-                container.scrollTop += dy;
             }, { passive: false });
         })();
 
