@@ -144,6 +144,15 @@
             -webkit-backdrop-filter: blur(12px);
         }
 
+        .screen-2 .block-16x9 {
+            overflow-y: auto;
+            overscroll-behavior-y: contain;
+            padding: 0.75rem 1rem;
+            font-size: 0.9375rem;
+            line-height: 1.5;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .snap {
             scroll-snap-align: start;
             scroll-snap-stop: always;
@@ -664,7 +673,19 @@
             <div class="screen-content">
                 <div class="block-a">
                     <h2>Управляйте макетом прямо с вашего сайта</h2>
-                    <div class="block-16x9"></div>
+                    <div class="block-16x9">Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
+
+                        Даже если макет уже изготовлен, его можно сделать управляемым.Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
+
+                        Даже если макет уже изготовлен, его можно сделать управляемым.Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
+
+Даже если макет уже изготовлен, его можно сделать управляемым.Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
+
+Даже если макет уже изготовлен, его можно сделать управляемым.Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
+
+Даже если макет уже изготовлен, его можно сделать управляемым.Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет внимание застройщика к деталям.
+
+                        Даже если макет уже изготовлен, его можно сделать управляемым.</div>
                     <p style="margin-top: 1.5rem;">Выберите квартиру в каталоге — соответствующее окно сразу загорится
                         на архитектурном макете.</p>
                 </div>
@@ -926,6 +947,50 @@
 
             handleScroll();
         }
+
+        // Вложенный скролл screen-2 .block-16x9: на краях отдаём жест родителю (snap)
+        (function bindNestedBlockScroll() {
+            const nest = document.querySelector('.screen-2 .block-16x9');
+            if (!nest) return;
+
+            function overflows() {
+                return nest.scrollHeight > nest.clientHeight + 1;
+            }
+
+            function atTop() {
+                return nest.scrollTop <= 0;
+            }
+
+            function atBottom() {
+                return nest.scrollTop + nest.clientHeight >= nest.scrollHeight - 1;
+            }
+
+            nest.addEventListener('wheel', (e) => {
+                if (!overflows()) return;
+                const goingUp = e.deltaY < 0;
+                const goingDown = e.deltaY > 0;
+                if ((goingUp && atTop()) || (goingDown && atBottom())) {
+                    e.preventDefault();
+                    container.scrollTop += e.deltaY;
+                }
+            }, { passive: false });
+
+            let touchY = 0;
+            nest.addEventListener('touchstart', (e) => {
+                touchY = e.touches[0].clientY;
+            }, { passive: true });
+
+            nest.addEventListener('touchmove', (e) => {
+                if (!overflows() || e.touches.length !== 1) return;
+                const y = e.touches[0].clientY;
+                const dy = touchY - y;
+                touchY = y;
+                if ((dy < 0 && atTop()) || (dy > 0 && atBottom())) {
+                    e.preventDefault();
+                    container.scrollTop += dy;
+                }
+            }, { passive: false });
+        })();
 
         window.addEventListener('resize', updateVoicePositions);
         window.addEventListener('orientationchange', () => setTimeout(updateVoicePositions, 100));
