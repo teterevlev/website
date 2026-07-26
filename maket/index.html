@@ -606,11 +606,59 @@
             }
         }
 
+        function freezeScrollLayout() {
+            const root = document.documentElement;
+            const screenH = Math.round(window.innerHeight);
+            root.style.setProperty('--lock-screen-h', screenH + 'px');
+            root.classList.add('form-keyboard-lock');
+
+            // Фиксируем 1–4: иначе 100dvh сжимается с клавиатурой, якорь CTA
+            // (absolute от screen-1) перестаёт совпадать с spacer на screen-4
+            [screen1, screen2, screen3, screen4].forEach((el) => {
+                if (!el) return;
+                const h = Math.round(el.offsetHeight);
+                el.style.height = h + 'px';
+                el.style.minHeight = h + 'px';
+                el.style.maxHeight = h + 'px';
+            });
+
+            if (screen5) {
+                const h = Math.round(Math.max(screen5.scrollHeight, screen5.offsetHeight));
+                screen5.style.minHeight = h + 'px';
+                screen5.style.height = 'auto';
+                screen5.style.removeProperty('max-height');
+                screen5.style.removeProperty('overflow');
+            }
+
+            const ch = Math.round(container.clientHeight);
+            container.style.height = ch + 'px';
+            container.style.maxHeight = ch + 'px';
+        }
+
+        function unfreezeScrollLayout() {
+            const root = document.documentElement;
+            root.classList.remove('form-keyboard-lock');
+            root.style.removeProperty('--lock-screen-h');
+            [screen1, screen2, screen3, screen4, screen5].forEach((el) => {
+                if (!el) return;
+                el.style.removeProperty('height');
+                el.style.removeProperty('min-height');
+                el.style.removeProperty('max-height');
+                el.style.removeProperty('overflow');
+            });
+            container.style.removeProperty('height');
+            container.style.removeProperty('max-height');
+        }
+
         function lockFormUi() {
-            if (!formUiLock) formLockedScrollTop = container.scrollTop;
+            if (!formUiLock) {
+                formLockedScrollTop = container.scrollTop;
+                freezeScrollLayout();
+            }
             formUiLock = true;
             formScrollPinUntil = Date.now() + 400;
             container.style.scrollSnapType = 'none';
+            // CTA остаётся absolute на якоре screen-4 — не fixed и не hide
             applyCtaDocked();
             pinFormScroll();
             clearFormScrollLockTimers();
@@ -630,6 +678,7 @@
         function unlockFormUi() {
             clearFormScrollLockTimers();
             formUiLock = false;
+            unfreezeScrollLayout();
             updateVoicePositions();
         }
 
@@ -642,6 +691,7 @@
         }
 
         function applyCtaFixedShelf(left) {
+            // При открытой клавиатуре не возвращать fixed — только якорь screen-4
             if (isFormUiFrozen()) {
                 applyCtaDocked();
                 return;
@@ -710,29 +760,23 @@
                 }
             }
 
-            if (isTextInputFocused()) {
+            // CTA: fixed до якоря, затем absolute на screen-4 (и на desktop, и на mobile)
+            if (isFormUiFrozen() || st >= ctaDockScroll) {
                 applyCtaDocked();
-                return;
-            }
-
-            // CTA: fixed до якоря, затем absolute (и на desktop, и на mobile)
-            if (!isMobile && st === 0) {
+            } else if (!isMobile && st === 0) {
                 clearCtaShelfExtras();
                 btnCta.style.position = 'absolute';
                 btnCta.style.top = ctaOrigTop + 'px';
                 btnCta.style.left = ctaOrigLeft + 'px';
-            } else if (st < ctaDockScroll) {
+            } else {
                 const morphDistance = Math.min(window.innerHeight * 0.45, 420);
                 const dist = ctaDockScroll - st;
                 let left = ctaFixedLeft;
-                // В landscape X не трогаем; иначе плавно к якорю
                 if (!ctaLockX && dist < morphDistance) {
                     const t = 1 - dist / morphDistance;
                     left = ctaFixedLeft + (ctaDockFixedLeft - ctaFixedLeft) * t;
                 }
                 applyCtaFixedShelf(left);
-            } else {
-                applyCtaDocked();
             }
         }
 

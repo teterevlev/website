@@ -1450,13 +1450,22 @@ p {
         height: 100dvh;
     }
 
-    /* Screen 5: высота по контенту, без обрезки блоков А/Б */
+    /* Screen 5: высота по контенту. min через svh (не dvh) —
+       иначе при клавиатуре dvh скачет и ломает геометрию якоря CTA на screen-4 */
     .screen-5 {
         height: auto;
-        min-height: 100dvh;
+        min-height: 100vh;
+        min-height: 100svh;
         align-items: flex-start;
-        /* запас снизу: safe-area + место под fixed CTA / UI Chrome */
-        padding-bottom: max(5.5rem, calc(var(--safe-b) + 4.5rem));
+        padding-bottom: max(2rem, calc(var(--safe-b) + 1.5rem));
+    }
+
+    /* Клавиатура: секции 1–4 не сжимаются с dvh (inline px из JS важнее) */
+    html.form-keyboard-lock .screen:not(.screen-5) {
+        /* fallback, если inline ещё не проставлен */
+        height: var(--lock-screen-h, 100svh);
+        min-height: var(--lock-screen-h, 100svh);
+        max-height: var(--lock-screen-h, 100svh);
     }
 
     .screen-5 .screen-content {
