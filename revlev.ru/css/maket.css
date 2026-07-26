@@ -501,11 +501,9 @@ p {
     -webkit-backdrop-filter: none;
     padding: 8px;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.32);
-    /* overflow: clip — обрезает, но НЕ создаёт scrollport (в отличие от hidden) */
-    overflow: clip;
+    /* как screen-2: hidden, без contain:layout — иначе iOS ломает 16:9 */
+    overflow: hidden;
     isolation: isolate;
-    min-width: 0;
-    contain: layout;
     overscroll-behavior: auto;
 }
 
@@ -1057,11 +1055,10 @@ p {
     .block-16x9,
     .flatsTableWrap {
         width: var(--media-w-landscape);
-        height: var(--media-h-landscape);
         max-width: 100%;
+        height: auto;
         aspect-ratio: 16 / 9;
         flex: 0 0 auto;
-        min-width: 0;
         margin-top: 0.4rem;
         overflow: hidden;
         box-sizing: border-box;
@@ -1077,17 +1074,31 @@ p {
 
     .media-row .block-16x9 {
         margin-top: 0;
-        flex: 0 0 auto;
+        flex: 0 1 auto;
         width: var(--media-w-landscape);
-        height: var(--media-h-landscape);
         max-width: 100%;
+        /* высота следует за шириной — иначе mic в ряду сжимает width при фиксированном height */
+        height: auto;
+        aspect-ratio: 16 / 9;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .screen-3 .media-row {
+        /* ряд: браузер + mic; не шире колонки */
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
     }
 
     .screen-3 .block-16x9.flatsTableWrap {
-        min-width: 0;
+        flex: 0 1 auto;
         width: var(--media-w-landscape);
-        height: var(--media-h-landscape);
         max-width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        min-width: 0;
+        overflow: hidden;
     }
 
     .wrap-original-transform {
@@ -1099,8 +1110,9 @@ p {
 
     .wrap-original-transform .flatsTableWrap {
         width: 100%;
-        height: var(--media-h-landscape);
         max-width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
         margin-top: 0;
     }
 
@@ -1289,14 +1301,13 @@ p {
     */
     .block-16x9,
     .flatsTableWrap {
-        height: var(--media-h-portrait);
         width: var(--media-w-portrait);
         max-width: 100%;
+        height: auto;
         aspect-ratio: 16 / 9;
         align-self: flex-start;
         flex: 0 0 auto;
         flex-shrink: 0;
-        min-width: 0;
         margin-top: auto;
         overflow: hidden;
         box-sizing: border-box;
@@ -1315,8 +1326,9 @@ p {
         margin-top: 0;
         flex: 0 0 auto;
         width: var(--media-w-portrait);
-        height: var(--media-h-portrait);
         max-width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
     }
 
     .media-row .mic-inline-wrap {
@@ -1325,9 +1337,11 @@ p {
 
     .screen-3 .block-16x9.flatsTableWrap {
         width: var(--media-w-portrait);
-        height: var(--media-h-portrait);
         max-width: 100%;
-        min-width: 0;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        flex: 0 0 auto;
+        overflow: hidden;
     }
 
     /* Mic только на screen 3: низ block-b, отступ снизу = ½ высоты mic */
@@ -1371,8 +1385,9 @@ p {
 
     .wrap-original-transform .flatsTableWrap {
         width: 100%;
-        height: var(--media-h-portrait);
         max-width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
         margin-top: 0;
     }
 
