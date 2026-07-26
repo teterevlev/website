@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=overlays-content">
     <title>Интерактивный макет</title>
 
     <link rel="icon" type="image/png" href="favicon.png">
@@ -314,7 +314,7 @@
         let programmaticScrollTimer = null;
 
         function syncScrollSnap() {
-            if (programmaticScroll) {
+            if (programmaticScroll || (typeof isFormUiFrozen === 'function' && isFormUiFrozen())) {
                 container.style.scrollSnapType = 'none';
                 return;
             }
@@ -575,18 +575,62 @@
         let ctaDockTop, ctaDockLeft, ctaDockScroll, ctaDockFixedLeft;
         let ctaShelfWidth = null;
         let ctaLockX = false;
+        /* lock до focus: на Android resize от клавиатуры часто раньше focusin */
+        let formUiLock = false;
+        let formLockedScrollTop = 0;
+        let formScrollPinUntil = 0;
+        let formScrollLockTimers = [];
 
         function remPx(n) {
             return n * parseFloat(getComputedStyle(document.documentElement).fontSize);
         }
 
-        /** Клавиатура / фокус в поле — не пересчитывать «полочку» CTA (иначе прыгает на середину) */
-        function isTextInputFocused() {
-            const ae = document.activeElement;
-            if (!ae) return false;
-            const tag = ae.tagName;
+        function isFormField(el) {
+            if (!el || !el.tagName) return false;
+            const tag = el.tagName;
             if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
-            return !!ae.isContentEditable;
+            return !!el.isContentEditable;
+        }
+
+        function isTextInputFocused() {
+            return isFormField(document.activeElement);
+        }
+
+        function isFormUiFrozen() {
+            return formUiLock || isTextInputFocused();
+        }
+
+        function clearFormScrollLockTimers() {
+            while (formScrollLockTimers.length) {
+                clearTimeout(formScrollLockTimers.pop());
+            }
+        }
+
+        function lockFormUi() {
+            if (!formUiLock) formLockedScrollTop = container.scrollTop;
+            formUiLock = true;
+            formScrollPinUntil = Date.now() + 400;
+            container.style.scrollSnapType = 'none';
+            applyCtaDocked();
+            pinFormScroll();
+            clearFormScrollLockTimers();
+            formScrollLockTimers.push(setTimeout(pinFormScroll, 0));
+            formScrollLockTimers.push(setTimeout(pinFormScroll, 50));
+            formScrollLockTimers.push(setTimeout(pinFormScroll, 150));
+            formScrollLockTimers.push(setTimeout(pinFormScroll, 350));
+        }
+
+        function pinFormScroll() {
+            if (!formUiLock || Date.now() > formScrollPinUntil) return;
+            if (Math.abs(container.scrollTop - formLockedScrollTop) > 1) {
+                container.scrollTop = formLockedScrollTop;
+            }
+        }
+
+        function unlockFormUi() {
+            clearFormScrollLockTimers();
+            formUiLock = false;
+            updateVoicePositions();
         }
 
         function clearCtaShelfExtras() {
@@ -598,6 +642,10 @@
         }
 
         function applyCtaFixedShelf(left) {
+            if (isFormUiFrozen()) {
+                applyCtaDocked();
+                return;
+            }
             btnCta.style.position = 'fixed';
             btnCta.style.top = ctaFixedTop + 'px';
             btnCta.style.left = left + 'px';
@@ -625,6 +673,13 @@
         }
 
         function handleScroll() {
+            if (formUiLock) {
+                pinFormScroll();
+                applyCtaDocked();
+                updatePcbOverlay();
+                return;
+            }
+
             const isMobile = isCompactLayout();
             let st = container.scrollTop;
 
@@ -655,7 +710,6 @@
                 }
             }
 
-            // Фокус в поле ввода: CTA остаётся на якоре screen-4, без fixed-«полочки»
             if (isTextInputFocused()) {
                 applyCtaDocked();
                 return;
@@ -683,8 +737,8 @@
         }
 
         function updateVoicePositions() {
-            // resize от клавиатуры сжимает innerHeight — не пересчитываем геометрию CTA
-            if (isTextInputFocused()) return;
+            // Никакого ресайз-пересчёта CTA, пока открыта клавиатура / фокус в поле
+            if (isFormUiFrozen()) return;
 
             const isMobile = isCompactLayout();
             const st = container.scrollTop;
@@ -755,18 +809,25 @@
             handleScroll();
         }
 
-        document.addEventListener('focusin', (e) => {
+        document.addEventListener('touchstart', maybeLockFromPointer, { passive: true, capture: true });
+        document.addEventListener('pointerdown', maybeLockFromPointer, { passive: true, capture: true });
+
+        function maybeLockFromPointer(e) {
             const t = e.target;
-            if (!t) return;
-            if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) {
-                handleScroll();
+            if (!t || !t.closest) return;
+            if (t.closest('#feedback-form input, #feedback-form textarea, #feedback-form select')) {
+                lockFormUi();
             }
+        }
+
+        document.addEventListener('focusin', (e) => {
+            if (!isFormField(e.target)) return;
+            lockFormUi();
         });
         document.addEventListener('focusout', () => {
-            // После закрытия клавиатуры — один пересчёт с актуальной высотой
             setTimeout(() => {
-                if (!isTextInputFocused()) updateVoicePositions();
-            }, 120);
+                if (!isTextInputFocused()) unlockFormUi();
+            }, 150);
         });
 
         // Вложенный скролл только screen-2 .browserContent: на краях — жест родителю
@@ -1568,14 +1629,14 @@
         })();
 
         window.addEventListener('resize', () => {
-            if (isTextInputFocused()) return;
+            if (isFormUiFrozen()) return;
             measurePcbBase();
             syncMicInlineHeight();
             updatePcbOverlay();
             updateVoicePositions();
         });
         window.addEventListener('orientationchange', () => setTimeout(() => {
-            if (isTextInputFocused()) return;
+            if (isFormUiFrozen()) return;
             measurePcbBase();
             syncMicInlineHeight();
             updatePcbOverlay();
@@ -1604,7 +1665,7 @@
                 success.hidden = true;
                 form.hidden = false;
                 const first = form.querySelector('input, textarea');
-                if (first) first.focus();
+                if (first) first.focus({ preventScroll: true });
             }
 
             function showSuccess() {
