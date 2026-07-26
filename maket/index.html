@@ -580,6 +580,15 @@
             return n * parseFloat(getComputedStyle(document.documentElement).fontSize);
         }
 
+        /** Клавиатура / фокус в поле — не пересчитывать «полочку» CTA (иначе прыгает на середину) */
+        function isTextInputFocused() {
+            const ae = document.activeElement;
+            if (!ae) return false;
+            const tag = ae.tagName;
+            if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true;
+            return !!ae.isContentEditable;
+        }
+
         function clearCtaShelfExtras() {
             btnCta.style.removeProperty('width');
             btnCta.style.removeProperty('bottom');
@@ -601,6 +610,17 @@
             } else {
                 btnCta.style.removeProperty('width');
                 btnCta.style.removeProperty('justify-content');
+            }
+        }
+
+        function applyCtaDocked() {
+            clearCtaShelfExtras();
+            btnCta.style.position = 'absolute';
+            btnCta.style.top = ctaDockTop + 'px';
+            btnCta.style.left = ctaDockLeft + 'px';
+            if (ctaShelfWidth != null) {
+                btnCta.style.width = ctaShelfWidth + 'px';
+                btnCta.style.justifyContent = 'center';
             }
         }
 
@@ -635,6 +655,12 @@
                 }
             }
 
+            // Фокус в поле ввода: CTA остаётся на якоре screen-4, без fixed-«полочки»
+            if (isTextInputFocused()) {
+                applyCtaDocked();
+                return;
+            }
+
             // CTA: fixed до якоря, затем absolute (и на desktop, и на mobile)
             if (!isMobile && st === 0) {
                 clearCtaShelfExtras();
@@ -652,19 +678,14 @@
                 }
                 applyCtaFixedShelf(left);
             } else {
-                clearCtaShelfExtras();
-                btnCta.style.position = 'absolute';
-                btnCta.style.top = ctaDockTop + 'px';
-                btnCta.style.left = ctaDockLeft + 'px';
-                // Landscape: сохраняем ширину «полочки»
-                if (ctaShelfWidth != null) {
-                    btnCta.style.width = ctaShelfWidth + 'px';
-                    btnCta.style.justifyContent = 'center';
-                }
+                applyCtaDocked();
             }
         }
 
         function updateVoicePositions() {
+            // resize от клавиатуры сжимает innerHeight — не пересчитываем геометрию CTA
+            if (isTextInputFocused()) return;
+
             const isMobile = isCompactLayout();
             const st = container.scrollTop;
             const containerRect = container.getBoundingClientRect();
@@ -696,20 +717,23 @@
                 btnVoice.style.removeProperty('left');
 
                 // Мобильная «полочка»: внизу по центру (portrait) / справа (landscape)
+                // layout viewport (не visual) — стабильнее при клавиатуре, если фокус уже снят
                 const isPortrait = window.matchMedia('(orientation: portrait)').matches;
                 const btnH = btnCta.offsetHeight;
+                const layoutH = window.innerHeight;
+                const layoutW = window.innerWidth;
                 if (isPortrait) {
                     ctaShelfWidth = null;
                     ctaLockX = false;
                     btnCta.style.removeProperty('width');
                     const btnW = btnCta.offsetWidth;
-                    ctaFixedTop = window.innerHeight - remPx(1.75) - btnH;
-                    ctaFixedLeft = (window.innerWidth - btnW) / 2;
+                    ctaFixedTop = layoutH - remPx(1.75) - btnH;
+                    ctaFixedLeft = (layoutW - btnW) / 2;
                 } else {
-                    ctaShelfWidth = window.innerWidth * 0.5 - remPx(3);
+                    ctaShelfWidth = layoutW * 0.5 - remPx(3);
                     ctaLockX = true;
-                    ctaFixedTop = window.innerHeight - remPx(1.25) - btnH;
-                    ctaFixedLeft = window.innerWidth - remPx(1.5) - ctaShelfWidth;
+                    ctaFixedTop = layoutH - remPx(1.25) - btnH;
+                    ctaFixedLeft = layoutW - remPx(1.5) - ctaShelfWidth;
                 }
             }
 
@@ -730,6 +754,20 @@
 
             handleScroll();
         }
+
+        document.addEventListener('focusin', (e) => {
+            const t = e.target;
+            if (!t) return;
+            if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable) {
+                handleScroll();
+            }
+        });
+        document.addEventListener('focusout', () => {
+            // После закрытия клавиатуры — один пересчёт с актуальной высотой
+            setTimeout(() => {
+                if (!isTextInputFocused()) updateVoicePositions();
+            }, 120);
+        });
 
         // Вложенный скролл только screen-2 .browserContent: на краях — жест родителю
         (function bindNestedBlockScroll() {
@@ -1530,12 +1568,14 @@
         })();
 
         window.addEventListener('resize', () => {
+            if (isTextInputFocused()) return;
             measurePcbBase();
             syncMicInlineHeight();
             updatePcbOverlay();
             updateVoicePositions();
         });
         window.addEventListener('orientationchange', () => setTimeout(() => {
+            if (isTextInputFocused()) return;
             measurePcbBase();
             syncMicInlineHeight();
             updatePcbOverlay();
