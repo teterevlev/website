@@ -566,7 +566,65 @@
     controls.maxDistance = 100;
     controls.maxPolarAngle = Math.PI / 2 - 0.03;
 
-    function isOrbitTarget(el) {
+    // Доля размера .block-b под тач-хотспот орбиты (центр)
+    var TOUCH_ORBIT_HOTSPOT = 0.3;
+
+    // Как CSS/index: мобильный layout, в т.ч. DevTools device mode (там pointerType=mouse)
+    function isCompactOrbitUi() {
+      try {
+        return (
+          window.matchMedia('(max-width: ' + MOBILE_BREAKPOINT + 'px)').matches ||
+          window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches
+        );
+      } catch (err) {
+        return (typeof window.innerWidth === 'number' ? window.innerWidth : 0) <= MOBILE_BREAKPOINT;
+      }
+    }
+
+    function isTouchPointer(e) {
+      if (!e) return false;
+      if (e.type && e.type.indexOf('touch') === 0) return true;
+      if (e.pointerType === 'touch') return true;
+      return false;
+    }
+
+    function isBlockBEmpty(blockB) {
+      if (!blockB) return false;
+      var kids = blockB.children;
+      if (!kids.length) return true;
+      for (var i = 0; i < kids.length; i++) {
+        var cs = window.getComputedStyle(kids[i]);
+        if (cs.display !== 'none' && cs.visibility !== 'hidden' && cs.opacity !== '0') {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    function eventClientXY(e) {
+      if (typeof e.clientX === 'number') return { x: e.clientX, y: e.clientY };
+      var t = e.touches && e.touches[0];
+      if (t) return { x: t.clientX, y: t.clientY };
+      t = e.changedTouches && e.changedTouches[0];
+      if (t) return { x: t.clientX, y: t.clientY };
+      return { x: 0, y: 0 };
+    }
+
+    function isInEmptyBlockBHotspot(clientX, clientY, blockB) {
+      var r = blockB.getBoundingClientRect();
+      if (r.width < 8 || r.height < 8) return false;
+      var cx = r.left + r.width * 0.5;
+      var cy = r.top + r.height * 0.5;
+      var hw = r.width * TOUCH_ORBIT_HOTSPOT * 0.5;
+      var hh = r.height * TOUCH_ORBIT_HOTSPOT * 0.5;
+      return Math.abs(clientX - cx) <= hw && Math.abs(clientY - cy) <= hh;
+    }
+
+    function useTouchOrbitRules(e) {
+      return isCompactOrbitUi() || isTouchPointer(e);
+    }
+
+    function isOrbitTarget(el, e) {
       if (!el || !el.closest) return false;
       if (el.closest('.screen-4, .screen-5')) return false;
       if (
@@ -576,19 +634,41 @@
       ) {
         return false;
       }
+
+      // Compact / тач: скролл везде; орбита только в центре пустого .block-b
+      if (useTouchOrbitRules(e)) {
+        var blockB = el.closest('.block-b');
+        if (!blockB || !isBlockBEmpty(blockB)) return false;
+        var pt = eventClientXY(e);
+        return isInEmptyBlockBHotspot(pt.x, pt.y, blockB);
+      }
+
       return !!el.closest('.scroll-container, .screen, .screen-content, .block-b');
     }
 
-    orbitRoot.addEventListener(
-      'pointerdown',
-      function (e) {
-        controls.enabled = isOrbitTarget(e.target);
-      },
-      true
-    );
-    window.addEventListener('pointerup', function () {
-      controls.enabled = true;
-    });
+    function resetOrbitEnabledDefault() {
+      // В compact по умолчанию выкл — иначе OrbitControls перехватывает скролл
+      controls.enabled = !isCompactOrbitUi();
+    }
+
+    function onOrbitGestureStart(e) {
+      controls.enabled = isOrbitTarget(e.target, e);
+    }
+
+    function onOrbitGestureEnd() {
+      resetOrbitEnabledDefault();
+    }
+
+    resetOrbitEnabledDefault();
+
+    // capture + touchstart: раньше, чем OrbitControls (у него и pointerdown, и touchstart)
+    orbitRoot.addEventListener('pointerdown', onOrbitGestureStart, true);
+    orbitRoot.addEventListener('touchstart', onOrbitGestureStart, true);
+    window.addEventListener('pointerup', onOrbitGestureEnd);
+    window.addEventListener('pointercancel', onOrbitGestureEnd);
+    window.addEventListener('touchend', onOrbitGestureEnd);
+    window.addEventListener('touchcancel', onOrbitGestureEnd);
+    window.addEventListener('resize', resetOrbitEnabledDefault);
 
     var baseOffsetDir = new THREE.Vector3(9.5, 4.05, 10.5);
     var baseHorizontal = Math.sqrt(
@@ -628,7 +708,7 @@
         useTopHouseFraming =
           sceneSize.width <= MOBILE_BREAKPOINT && sceneSize.height >= sceneSize.width;
       }
-      controls.enabled = true;
+      controls.enabled = !isCompactOrbitUi();
       renderer.domElement.style.pointerEvents = 'none';
 
       var distance, fx, fy;
