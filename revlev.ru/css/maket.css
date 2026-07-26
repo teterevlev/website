@@ -936,6 +936,66 @@ p {
     color: var(--ink);
 }
 
+.site-preview {
+    display: block;
+    margin-top: auto;
+    padding-top: 2rem;
+    width: fit-content;
+    max-width: 100%;
+    text-decoration: none;
+    color: inherit;
+    overflow: hidden;
+    border: 1px solid var(--mist);
+    border-radius: 12px;
+    background: var(--snow);
+    transition: border-color 0.2s;
+}
+
+.site-preview:hover {
+    border-color: var(--smoke);
+}
+
+.site-preview-image {
+    display: block;
+    width: 320px;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 320 / 168;
+    object-fit: cover;
+    background: var(--ash);
+}
+
+.site-preview-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.85rem 1rem 1rem;
+}
+
+.site-preview-title {
+    font-family: var(--font-display);
+    font-size: 1.125rem;
+    font-weight: 400;
+    line-height: 1.4;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+}
+
+.site-preview-desc {
+    font-family: var(--font);
+    font-size: 1.125rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--ink);
+}
+
+.site-preview-url {
+    margin-top: 0.15rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: var(--slate);
+}
+
 .form-container {
     margin-top: 2rem;
     width: 100%;
@@ -1494,6 +1554,21 @@ p {
     .screen-5 .form-container input,
     .screen-5 .form-container textarea {
         font-size: 0.875rem;
+    }
+
+    .screen-5 .site-preview-title,
+    .screen-5 .site-preview-desc {
+        font-size: 0.875rem;
+    }
+
+    .screen-5 .site-preview {
+        width: 100%;
+        max-width: 320px;
+        padding-top: 1.5rem;
+    }
+
+    .screen-5 .site-preview-image {
+        width: 100%;
     }
 
     .screen-5 .form-container input,
