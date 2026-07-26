@@ -142,14 +142,14 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="browserContent hero3BrowserContent is-awaiting-flat" id="hero3BrowserContent">
+                                <div class="browserContent hero3BrowserContent" id="hero3BrowserContent">
                                     <div class="hero3IntroScreen" id="hero3IntroScreen" aria-hidden="true"></div>
                                     <div class="hero3PageLoader" id="hero3PageLoader" aria-hidden="true">
                                         <div class="hero3PageLoaderBar"><span></span></div>
                                         <div class="hero3PageLoaderSpinner"></div>
                                         <div class="hero3PageLoaderText">загрузка страницы…</div>
                                     </div>
-                                    <div class="flatPage" data-flat="9" id="hero3FlatPage9">
+                                    <div class="flatPage is-active" data-flat="9" id="hero3FlatPage9">
                                         <div class="flatPageSiteNav">лучший-застройщик.рф / <span>каталог</span> /
                                             квартира 9</div>
                                         <div class="flatPageBody">
@@ -1342,7 +1342,7 @@
             let phraseIndex = 0;
             let typedLen = 0;
             let phase = 'typing'; // typing | waiting | deleting
-            let hero3ActiveFlatNumber = null;
+            let hero3ActiveFlatNumber = 9;
             const timers = [];
 
             const browserContent = document.getElementById('hero3BrowserContent');
@@ -1375,13 +1375,6 @@
                 captions.forEach((c) => c.classList.toggle('is-hidden', !show));
             }
 
-            function resetBrowserAwaiting() {
-                if (browserContent) browserContent.classList.add('is-awaiting-flat');
-                flatPages.forEach((p) => p.classList.remove('is-active'));
-                clearPageLoad();
-                hero3ActiveFlatNumber = null;
-            }
-
             function clearPageLoad() {
                 if (pageLoader) {
                     pageLoader.classList.remove('is-active');
@@ -1391,18 +1384,31 @@
                 if (addressBar) addressBar.classList.remove('is-loading');
             }
 
+            /** Всегда видна одна из страниц 9/14 — пустой браузер запрещён */
             function revealFlatPage(flatNumber) {
+                const n = HERO_MIC_FLAT_NUMBERS.indexOf(flatNumber) >= 0
+                    ? flatNumber
+                    : HERO_MIC_FLAT_NUMBERS[0];
                 clearPageLoad();
                 if (browserContent) browserContent.classList.remove('is-awaiting-flat');
+                if (flatSlug) flatSlug.textContent = String(n);
                 flatPages.forEach((page) => {
-                    page.classList.toggle('is-active', page.getAttribute('data-flat') === String(flatNumber));
+                    page.classList.toggle('is-active', page.getAttribute('data-flat') === String(n));
                 });
-                hero3ActiveFlatNumber = flatNumber;
+                hero3ActiveFlatNumber = n;
+            }
+
+            function ensureFlatVisible() {
+                if (hero3ActiveFlatNumber != null) {
+                    revealFlatPage(hero3ActiveFlatNumber);
+                } else {
+                    revealFlatPage(HERO_MIC_FLAT_NUMBERS[phraseIndex] || HERO_MIC_FLAT_NUMBERS[0]);
+                }
             }
 
             function showFlatPage(flatNumber) {
                 if (flatSlug) flatSlug.textContent = String(flatNumber);
-                flatPages.forEach((p) => p.classList.remove('is-active'));
+                // Предыдущая страница остаётся под лоадером — не снимаем is-active заранее
                 if (pageLoader) {
                     pageLoader.classList.add('is-active');
                     pageLoader.setAttribute('aria-hidden', 'false');
@@ -1432,19 +1438,10 @@
                 });
             }
 
-            function resetIdle() {
-                clearTimers();
-                setCaptionText('');
-                showCaptions(false);
-                if (introScreen) {
-                    introScreen.classList.remove('is-active');
-                    introScreen.setAttribute('aria-hidden', 'true');
-                }
-                resetBrowserAwaiting();
-                if (building) building.turnOffAllWindows();
-                phraseIndex = 0;
-                typedLen = 0;
-                phase = 'typing';
+            function hideIntro() {
+                if (!introScreen) return;
+                introScreen.classList.remove('is-active');
+                introScreen.setAttribute('aria-hidden', 'true');
             }
 
             function tickTypewriter() {
@@ -1484,31 +1481,38 @@
             function startLoop() {
                 if (loopRunning) return;
                 loopRunning = true;
-                resetIdle();
-                if (introScreen) {
-                    introScreen.classList.add('is-active');
-                    introScreen.setAttribute('aria-hidden', 'false');
-                }
-                schedule(() => {
-                    if (!screen3Active) return;
-                    if (introScreen) {
-                        introScreen.classList.remove('is-active');
-                        introScreen.setAttribute('aria-hidden', 'true');
-                    }
-                    showCaptions(true);
-                    typedLen = 0;
-                    phase = 'typing';
-                    tickTypewriter();
-                }, 1000);
+                clearTimers();
+                hideIntro();
+                ensureFlatVisible();
+                showCaptions(true);
+                typedLen = 0;
+                phase = 'typing';
+                tickTypewriter();
             }
 
             function stopLoop() {
                 loopRunning = false;
-                resetIdle();
+                clearTimers();
+                setCaptionText('');
+                showCaptions(false);
+                hideIntro();
+                clearPageLoad();
+                // Страница остаётся на экране — не вызываем awaiting/сброс в пустоту
+                ensureFlatVisible();
+                if (building) building.turnOffAllWindows();
+            }
+
+            /** Демо живо от screen-3 до середины screen-4 */
+            function shouldRunScreen3Demo() {
+                if (!screen3 || !screen4) return false;
+                const st = container.scrollTop;
+                const from = screen3.offsetTop - 4;
+                const until = screen4.offsetTop + screen4.offsetHeight * 0.5;
+                return st >= from && st < until;
             }
 
             function syncScreen3Demo() {
-                const on = isExactlyOnScreen(screen3);
+                const on = shouldRunScreen3Demo();
                 if (on === screen3Active) return;
                 screen3Active = on;
                 if (screen3Active) startLoop();
@@ -1516,6 +1520,9 @@
             }
 
             if (!browserContent) return;
+
+            // Стартовый кадр: квартира 9 уже в разметке
+            ensureFlatVisible();
 
             container.addEventListener('scroll', syncScreen3Demo, { passive: true });
             window.addEventListener('resize', syncScreen3Demo);
