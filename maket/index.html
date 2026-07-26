@@ -65,7 +65,7 @@
 
     <!-- Менять только здесь при деплое -->
     <script>
-        window.MAKET_DEPLOY = '1';
+        window.MAKET_DEPLOY = '2';
         document.write('<link rel="stylesheet" href="https://revlev.ru/css/maket.css?v=' + encodeURIComponent(window.MAKET_DEPLOY) + '">');
     </script>
 
@@ -373,6 +373,18 @@
 
         let programmaticScroll = false;
         let programmaticScrollTimer = null;
+        let scrollAnimRaf = null;
+
+        // Длительность обычного программного свайпа (кнопки / scrollToScreen), мс
+        const SCROLL_SWIPE_MS = 700;
+        // Недосвайп screen3→peek: доля от SCROLL_SWIPE_MS (подгонять)
+        const SCREEN4_PEEK_DURATION_RATIO = 0.75;
+        // Пауза без wheel на screen 3, прежде чем разрешить peek (гасит инерцию трекпада, как snap-stop 1→2)
+        const SCREEN3_PEEK_GESTURE_GAP_MS = 160;
+
+        function easeInOutCubic(t) {
+            return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
 
         function syncScrollSnap() {
             if (programmaticScroll || (typeof isFormUiFrozen === 'function' && isFormUiFrozen())) {
@@ -386,88 +398,151 @@
             }
         }
 
-        // Screen 3 → 4: mandatory snap + scroll-snap-stop съедают мелкий wheel,
-        // пока scrollTop не пробьёт порог syncScrollSnap (+5). Полоса прокрутки при этом работает.
-        // Точечный обход: только вниз и только у screen 3 — временно снять snap и уехать за порог.
+        function cancelScrollAnim() {
+            if (scrollAnimRaf != null) {
+                cancelAnimationFrame(scrollAnimRaf);
+                scrollAnimRaf = null;
+            }
+            if (programmaticScrollTimer) {
+                clearTimeout(programmaticScrollTimer);
+                programmaticScrollTimer = null;
+            }
+        }
+
+        function endProgrammaticScroll() {
+            cancelScrollAnim();
+            programmaticScroll = false;
+            container.style.removeProperty('scroll-behavior');
+            syncScrollSnap();
+        }
+
+        function scrollToY(targetTop, durationMs) {
+            if (!container || targetTop == null || !isFinite(targetTop)) return;
+            cancelScrollAnim();
+
+            const duration = Math.max(0, durationMs == null ? SCROLL_SWIPE_MS : durationMs);
+            const from = container.scrollTop;
+            const to = targetTop;
+
+            programmaticScroll = true;
+            container.style.scrollSnapType = 'none';
+            // иначе CSS scroll-behavior: smooth конфликтует с покадровой анимацией
+            container.style.scrollBehavior = 'auto';
+
+            if (Math.abs(to - from) < 1 || duration === 0) {
+                container.scrollTop = to;
+                endProgrammaticScroll();
+                return;
+            }
+
+            const start = performance.now();
+            const tick = (now) => {
+                if (!programmaticScroll) return;
+                const t = Math.min(1, (now - start) / duration);
+                container.scrollTop = from + (to - from) * easeInOutCubic(t);
+                if (t < 1) {
+                    scrollAnimRaf = requestAnimationFrame(tick);
+                } else {
+                    scrollAnimRaf = null;
+                    container.scrollTop = to;
+                    endProgrammaticScroll();
+                }
+            };
+            scrollAnimRaf = requestAnimationFrame(tick);
+        }
+
+        function scrollToScreen(el) {
+            if (!el || !container) return;
+            scrollToY(el.offsetTop, SCROLL_SWIPE_MS);
+        }
+
+        // 20% высоты вьюпорта screen 4 видно (недосвайп после screen 1–3)
+        function getScreen4PeekTop() {
+            if (!screen4) return screen3.offsetTop + 6;
+            return Math.round(screen4.offsetTop - container.clientHeight * 0.8);
+        }
+
+        // Screen 3 → 4: mandatory snap съедает мелкий wheel до порога syncScrollSnap (+5).
+        // Mobile: только escape за порог. Desktop: недосвайп — плавно на 20% screen 4.
+        // Peek только после паузы жеста (инерция 2→3 не должна уводить в peek).
         (function bindScreen3WheelEscape() {
             if (!container || !screen3) return;
+
+            let peekGestureArmed = false;
+            let peekArmTimer = null;
+
+            function disarmPeekGesture() {
+                peekGestureArmed = false;
+                if (peekArmTimer) {
+                    clearTimeout(peekArmTimer);
+                    peekArmTimer = null;
+                }
+            }
+
+            function schedulePeekArm() {
+                if (peekArmTimer) clearTimeout(peekArmTimer);
+                peekArmTimer = setTimeout(() => {
+                    peekArmTimer = null;
+                    if (!programmaticScroll && isExactlyOnScreen(screen3)) {
+                        peekGestureArmed = true;
+                    }
+                }, SCREEN3_PEEK_GESTURE_GAP_MS);
+            }
+
+            container.addEventListener(
+                'scroll',
+                () => {
+                    if (programmaticScroll) return;
+                    if (isExactlyOnScreen(screen3)) schedulePeekArm();
+                    else disarmPeekGesture();
+                },
+                { passive: true }
+            );
 
             container.addEventListener(
                 'wheel',
                 (e) => {
-                    if (e.deltaY <= 0) return;
                     if (programmaticScroll) return;
                     if (typeof isFormUiFrozen === 'function' && isFormUiFrozen()) return;
 
                     const st = container.scrollTop;
                     const s3 = screen3.offsetTop;
-                    if (st > s3 + 5) return; // уже за порогом — обычный скролл
-                    if (st < s3 - 4) return; // ещё не на screen 3
+                    if (st > s3 + 5 || st < s3 - 4) return;
 
                     const t = e.target;
                     if (t && t.closest && t.closest('.screen-2 .browserContent')) return;
 
+                    // Мобилка: без peek, только выйти из snap-ловушки
+                    if (typeof isCompactLayout === 'function' && isCompactLayout()) {
+                        if (e.deltaY <= 0) return;
+                        e.preventDefault();
+                        container.style.scrollSnapType = 'none';
+                        container.scrollTop = Math.max(st + e.deltaY, s3 + 6);
+                        return;
+                    }
+
+                    // Desktop: любой wheel на screen 3 сбрасывает «новый жест» (как snap-stop)
+                    if (e.deltaY <= 0) {
+                        schedulePeekArm();
+                        return;
+                    }
+
+                    if (!peekGestureArmed) {
+                        // не перехватываем — snap держит экран, инерция гаснет как на 1→2
+                        schedulePeekArm();
+                        return;
+                    }
+
                     e.preventDefault();
-                    container.style.scrollSnapType = 'none';
-                    // Гарантированно пересечь порог даже при deltaY = 1–3 (Windows mouse)
-                    container.scrollTop = Math.max(st + e.deltaY, s3 + 6);
+                    disarmPeekGesture();
+                    scrollToY(
+                        getScreen4PeekTop(),
+                        Math.round(SCROLL_SWIPE_MS * SCREEN4_PEEK_DURATION_RATIO)
+                    );
                 },
                 { passive: false }
             );
         })();
-
-        function endProgrammaticScroll() {
-            programmaticScroll = false;
-            if (programmaticScrollTimer) {
-                clearTimeout(programmaticScrollTimer);
-                programmaticScrollTimer = null;
-            }
-            syncScrollSnap();
-        }
-
-        function scrollToScreen(el) {
-            if (!el || !container) return;
-            const targetTop = el.offsetTop;
-            programmaticScroll = true;
-            container.style.scrollSnapType = 'none';
-            container.scrollTo({ top: targetTop, behavior: 'smooth' });
-
-            const finish = () => {
-                if (Math.abs(container.scrollTop - targetTop) > 4) {
-                    container.scrollTo({ top: targetTop, behavior: 'auto' });
-                }
-                endProgrammaticScroll();
-            };
-
-            if (programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
-
-            const onScrollEnd = () => {
-                container.removeEventListener('scrollend', onScrollEnd);
-                if (programmaticScrollTimer) clearTimeout(programmaticScrollTimer);
-                finish();
-            };
-            container.addEventListener('scrollend', onScrollEnd);
-
-            // Ждём остановки рядом с целью (длинный путь screen1→5)
-            let lastTop = container.scrollTop;
-            let stable = 0;
-            const started = Date.now();
-            const poll = () => {
-                if (!programmaticScroll) return;
-                const top = container.scrollTop;
-                const near = Math.abs(top - targetTop) <= 4;
-                if (Math.abs(top - lastTop) < 1) stable += 1;
-                else stable = 0;
-                lastTop = top;
-                if (near || stable >= 6 || Date.now() - started > 3000) {
-                    container.removeEventListener('scrollend', onScrollEnd);
-                    finish();
-                    return;
-                }
-                programmaticScrollTimer = setTimeout(poll, 50);
-            };
-            programmaticScrollTimer = setTimeout(poll, 80);
-        }
 
         function bindScrollTo(el, target) {
             if (!el || !target) return;
