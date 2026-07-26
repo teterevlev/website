@@ -33,16 +33,26 @@
     scene.add(worldRig);
 
     function getSceneSize() {
-      return {
-        width: sceneLayer.clientWidth || window.innerWidth,
-        height: sceneLayer.clientHeight || window.innerHeight
-      };
+      var lw = sceneLayer.clientWidth;
+      var lh = sceneLayer.clientHeight;
+      var vw = window.innerWidth || lw;
+      var vh = window.innerHeight || lh;
+      // После orientationchange слой иногда ещё со старым размером
+      if (
+        !lw ||
+        !lh ||
+        Math.abs(lw - vw) / Math.max(vw, 1) > 0.12 ||
+        Math.abs(lh - vh) / Math.max(vh, 1) > 0.12
+      ) {
+        return { width: vw, height: vh };
+      }
+      return { width: lw || vw, height: lh || vh };
     }
 
     var initialSceneSize = getSceneSize();
     var camera = new THREE.PerspectiveCamera(
       42,
-      initialSceneSize.width / initialSceneSize.height,
+      initialSceneSize.width / Math.max(initialSceneSize.height, 1),
       0.1,
       500
     );
@@ -54,7 +64,9 @@
     });
     renderer.setClearColor(0x000000, 0);
     renderer.domElement.id = 'threeCanvas';
-    renderer.setSize(initialSceneSize.width, initialSceneSize.height);
+    renderer.setSize(initialSceneSize.width, initialSceneSize.height, false);
+    renderer.domElement.style.width = '100%';
+    renderer.domElement.style.height = '100%';
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -605,11 +617,17 @@
 
     function applyResponsiveFraming(preserveOrbit) {
       var sceneSize = getSceneSize();
-      var aspectActual = sceneSize.width / sceneSize.height;
-      // Верхний кадр только пока вёрстка держит блок Б сверху (≤900px + portrait)
-      var isPortrait = sceneSize.height >= sceneSize.width;
-      var useTopHouseFraming =
-        sceneSize.width <= MOBILE_BREAKPOINT && isPortrait;
+      var aspectActual = sceneSize.width / Math.max(sceneSize.height, 1);
+      // Как CSS: top-framing только ≤900px + portrait (matchMedia надёжнее clientWidth после rotate)
+      var useTopHouseFraming = false;
+      try {
+        useTopHouseFraming = window.matchMedia(
+          '(max-width: ' + MOBILE_BREAKPOINT + 'px) and (orientation: portrait)'
+        ).matches;
+      } catch (err) {
+        useTopHouseFraming =
+          sceneSize.width <= MOBILE_BREAKPOINT && sceneSize.height >= sceneSize.width;
+      }
       controls.enabled = true;
       renderer.domElement.style.pointerEvents = 'none';
 
@@ -681,6 +699,51 @@
       worldRig.position.y = -smootherstep(houseExitProgress) * HOUSE_EXIT_WORLD_DROP;
     }
 
+    var lastOrient = initialSceneSize.width >= initialSceneSize.height ? 'l' : 'p';
+    var viewportRefreshTimers = [];
+
+    function clearViewportRefreshTimers() {
+      while (viewportRefreshTimers.length) {
+        clearTimeout(viewportRefreshTimers.pop());
+      }
+    }
+
+    function syncRendererToViewport() {
+      var sceneSize = getSceneSize();
+      if (sceneSize.width < 2 || sceneSize.height < 2) return null;
+      // false — не писать инлайн width/height: CSS #threeCanvas { inset:0; 100% }
+      // иначе после rotate залипают старые px и пропорции плывут
+      renderer.setSize(sceneSize.width, sceneSize.height, false);
+      renderer.domElement.style.width = '100%';
+      renderer.domElement.style.height = '100%';
+      return sceneSize;
+    }
+
+    function handleViewportChange() {
+      var sceneSize = syncRendererToViewport();
+      if (!sceneSize) return;
+
+      var orient = sceneSize.width >= sceneSize.height ? 'l' : 'p';
+      var orientationFlipped = orient !== lastOrient;
+      lastOrient = orient;
+
+      refreshExitRange();
+      // Смена portrait↔landscape меняет off-axis якорь — preserveOrbit уводит дом за край
+      applyResponsiveFraming(!orientationFlipped);
+      updateHouseExitFromScroll();
+      applyHouseExitOffset();
+    }
+
+    function scheduleViewportRefresh() {
+      clearViewportRefreshTimers();
+      // Несколько проходов: iOS отдаёт финальные размеры с задержкой
+      requestAnimationFrame(function () {
+        handleViewportChange();
+        viewportRefreshTimers.push(setTimeout(handleViewportChange, 100));
+        viewportRefreshTimers.push(setTimeout(handleViewportChange, 300));
+      });
+    }
+
     refreshExitRange();
     applyResponsiveFraming(false);
     updateHouseExitFromScroll();
@@ -697,14 +760,11 @@
       );
     }
 
-    window.addEventListener('resize', function () {
-      var sceneSize = getSceneSize();
-      renderer.setSize(sceneSize.width, sceneSize.height);
-      refreshExitRange();
-      applyResponsiveFraming(true);
-      updateHouseExitFromScroll();
-      applyHouseExitOffset();
-    });
+    window.addEventListener('resize', scheduleViewportRefresh);
+    window.addEventListener('orientationchange', scheduleViewportRefresh);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', scheduleViewportRefresh);
+    }
 
     function animate() {
       requestAnimationFrame(animate);
