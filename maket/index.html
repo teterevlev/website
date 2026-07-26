@@ -429,15 +429,87 @@
         let programmaticScrollTimer = null;
         let scrollAnimRaf = null;
 
-        // Длительность обычного программного свайпа (кнопки / scrollToScreen), мс
+        // Длительность обычного программного свайпа (кнопки / 1↔2↔3), мс
         const SCROLL_SWIPE_MS = 700;
         // Недосвайп screen3→peek: доля от SCROLL_SWIPE_MS (подгонять)
         const SCREEN4_PEEK_DURATION_RATIO = 0.75;
-        // Пауза без wheel на screen 3, прежде чем разрешить peek (гасит инерцию трекпада, как snap-stop 1→2)
-        const SCREEN3_PEEK_GESTURE_GAP_MS = 160;
+        // Пауза без wheel — полный конец жеста
+        const SCREEN_SWIPE_GESTURE_GAP_MS = 160;
+        // Рост |delta| относительно peak → новый жест (инерция обычно только затухает)
+        const SWIPE_SPEEDUP_RATIO = 1.08;
+        const SWIPE_SPEEDUP_EPS = 4; // px за событие, запас против шума
+        // Вверх из screen4: сколько viewport можно пройти выше screen3 нативным скроллом,
+        // прежде чем стартовать свайп на screen2 (без резкого clamp на screen3)
+        const SCREEN3_UP_FREE_SLACK = 0.2;
+
+        // Состояние жеста wheel на snap-экранах (desktop)
+        let swipeLockDir = 0;
+        let swipeGestureActive = false;
+        let swipeGestureCommitted = false;
+        let swipeGestureTimer = null;
+        let swipePeakTimer = null;
+        let swipeWasPastScreen3 = false;
+
+        // Интенсивность жеста: peak |delta| / направление / время
+        let swipeVelPeak = 0;
+        let swipeVelDir = 0;
+        let swipeLastWheelAt = 0;
+
+        // Незавершённый программный свайп (для отмены колесом в обратную сторону)
+        let swipeAnimOrigin = null;
+        let swipeAnimTarget = null;
+        let swipeAnimDir = 0; // origin → target
+        let swipeAnimFullMs = SCROLL_SWIPE_MS;
+        let swipeAnimToOrigin = false;
 
         function easeInOutCubic(t) {
             return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        function normalizeWheelDeltaY(e) {
+            let dy = e.deltaY;
+            if (e.deltaMode === 1) dy *= 16; // lines → px
+            else if (e.deltaMode === 2) dy *= container.clientHeight; // pages
+            return dy;
+        }
+
+        // Новый жест: разгон, смена направления, длинная пауза, щелчок мыши.
+        // peak = |delta|; при затухании peak остывает — иначе 2-й флик никогда не > peak.
+        function observeWheelGesture(e) {
+            const now = performance.now();
+            const dy = normalizeWheelDeltaY(e);
+            const dir = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+            const mag = Math.abs(dy);
+            const dt = swipeLastWheelAt ? now - swipeLastWheelAt : SCREEN_SWIPE_GESTURE_GAP_MS + 1;
+
+            const quietGap = dt > SCREEN_SWIPE_GESTURE_GAP_MS;
+            const longQuiet = dt > SCREEN_SWIPE_GESTURE_GAP_MS * 2;
+            const dirChanged = !!(dir && swipeVelDir && dir !== swipeVelDir);
+            const spedUp = mag > swipeVelPeak * SWIPE_SPEEDUP_RATIO + SWIPE_SPEEDUP_EPS;
+            const mouseNotch = e.deltaMode === 1 && dt > 40;
+            const decayingAfterGap =
+                quietGap &&
+                !longQuiet &&
+                swipeVelPeak > 0 &&
+                mag <= swipeVelPeak * SWIPE_SPEEDUP_RATIO + SWIPE_SPEEDUP_EPS;
+            // Разрыв между импульсами (не непрерывный поток ~16ms)
+            const pulseGap = dt > 55;
+
+            const isNewGesture =
+                dirChanged || spedUp || mouseNotch || longQuiet || (quietGap && !decayingAfterGap);
+
+            if (isNewGesture) {
+                swipeVelPeak = mag;
+            } else if (mag > swipeVelPeak) {
+                swipeVelPeak = mag;
+            } else {
+                // Инерция затухает — остужаем peak, чтобы следующий разгон считался новым жестом
+                swipeVelPeak = Math.max(mag, swipeVelPeak * 0.9);
+            }
+            if (dir) swipeVelDir = dir;
+            swipeLastWheelAt = now;
+
+            return { dir, mag, isNewGesture, spedUp, pulseGap, mouseNotch, dt };
         }
 
         function syncScrollSnap() {
@@ -445,11 +517,17 @@
                 container.style.scrollSnapType = 'none';
                 return;
             }
-            if (container.scrollTop > screen3.offsetTop + 5) {
+            // Snap выключен в screen4 и в slack выше screen3 — иначе рывки / перескок
+            if (container.scrollTop > getScreen3UpFreeLimit()) {
                 container.style.scrollSnapType = 'none';
             } else {
                 container.style.scrollSnapType = 'y mandatory';
             }
+        }
+
+        // Ниже этого scrollTop (ближе к screen2) — уже зона программного свайпа вверх
+        function getScreen3UpFreeLimit() {
+            return Math.round(screen3.offsetTop - container.clientHeight * SCREEN3_UP_FREE_SLACK);
         }
 
         function cancelScrollAnim() {
@@ -461,6 +539,42 @@
                 clearTimeout(programmaticScrollTimer);
                 programmaticScrollTimer = null;
             }
+        }
+
+        function resetSwipeGestureSoon() {
+            if (swipeGestureTimer) clearTimeout(swipeGestureTimer);
+            swipeGestureTimer = setTimeout(() => {
+                swipeGestureTimer = null;
+                swipeGestureActive = false;
+                swipeGestureCommitted = false;
+                swipeLockDir = 0;
+            }, SCREEN_SWIPE_GESTURE_GAP_MS);
+
+            // Peak держим дольше: иначе хвост инерции после обнуления peak = ложный «новый жест»
+            if (swipePeakTimer) clearTimeout(swipePeakTimer);
+            swipePeakTimer = setTimeout(() => {
+                swipePeakTimer = null;
+                swipeVelPeak = 0;
+                swipeVelDir = 0;
+                swipeLastWheelAt = 0;
+            }, Math.round(SCREEN_SWIPE_GESTURE_GAP_MS * 2.5));
+        }
+
+        // После прихода: тот же жест (затухающая инерция) не даёт новый свайп
+        function noteSwipeArrival(dir) {
+            if (!dir) return;
+            swipeLockDir = dir;
+            swipeGestureActive = true;
+            swipeGestureCommitted = true;
+            if (dir) swipeVelDir = dir;
+            resetSwipeGestureSoon();
+        }
+
+        function clearSwipeAnimEndpoints() {
+            swipeAnimOrigin = null;
+            swipeAnimTarget = null;
+            swipeAnimDir = 0;
+            swipeAnimToOrigin = false;
         }
 
         function endProgrammaticScroll() {
@@ -483,9 +597,17 @@
             // иначе CSS scroll-behavior: smooth конфликтует с покадровой анимацией
             container.style.scrollBehavior = 'auto';
 
+            const finish = () => {
+                const dir = swipeAnimDir;
+                const toOrigin = swipeAnimToOrigin;
+                clearSwipeAnimEndpoints();
+                endProgrammaticScroll();
+                if (dir) noteSwipeArrival(toOrigin ? -dir : dir);
+            };
+
             if (Math.abs(to - from) < 1 || duration === 0) {
                 container.scrollTop = to;
-                endProgrammaticScroll();
+                finish();
                 return;
             }
 
@@ -499,15 +621,91 @@
                 } else {
                     scrollAnimRaf = null;
                     container.scrollTop = to;
-                    endProgrammaticScroll();
+                    finish();
                 }
             };
             scrollAnimRaf = requestAnimationFrame(tick);
         }
 
+        function startSnapSwipe(targetTop, durationMs) {
+            const from = container.scrollTop;
+            const to = targetTop;
+            const dir = to > from ? 1 : to < from ? -1 : 0;
+            const ms = Math.max(0, durationMs == null ? SCROLL_SWIPE_MS : durationMs);
+            swipeAnimOrigin = from;
+            swipeAnimTarget = to;
+            swipeAnimDir = dir;
+            swipeAnimFullMs = ms || SCROLL_SWIPE_MS;
+            swipeAnimToOrigin = false;
+            // Не даём peak обнулиться посреди анимации (ложный 2-й свайп на хвосте)
+            if (swipePeakTimer) {
+                clearTimeout(swipePeakTimer);
+                swipePeakTimer = null;
+            }
+            if (swipeGestureTimer) {
+                clearTimeout(swipeGestureTimer);
+                swipeGestureTimer = null;
+            }
+            scrollToY(to, ms);
+        }
+
+        // Колесо против текущего движения → назад к origin (или снова к target, если уже откатывали)
+        function reverseSnapSwipe() {
+            if (swipeAnimOrigin == null || swipeAnimTarget == null || !swipeAnimDir) return;
+            const cur = container.scrollTop;
+            const dest = swipeAnimToOrigin ? swipeAnimTarget : swipeAnimOrigin;
+            const fullDist = Math.abs(swipeAnimTarget - swipeAnimOrigin) || 1;
+            const remaining = Math.abs(dest - cur);
+            const dur = Math.max(180, Math.round(swipeAnimFullMs * (remaining / fullDist)));
+            swipeAnimToOrigin = !swipeAnimToOrigin;
+            scrollToY(dest, dur);
+        }
+
+        function getSnapChainTops() {
+            return [
+                screen1.offsetTop,
+                screen2.offsetTop,
+                screen3.offsetTop,
+                getScreen4PeekTop()
+            ];
+        }
+
+        function nearestSnapChainIndex(top) {
+            const tops = getSnapChainTops();
+            let best = 0;
+            for (let i = 1; i < tops.length; i++) {
+                if (Math.abs(tops[i] - top) < Math.abs(tops[best] - top)) best = i;
+            }
+            return best;
+        }
+
+        function getChainedSnapTop(fromTop, dir) {
+            const tops = getSnapChainTops();
+            const j = nearestSnapChainIndex(fromTop) + dir;
+            if (j < 0 || j >= tops.length) return null;
+            return tops[j];
+        }
+
+        function swipeDurationForDistance(from, to) {
+            const unit = Math.abs(screen2.offsetTop - screen1.offsetTop) || container.clientHeight;
+            const dist = Math.abs(to - from);
+            return Math.max(180, Math.round(SCROLL_SWIPE_MS * (dist / Math.max(unit, 1))));
+        }
+
+        // Новый жест в ту же сторону во время анимации → сразу к следующему snap
+        function chainSnapSwipe(dir) {
+            if (swipeAnimTarget == null || !dir) return false;
+            const anchor = swipeAnimToOrigin ? swipeAnimOrigin : swipeAnimTarget;
+            const nextTop = getChainedSnapTop(anchor, dir);
+            if (nextTop == null) return false;
+            if (Math.abs(nextTop - swipeAnimTarget) <= 4 && !swipeAnimToOrigin) return false;
+            startSnapSwipe(nextTop, swipeDurationForDistance(container.scrollTop, nextTop));
+            return true;
+        }
+
         function scrollToScreen(el) {
             if (!el || !container) return;
-            scrollToY(el.offsetTop, SCROLL_SWIPE_MS);
+            startSnapSwipe(el.offsetTop, SCROLL_SWIPE_MS);
         }
 
         // 20% высоты вьюпорта screen 4 видно (недосвайп после screen 1–3)
@@ -516,39 +714,35 @@
             return Math.round(screen4.offsetTop - container.clientHeight * 0.8);
         }
 
-        // Screen 3 → 4: mandatory snap съедает мелкий wheel до порога syncScrollSnap (+5).
-        // Mobile: только escape за порог. Desktop: недосвайп — плавно на 20% screen 4.
-        // Peek только после паузы жеста (инерция 2→3 не должна уводить в peek).
-        (function bindScreen3WheelEscape() {
-            if (!container || !screen3) return;
+        function getSnapScreenIndex() {
+            if (isExactlyOnScreen(screen1)) return 0;
+            if (isExactlyOnScreen(screen2)) return 1;
+            if (isExactlyOnScreen(screen3)) return 2;
+            return -1;
+        }
 
-            let peekGestureArmed = false;
-            let peekArmTimer = null;
+        // Desktop: свайп по жестам. Инерция (скорость ≤ peak) = тот же жест.
+        // Новый жест: разгон, смена направления, пауза, щелчок мыши.
+        // Во время анимации колесо назад — возврат на исходный snap.
+        // Mobile: CSS-snap; на screen 3 — только escape.
+        (function bindSnapZoneWheel() {
+            if (!container || !screen1 || !screen2 || !screen3) return;
 
-            function disarmPeekGesture() {
-                peekGestureArmed = false;
-                if (peekArmTimer) {
-                    clearTimeout(peekArmTimer);
-                    peekArmTimer = null;
-                }
-            }
-
-            function schedulePeekArm() {
-                if (peekArmTimer) clearTimeout(peekArmTimer);
-                peekArmTimer = setTimeout(() => {
-                    peekArmTimer = null;
-                    if (!programmaticScroll && isExactlyOnScreen(screen3)) {
-                        peekGestureArmed = true;
-                    }
-                }, SCREEN3_PEEK_GESTURE_GAP_MS);
-            }
+            swipeWasPastScreen3 = container.scrollTop > screen3.offsetTop + 5;
 
             container.addEventListener(
                 'scroll',
                 () => {
-                    if (programmaticScroll) return;
-                    if (isExactlyOnScreen(screen3)) schedulePeekArm();
-                    else disarmPeekGesture();
+                    const past = container.scrollTop > screen3.offsetTop + 5;
+                    if (
+                        !programmaticScroll &&
+                        swipeWasPastScreen3 &&
+                        !past &&
+                        isExactlyOnScreen(screen3)
+                    ) {
+                        noteSwipeArrival(-1);
+                    }
+                    swipeWasPastScreen3 = past;
                 },
                 { passive: true }
             );
@@ -556,43 +750,114 @@
             container.addEventListener(
                 'wheel',
                 (e) => {
-                    if (programmaticScroll) return;
                     if (typeof isFormUiFrozen === 'function' && isFormUiFrozen()) return;
-
-                    const st = container.scrollTop;
-                    const s3 = screen3.offsetTop;
-                    if (st > s3 + 5 || st < s3 - 4) return;
 
                     const t = e.target;
                     if (t && t.closest && t.closest('.screen-2 .browserContent')) return;
 
-                    // Мобилка: без peek, только выйти из snap-ловушки
-                    if (typeof isCompactLayout === 'function' && isCompactLayout()) {
+                    const st = container.scrollTop;
+                    const s3 = screen3.offsetTop;
+                    const compact =
+                        typeof isCompactLayout === 'function' && isCompactLayout();
+
+                    if (compact) {
                         if (e.deltaY <= 0) return;
+                        if (st > s3 + 5 || st < s3 - 4) return;
                         e.preventDefault();
                         container.style.scrollSnapType = 'none';
                         container.scrollTop = Math.max(st + e.deltaY, s3 + 6);
                         return;
                     }
 
-                    // Desktop: любой wheel на screen 3 сбрасывает «новый жест» (как snap-stop)
-                    if (e.deltaY <= 0) {
-                        schedulePeekArm();
+                    const gesture = observeWheelGesture(e);
+                    const wheelDir = gesture.dir;
+
+                    // Незавершённый свайп:
+                    // — против движения → назад на origin
+                    // — разгон вниз → следующий экран (чейн вверх запрещён: иначе 3→2→1 одним жестом)
+                    if (programmaticScroll && swipeAnimOrigin != null) {
+                        e.preventDefault();
+                        resetSwipeGestureSoon();
+                        if (!wheelDir || !swipeAnimDir) return;
+                        const currentDir = swipeAnimToOrigin ? -swipeAnimDir : swipeAnimDir;
+                        if (wheelDir !== currentDir) {
+                            reverseSnapSwipe();
+                            return;
+                        }
+                        if (wheelDir < 0) return;
+                        const canChain =
+                            (gesture.spedUp && gesture.pulseGap) ||
+                            (gesture.mouseNotch && gesture.isNewGesture);
+                        if (!canChain) return;
+                        chainSnapSwipe(wheelDir);
                         return;
                     }
 
-                    if (!peekGestureArmed) {
-                        // не перехватываем — snap держит экран, инерция гаснет как на 1→2
-                        schedulePeekArm();
+                    if (programmaticScroll) {
+                        e.preventDefault();
                         return;
                     }
+
+                    const idx = getSnapScreenIndex();
+                    const freeLimit = getScreen3UpFreeLimit();
+
+                    // screen4 + slack: нативный smooth. Свайп на 2 — после freeLimit.
+                    // Exact screen3 вверх — обычный свайп на 2 (не через slack, иначе мышь/трекпад улетают на 1).
+                    if (st > freeLimit) {
+                        if (wheelDir < 0) {
+                            if (isExactlyOnScreen(screen3)) {
+                                e.preventDefault();
+                                if (!gesture.isNewGesture) {
+                                    resetSwipeGestureSoon();
+                                    return;
+                                }
+                                startSnapSwipe(screen2.offsetTop, SCROLL_SWIPE_MS);
+                                return;
+                            }
+                            const next = st + normalizeWheelDeltaY(e);
+                            if (next > freeLimit) return;
+                            e.preventDefault();
+                            startSnapSwipe(
+                                screen2.offsetTop,
+                                swipeDurationForDistance(st, screen2.offsetTop)
+                            );
+                            return;
+                        }
+                        if (st > s3 + 5) return;
+                    }
+
+                    if (idx < 0) return;
 
                     e.preventDefault();
-                    disarmPeekGesture();
-                    scrollToY(
-                        getScreen4PeekTop(),
-                        Math.round(SCROLL_SWIPE_MS * SCREEN4_PEEK_DURATION_RATIO)
-                    );
+
+                    // Листать только на НОВОМ жесте. Тот же скролл/затухание — игнор,
+                    // но продлеваем timers, пока инерция ещё шлёт события.
+                    if (!gesture.isNewGesture || !wheelDir) {
+                        if (!gesture.isNewGesture) resetSwipeGestureSoon();
+                        return;
+                    }
+
+                    if (swipeGestureTimer) {
+                        clearTimeout(swipeGestureTimer);
+                        swipeGestureTimer = null;
+                    }
+                    swipeLockDir = 0;
+                    swipeGestureActive = true;
+                    swipeGestureCommitted = true;
+
+                    if (wheelDir > 0) {
+                        if (idx === 0) scrollToScreen(screen2);
+                        else if (idx === 1) scrollToScreen(screen3);
+                        else {
+                            startSnapSwipe(
+                                getScreen4PeekTop(),
+                                Math.round(SCROLL_SWIPE_MS * SCREEN4_PEEK_DURATION_RATIO)
+                            );
+                        }
+                    } else if (idx === 1) {
+                        scrollToScreen(screen1);
+                    }
+                    // idx === 2 вверх уже обработан free-band (slack); вниз — peek выше
                 },
                 { passive: false }
             );
