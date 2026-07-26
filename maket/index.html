@@ -256,13 +256,20 @@
                     <p>Мы предложим подходящий вариант реализации, ответим на технические вопросы и поможем выбрать
                         оптимальный способ внедрения.</p>
 
-                    <form class="form-container" id="feedback-form" action="https://revlev-feedback.oteterevlev.workers.dev/" method="post">
-                        <input type="text" name="name" placeholder="Имя / Компания" required autocomplete="organization">
-                        <input type="text" name="contact" placeholder="Телефон или Email" required autocomplete="email">
-                        <textarea name="message" rows="3" placeholder="Краткое описание задачи"></textarea>
-                        <button type="submit" class="btn btn-dark"
-                            style="align-self: flex-start; margin-top: 0.5rem;">Отправить</button>
-                    </form>
+                    <div class="feedback-wrap" id="feedback-wrap">
+                        <form class="form-container" id="feedback-form" action="https://revlev-feedback.oteterevlev.workers.dev/" method="post">
+                            <input type="text" name="name" placeholder="Имя / Компания" required autocomplete="organization">
+                            <input type="text" name="contact" placeholder="Телефон или Email" required autocomplete="email">
+                            <textarea name="message" rows="3" placeholder="Краткое описание задачи"></textarea>
+                            <button type="submit" class="btn btn-dark"
+                                style="align-self: flex-start; margin-top: 0.5rem;">Отправить</button>
+                        </form>
+                        <div class="feedback-success" id="feedback-success" hidden>
+                            <p class="feedback-success-text">Запрос отправлен</p>
+                            <button type="button" class="btn btn-dark" id="feedback-again"
+                                style="align-self: flex-start;">Отправить еще один</button>
+                        </div>
+                    </div>
                 </div>
                 <div class="block-b">
                     <h2>Запланировать встречу</h2>
@@ -1538,11 +1545,32 @@
 
         (function initFeedbackForm() {
             const form = document.getElementById('feedback-form');
-            if (!form) return;
+            const success = document.getElementById('feedback-success');
+            const againBtn = document.getElementById('feedback-again');
+            if (!form || !success) return;
 
             const endpoint = form.getAttribute('action') || 'https://revlev-feedback.oteterevlev.workers.dev/';
             const submitBtn = form.querySelector('button[type="submit"]');
             const defaultLabel = submitBtn ? submitBtn.textContent : '';
+
+            function showForm() {
+                success.hidden = true;
+                form.hidden = false;
+                const first = form.querySelector('input, textarea');
+                if (first) first.focus();
+            }
+
+            function showSuccess() {
+                form.hidden = true;
+                form.reset();
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = defaultLabel;
+                }
+                success.hidden = false;
+            }
+
+            if (againBtn) againBtn.addEventListener('click', showForm);
 
             form.addEventListener('keydown', (e) => {
                 if (e.key !== 'Enter' || !(e.ctrlKey || e.metaKey)) return;
@@ -1575,11 +1603,7 @@
                     const data = await res.json().catch(() => ({}));
                     if (!res.ok || !data.ok) throw new Error(data.error || 'request_failed');
 
-                    form.reset();
-                    if (submitBtn) submitBtn.textContent = 'Отправлено';
-                    setTimeout(() => {
-                        if (submitBtn) submitBtn.textContent = defaultLabel;
-                    }, 2500);
+                    showSuccess();
                 } catch (err) {
                     console.error('feedback failed', err);
                     if (submitBtn) submitBtn.textContent = 'Ошибка — попробуйте ещё раз';
@@ -1588,7 +1612,12 @@
                     }, 3000);
                 } finally {
                     form.dataset.busy = '0';
-                    if (submitBtn) submitBtn.disabled = false;
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        if (!form.hidden && submitBtn.textContent === 'Отправка…') {
+                            submitBtn.textContent = defaultLabel;
+                        }
+                    }
                 }
             });
         })();

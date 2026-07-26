@@ -938,6 +938,34 @@ p {
     gap: 1rem;
 }
 
+.feedback-wrap {
+    margin-top: 2rem;
+    width: 100%;
+    max-width: 420px;
+}
+
+.feedback-wrap .form-container {
+    margin-top: 0;
+}
+
+.feedback-success {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.feedback-success[hidden] {
+    display: none;
+}
+
+.feedback-success-text {
+    margin: 0;
+    font-size: 1.125rem;
+    line-height: 1.6;
+    color: var(--ink);
+}
+
 .form-container input,
 .form-container textarea {
     width: 100%;
