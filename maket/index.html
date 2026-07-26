@@ -14,8 +14,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="https://revlev.ru/css/maket.css">
-
+    <!-- Менять только здесь при деплое -->
+    <script>
+        window.MAKET_DEPLOY = '1';
+        document.write('<link rel="stylesheet" href="https://revlev.ru/css/maket.css?v=' + encodeURIComponent(window.MAKET_DEPLOY) + '">');
+    </script>
 
 </head>
 
@@ -280,6 +283,8 @@
             </div>
         </section>
 
+        <p class="deploy-version" id="deploy-version" aria-hidden="true"></p>
+
     </div>
 
     <!-- Стрелка "вниз" -->
@@ -293,6 +298,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://revlev.ru/js/building-scene.js"></script>
+
+    <script>
+        (function () {
+            var el = document.getElementById('deploy-version');
+            if (el) el.textContent = 'deploy ' + (window.MAKET_DEPLOY || '0');
+        })();
+    </script>
 
     <script>
         const container = document.querySelector('.scroll-container');

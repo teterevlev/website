@@ -1510,3 +1510,15 @@ p {
         font-size: 0.875rem;
     }
 }
+
+.deploy-version {
+    margin: 0;
+    padding: 0.75rem 1.25rem 1.25rem;
+    font-size: 0.6875rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    color: var(--slate);
+    text-align: center;
+    user-select: text;
+    -webkit-user-select: text;
+}
