@@ -65,7 +65,7 @@
 
     <!-- Менять только здесь при деплое -->
     <script>
-        window.MAKET_DEPLOY = '4';
+        window.MAKET_DEPLOY = '5';
         document.write('<link rel="stylesheet" href="https://revlev.ru/css/maket.css?v=' + encodeURIComponent(window.MAKET_DEPLOY) + '">');
     </script>
 
@@ -329,12 +329,12 @@
                     <a href="https://calendly.com/o-damage/30min" target="_blank" class="btn btn-primary" style="margin-top: 2rem; align-self: flex-start;">Выбрать
                         время</a>
 
-                    <a href="https://revlev.ru/" class="site-preview" target="_blank" rel="noopener noreferrer">
-                        <img class="site-preview-image" src="https://revlev.ru/img/og-small.jpg" width="320" height="168" alt="">
+                    <a href="https://revlev.ru/" class="site-preview" target="_blank" rel="noopener noreferrer" title="Олег Тетеревлёв. Разработка нестандартной электроники и сложного ПО">
+                        <img class="site-preview-image" src="https://revlev.ru/img/og-small.jpg" alt="Разработка нестандартной электроники и сложного ПО">
                         <span class="site-preview-body">
                             <span class="site-preview-title">revlev.ru</span>
                             <span class="site-preview-desc">Разработка нестандартной электроники и сложного ПО.</span>
-                            <span class="site-preview-url">Олег Тетеревлёв</span>
+                            <span class="site-preview-url">http://revlev.ru</span>
                         </span>
                     </a>
                 </div>
@@ -1947,6 +1947,70 @@
                     }
                 }
             });
+        })();
+
+        (function initScreen5PortraitHeight() {
+            const screen5 = document.querySelector('.screen-5');
+            const content = screen5 && screen5.querySelector('.screen-content');
+            const blockA = screen5 && screen5.querySelector('.block-a');
+            const blockB = screen5 && screen5.querySelector('.block-b');
+            if (!screen5 || !content || !blockA || !blockB) return;
+
+            const portraitMq = window.matchMedia('(max-width: 900px) and (orientation: portrait)');
+
+            function clear() {
+                content.style.height = '';
+                content.style.gridTemplateRows = '';
+                blockA.style.height = '';
+                blockB.style.height = '';
+                blockB.style.minHeight = '';
+            }
+
+            function sync() {
+                if (!portraitMq.matches) {
+                    clear();
+                    return;
+                }
+
+                // Сброс, чтобы измерить натуральную высоту block-a
+                clear();
+                content.style.height = 'auto';
+                content.style.gridTemplateRows = 'auto auto';
+
+                const h = blockA.getBoundingClientRect().height;
+                if (!h) return;
+
+                const gap = parseFloat(getComputedStyle(content).rowGap) || 0;
+                content.style.height = (h * 2 + gap) + 'px';
+                content.style.gridTemplateRows = h + 'px ' + h + 'px';
+                blockB.style.height = '100%';
+                blockB.style.minHeight = '100%';
+            }
+
+            let raf = 0;
+            function schedule() {
+                cancelAnimationFrame(raf);
+                raf = requestAnimationFrame(() => requestAnimationFrame(sync));
+            }
+
+            sync();
+            window.addEventListener('resize', schedule);
+            window.addEventListener('orientationchange', schedule);
+            window.addEventListener('load', schedule);
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(schedule);
+            }
+            if (portraitMq.addEventListener) portraitMq.addEventListener('change', schedule);
+            else portraitMq.addListener(schedule);
+
+            const form = document.getElementById('feedback-form');
+            const success = document.getElementById('feedback-success');
+            if (form) {
+                new MutationObserver(schedule).observe(form, { attributes: true, attributeFilter: ['hidden'] });
+            }
+            if (success) {
+                new MutationObserver(schedule).observe(success, { attributes: true, attributeFilter: ['hidden'] });
+            }
         })();
     </script>
 </body>
