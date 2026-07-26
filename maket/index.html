@@ -256,7 +256,7 @@
                     <p>Мы предложим подходящий вариант реализации, ответим на технические вопросы и поможем выбрать
                         оптимальный способ внедрения.</p>
 
-                    <form class="form-container" id="feedback-form" action="https://revlev-feedback.YOUR_SUBDOMAIN.workers.dev/" method="post">
+                    <form class="form-container" id="feedback-form" action="https://revlev-feedback.oteterevlev.workers.dev/" method="post">
                         <input type="text" name="name" placeholder="Имя / Компания" required autocomplete="organization">
                         <input type="text" name="contact" placeholder="Телефон или Email" required autocomplete="email">
                         <textarea name="message" rows="3" placeholder="Краткое описание задачи"></textarea>
@@ -1543,6 +1543,13 @@
             const endpoint = form.getAttribute('action') || 'https://revlev-feedback.YOUR_SUBDOMAIN.workers.dev/';
             const submitBtn = form.querySelector('button[type="submit"]');
             const defaultLabel = submitBtn ? submitBtn.textContent : '';
+
+            form.addEventListener('keydown', (e) => {
+                if (e.key !== 'Enter' || !(e.ctrlKey || e.metaKey)) return;
+                e.preventDefault();
+                if (typeof form.requestSubmit === 'function') form.requestSubmit();
+                else form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+            });
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
