@@ -386,6 +386,36 @@
             }
         }
 
+        // Screen 3 → 4: mandatory snap + scroll-snap-stop съедают мелкий wheel,
+        // пока scrollTop не пробьёт порог syncScrollSnap (+5). Полоса прокрутки при этом работает.
+        // Точечный обход: только вниз и только у screen 3 — временно снять snap и уехать за порог.
+        (function bindScreen3WheelEscape() {
+            if (!container || !screen3) return;
+
+            container.addEventListener(
+                'wheel',
+                (e) => {
+                    if (e.deltaY <= 0) return;
+                    if (programmaticScroll) return;
+                    if (typeof isFormUiFrozen === 'function' && isFormUiFrozen()) return;
+
+                    const st = container.scrollTop;
+                    const s3 = screen3.offsetTop;
+                    if (st > s3 + 5) return; // уже за порогом — обычный скролл
+                    if (st < s3 - 4) return; // ещё не на screen 3
+
+                    const t = e.target;
+                    if (t && t.closest && t.closest('.screen-2 .browserContent')) return;
+
+                    e.preventDefault();
+                    container.style.scrollSnapType = 'none';
+                    // Гарантированно пересечь порог даже при deltaY = 1–3 (Windows mouse)
+                    container.scrollTop = Math.max(st + e.deltaY, s3 + 6);
+                },
+                { passive: false }
+            );
+        })();
+
         function endProgrammaticScroll() {
             programmaticScroll = false;
             if (programmaticScrollTimer) {
