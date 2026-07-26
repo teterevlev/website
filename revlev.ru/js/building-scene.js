@@ -581,6 +581,22 @@
       }
     }
 
+    // Мобильный landscape (как CSS): орбита полностью запрещена — только скролл
+    function isCompactLandscapeOrbitUi() {
+      try {
+        return (
+          window.matchMedia(
+            '(max-width: ' + MOBILE_BREAKPOINT + 'px) and (orientation: landscape)'
+          ).matches ||
+          window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches
+        );
+      } catch (err) {
+        var w = typeof window.innerWidth === 'number' ? window.innerWidth : 0;
+        var h = typeof window.innerHeight === 'number' ? window.innerHeight : 0;
+        return h < w && (w <= MOBILE_BREAKPOINT || h <= 500);
+      }
+    }
+
     function isTouchPointer(e) {
       if (!e) return false;
       if (e.type && e.type.indexOf('touch') === 0) return true;
@@ -626,6 +642,8 @@
 
     function isOrbitTarget(el, e) {
       if (!el || !el.closest) return false;
+      // Мобильный landscape: никакого WebGL-drag
+      if (isCompactLandscapeOrbitUi()) return false;
       if (el.closest('.screen-4, .screen-5')) return false;
       if (
         el.closest(
@@ -635,7 +653,7 @@
         return false;
       }
 
-      // Compact / тач: скролл везде; орбита только в центре пустого .block-b
+      // Compact portrait / тач: скролл везде; орбита только в центре пустого .block-b
       if (useTouchOrbitRules(e)) {
         var blockB = el.closest('.block-b');
         if (!blockB || !isBlockBEmpty(blockB)) return false;
@@ -647,8 +665,11 @@
     }
 
     function resetOrbitEnabledDefault() {
-      // В compact по умолчанию выкл — иначе OrbitControls перехватывает скролл
-      controls.enabled = !isCompactOrbitUi();
+      if (isCompactLandscapeOrbitUi() || isCompactOrbitUi()) {
+        controls.enabled = false;
+        return;
+      }
+      controls.enabled = true;
     }
 
     function onOrbitGestureStart(e) {
@@ -708,7 +729,7 @@
         useTopHouseFraming =
           sceneSize.width <= MOBILE_BREAKPOINT && sceneSize.height >= sceneSize.width;
       }
-      controls.enabled = !isCompactOrbitUi();
+      controls.enabled = !(isCompactLandscapeOrbitUi() || isCompactOrbitUi());
       renderer.domElement.style.pointerEvents = 'none';
 
       var distance, fx, fy;
