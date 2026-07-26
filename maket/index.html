@@ -69,6 +69,51 @@
         document.write('<link rel="stylesheet" href="https://revlev.ru/css/maket.css?v=' + encodeURIComponent(window.MAKET_DEPLOY) + '">');
     </script>
 
+    <style>
+        /*
+          site-preview ↔ низ textarea:
+          margin-bottom = (gap формы + margin-top кнопки «Отправить») + высота кнопки
+
+          Desktop: gap 1rem + mt 0.5rem (inline) = 1.5rem
+          Mobile:  gap 0.5rem + mt 0.5rem (inline) = 1rem,
+                   но высота .btn в landscape считается с padding 0.55rem
+                   (landscape-правило в maket.css), иначе +~0.5rem лишних.
+        */
+        .screen-5 {
+            --s5-form-gap: 1rem;
+            --s5-btn-mt: 0.5rem;
+            --s5-btn-pad-y: 0.75rem;
+            --s5-btn-fs: 0.9375rem;
+            --s5-btn-lh: 1.4;
+            --s5-btn-dark-h: calc(2 * var(--s5-btn-pad-y) + var(--s5-btn-fs) * var(--s5-btn-lh));
+        }
+
+        .screen-5 .block-b {
+            padding-bottom: 0 !important;
+        }
+
+        .screen-5 .site-preview {
+            margin-top: auto !important;
+            margin-bottom: calc(var(--s5-form-gap) + var(--s5-btn-mt) + var(--s5-btn-dark-h)) !important;
+        }
+
+        @media (max-width: 900px),
+               (orientation: landscape) and (max-height: 500px) {
+            .screen-5 {
+                --s5-form-gap: 0.5rem;
+                --s5-btn-mt: 0.5rem;
+                --s5-btn-fs: 0.875rem;
+            }
+        }
+
+        @media (max-width: 900px) and (orientation: landscape),
+               (orientation: landscape) and (max-height: 500px) {
+            .screen-5 {
+                --s5-btn-pad-y: 0.55rem;
+            }
+        }
+    </style>
+
 </head>
 
 <body data-screen="1">
@@ -326,7 +371,7 @@
                 <div class="block-b">
                     <h2>Запланировать встречу</h2>
                     <p>Выберите удобное время для короткого онлайн-обсуждения проекта.</p>
-                    <a href="https://calendly.com/o-damage/30min" target="_blank" class="btn btn-primary" style="margin-top: 2rem; align-self: flex-start;">Выбрать
+                    <a href="https://calendly.com/o-damage/30min" target="_blank" class="btn btn-primary" style="align-self: flex-start;">Выбрать
                         время</a>
 
                     <a href="https://revlev.ru/" class="site-preview" target="_blank" rel="noopener noreferrer" title="Олег Тетеревлёв. Разработка нестандартной электроники и сложного ПО">
