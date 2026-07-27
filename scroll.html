@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Scroll template — 5 screens</title>
+    <style>
+        :root {
+            --font: "Segoe UI", system-ui, sans-serif;
+            --font-display: Georgia, "Times New Roman", serif;
+            --ink: #1f3a52;
+            --white: #fff;
+            --snow: #f7f9fb;
+            --smoke: #d5dde5;
+            --blue: #2c5c85;
+            --safe-t: env(safe-area-inset-top, 0px);
+            --safe-b: env(safe-area-inset-bottom, 0px);
+            --safe-l: env(safe-area-inset-left, 0px);
+            --safe-r: env(safe-area-inset-right, 0px);
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            overscroll-behavior: none;
+            font-family: var(--font);
+            color: var(--ink);
+            background: var(--snow);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .scroll-container {
+            height: 100vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+            overscroll-behavior: none;
+        }
+
+        .screen {
+            min-height: 100vh;
+            height: 100vh;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: max(2rem, var(--safe-t)) max(2rem, var(--safe-r)) max(2rem, var(--safe-b)) max(2rem, var(--safe-l));
+            width: 100%;
+        }
+
+        .snap {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+        }
+
+        .screen-content {
+            width: 100%;
+            max-width: 960px;
+            display: grid;
+            gap: 1rem;
+        }
+
+        h1,
+        h2 {
+            font-family: var(--font-display);
+            font-weight: 400;
+            line-height: 1.15;
+            letter-spacing: -0.02em;
+            margin: 0 0 0.75rem;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 5vw, 3.25rem);
+        }
+
+        h2 {
+            font-size: clamp(1.5rem, 3.5vw, 2.25rem);
+        }
+
+        p {
+            margin: 0 0 0.75rem;
+            font-size: 1.125rem;
+            line-height: 1.6;
+            max-width: 36rem;
+        }
+
+        .screen-1 {
+            background: linear-gradient(160deg, #e8f1f8, #f7f9fb 55%, #dde8f0);
+        }
+
+        .screen-2 {
+            background: linear-gradient(160deg, #f0f4f8, #e4edf5);
+        }
+
+        .screen-3 {
+            background: linear-gradient(160deg, #e6eef5, #f5f8fb);
+        }
+
+        .screen-4 {
+            background: #1a2b3a;
+            color: var(--white);
+        }
+
+        .screen-4 p {
+            color: rgba(255, 255, 255, 0.88);
+        }
+
+        .screen-5 {
+            height: auto;
+            min-height: 100vh;
+            min-height: 100svh;
+            align-items: flex-start;
+            padding-top: max(4rem, var(--safe-t));
+            padding-bottom: max(4rem, var(--safe-b));
+            background: var(--white);
+        }
+
+        .screen-5 .screen-content {
+            padding-bottom: 3rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem 1.5rem;
+            border-radius: 100px;
+            border: none;
+            text-decoration: none;
+            font: inherit;
+            font-weight: 500;
+            cursor: pointer;
+            background: #ffff7b;
+            color: var(--ink);
+            margin-top: 0.5rem;
+        }
+
+        .meta {
+            font-size: 0.8125rem;
+            opacity: 0.65;
+            margin-top: 1.5rem;
+        }
+
+        .scroll-down {
+            position: fixed;
+            left: 50%;
+            bottom: max(1.25rem, var(--safe-b));
+            transform: translateX(-50%);
+            width: 2rem;
+            height: 2rem;
+            color: var(--ink);
+            opacity: 0.55;
+            pointer-events: none;
+            z-index: 90;
+            animation: bounce 1.6s ease-in-out infinite;
+            transition: opacity 0.25s;
+        }
+
+        .scroll-down svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateX(-50%) translateY(0);
+            }
+
+            50% {
+                transform: translateX(-50%) translateY(6px);
+            }
+        }
+
+        @media (max-width: 900px),
+        (orientation: landscape) and (max-height: 500px) {
+            html,
+            body,
+            .scroll-container {
+                height: 100dvh;
+            }
+
+            .screen {
+                height: 100dvh;
+                min-height: 100dvh;
+            }
+
+            .screen-5 {
+                height: auto;
+                min-height: 100svh;
+            }
+
+            .scroll-down {
+                display: none;
+            }
+
+            h1 {
+                font-size: clamp(1.35rem, 6vw, 2rem);
+            }
+
+            h2 {
+                font-size: clamp(1.15rem, 5vw, 1.65rem);
+            }
+
+            p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="scroll-container">
+        <section class="screen snap screen-1">
+            <div class="screen-content">
+                <h1>Экран 1</h1>
+                <p>Полноэкранный snap. Колесо / трекпад на desktop листает программно с фиксированной длительностью.</p>
+                <p class="meta">scroll.html — заготовка без WebGL и внешних файлов</p>
+            </div>
+        </section>
+
+        <section class="screen snap screen-2">
+            <div class="screen-content">
+                <h2>Экран 2</h2>
+                <p>Второй snap. Повторный жест вниз во время анимации чейнит на следующий экран. Назад во время анимации — откат к origin.</p>
+            </div>
+        </section>
+
+        <section class="screen snap screen-3">
+            <div class="screen-content">
+                <h2>Экран 3</h2>
+                <p>Последний snap. Вниз — недосвайп (~20% экрана 4). Вверх с exact screen 3 — обычный свайп на экран 2.</p>
+            </div>
+        </section>
+
+        <section class="screen screen-4">
+            <div class="screen-content">
+                <h2>Экран 4</h2>
+                <p>Свободный скролл. Snap выключен. Вверх: нативный smooth + slack выше screen 3, затем плавный свайп на screen 2.</p>
+                <p>Условный длинный текст: ещё абзац, чтобы было куда скроллить колесом между peek и низом секции.</p>
+            </div>
+        </section>
+
+        <section class="screen screen-5">
+            <div class="screen-content">
+                <h2>Экран 5</h2>
+                <p>Подвал / форма / длинный контент. Высота по содержимому, min-height через svh на mobile.</p>
+                <p>Ещё блок текста для проверки свободного скролла после snap-зоны.</p>
+                <p>Ещё один абзац — имитация формы или контактов.</p>
+                <a class="btn" href="#top" id="btn-top">На первый экран</a>
+            </div>
+        </section>
+    </div>
+
+    <div class="scroll-down" id="scroll-down-arrow" aria-hidden="true">
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
+        </svg>
+    </div>
+
+    <script>
+        (function () {
+            const container = document.querySelector('.scroll-container');
+            const screen1 = document.querySelector('.screen-1');
+            const screen2 = document.querySelector('.screen-2');
+            const screen3 = document.querySelector('.screen-3');
+            const screen4 = document.querySelector('.screen-4');
+            const screen5 = document.querySelector('.screen-5');
+            const scrollDownArrow = document.getElementById('scroll-down-arrow');
+
+            function isExactlyOnScreen(el) {
+                if (!el) return false;
+                return Math.abs(container.scrollTop - el.offsetTop) <= 4;
+            }
+
+            function isCompactLayout() {
+                return (
+                    window.matchMedia('(max-width: 900px)').matches ||
+                    window.matchMedia('(orientation: landscape) and (max-height: 500px)').matches
+                );
+            }
+
+            let programmaticScroll = false;
+            let programmaticScrollTimer = null;
+            let scrollAnimRaf = null;
+
+            // --- Tunables ---
+            const SCROLL_SWIPE_MS = 700;
+            const SCREEN4_PEEK_DURATION_RATIO = 0.75;
+            const SCREEN_SWIPE_GESTURE_GAP_MS = 160;
+            const SWIPE_SPEEDUP_RATIO = 1.08;
+            const SWIPE_SPEEDUP_EPS = 4;
+            const SCREEN3_UP_FREE_SLACK = 0.2;
+
+            let swipeLockDir = 0;
+            let swipeGestureActive = false;
+            let swipeGestureCommitted = false;
+            let swipeGestureTimer = null;
+            let swipePeakTimer = null;
+            let swipeWasPastScreen3 = false;
+
+            let swipeVelPeak = 0;
+            let swipeVelDir = 0;
+            let swipeLastWheelAt = 0;
+
+            let swipeAnimOrigin = null;
+            let swipeAnimTarget = null;
+            let swipeAnimDir = 0;
+            let swipeAnimFullMs = SCROLL_SWIPE_MS;
+            let swipeAnimToOrigin = false;
+
+            function easeInOutCubic(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
+            function normalizeWheelDeltaY(e) {
+                let dy = e.deltaY;
+                if (e.deltaMode === 1) dy *= 16;
+                else if (e.deltaMode === 2) dy *= container.clientHeight;
+                return dy;
+            }
+
+            function observeWheelGesture(e) {
+                const now = performance.now();
+                const dy = normalizeWheelDeltaY(e);
+                const dir = dy > 0 ? 1 : dy < 0 ? -1 : 0;
+                const mag = Math.abs(dy);
+                const dt = swipeLastWheelAt ? now - swipeLastWheelAt : SCREEN_SWIPE_GESTURE_GAP_MS + 1;
+
+                const quietGap = dt > SCREEN_SWIPE_GESTURE_GAP_MS;
+                const longQuiet = dt > SCREEN_SWIPE_GESTURE_GAP_MS * 2;
+                const dirChanged = !!(dir && swipeVelDir && dir !== swipeVelDir);
+                const spedUp = mag > swipeVelPeak * SWIPE_SPEEDUP_RATIO + SWIPE_SPEEDUP_EPS;
+                const mouseNotch = e.deltaMode === 1 && dt > 40;
+                const decayingAfterGap =
+                    quietGap &&
+                    !longQuiet &&
+                    swipeVelPeak > 0 &&
+                    mag <= swipeVelPeak * SWIPE_SPEEDUP_RATIO + SWIPE_SPEEDUP_EPS;
+                const pulseGap = dt > 55;
+
+                const isNewGesture =
+                    dirChanged || spedUp || mouseNotch || longQuiet || (quietGap && !decayingAfterGap);
+
+                if (isNewGesture) {
+                    swipeVelPeak = mag;
+                } else if (mag > swipeVelPeak) {
+                    swipeVelPeak = mag;
+                } else {
+                    swipeVelPeak = Math.max(mag, swipeVelPeak * 0.9);
+                }
+                if (dir) swipeVelDir = dir;
+                swipeLastWheelAt = now;
+
+                return { dir, mag, isNewGesture, spedUp, pulseGap, mouseNotch, dt };
+            }
+
+            function getScreen3UpFreeLimit() {
+                return Math.round(screen3.offsetTop - container.clientHeight * SCREEN3_UP_FREE_SLACK);
+            }
+
+            function syncScrollSnap() {
+                if (programmaticScroll) {
+                    container.style.scrollSnapType = 'none';
+                    return;
+                }
+                if (container.scrollTop > getScreen3UpFreeLimit()) {
+                    container.style.scrollSnapType = 'none';
+                } else {
+                    container.style.scrollSnapType = 'y mandatory';
+                }
+            }
+
+            function cancelScrollAnim() {
+                if (scrollAnimRaf != null) {
+                    cancelAnimationFrame(scrollAnimRaf);
+                    scrollAnimRaf = null;
+                }
+                if (programmaticScrollTimer) {
+                    clearTimeout(programmaticScrollTimer);
+                    programmaticScrollTimer = null;
+                }
+            }
+
+            function resetSwipeGestureSoon() {
+                if (swipeGestureTimer) clearTimeout(swipeGestureTimer);
+                swipeGestureTimer = setTimeout(() => {
+                    swipeGestureTimer = null;
+                    swipeGestureActive = false;
+                    swipeGestureCommitted = false;
+                    swipeLockDir = 0;
+                }, SCREEN_SWIPE_GESTURE_GAP_MS);
+
+                if (swipePeakTimer) clearTimeout(swipePeakTimer);
+                swipePeakTimer = setTimeout(() => {
+                    swipePeakTimer = null;
+                    swipeVelPeak = 0;
+                    swipeVelDir = 0;
+                    swipeLastWheelAt = 0;
+                }, Math.round(SCREEN_SWIPE_GESTURE_GAP_MS * 2.5));
+            }
+
+            function noteSwipeArrival(dir) {
+                if (!dir) return;
+                swipeLockDir = dir;
+                swipeGestureActive = true;
+                swipeGestureCommitted = true;
+                if (dir) swipeVelDir = dir;
+                resetSwipeGestureSoon();
+            }
+
+            function clearSwipeAnimEndpoints() {
+                swipeAnimOrigin = null;
+                swipeAnimTarget = null;
+                swipeAnimDir = 0;
+                swipeAnimToOrigin = false;
+            }
+
+            function endProgrammaticScroll() {
+                cancelScrollAnim();
+                programmaticScroll = false;
+                container.style.removeProperty('scroll-behavior');
+                syncScrollSnap();
+            }
+
+            function scrollToY(targetTop, durationMs) {
+                if (!container || targetTop == null || !isFinite(targetTop)) return;
+                cancelScrollAnim();
+
+                const duration = Math.max(0, durationMs == null ? SCROLL_SWIPE_MS : durationMs);
+                const from = container.scrollTop;
+                const to = targetTop;
+
+                programmaticScroll = true;
+                container.style.scrollSnapType = 'none';
+                container.style.scrollBehavior = 'auto';
+
+                const finish = () => {
+                    const dir = swipeAnimDir;
+                    const toOrigin = swipeAnimToOrigin;
+                    clearSwipeAnimEndpoints();
+                    endProgrammaticScroll();
+                    if (dir) noteSwipeArrival(toOrigin ? -dir : dir);
+                };
+
+                if (Math.abs(to - from) < 1 || duration === 0) {
+                    container.scrollTop = to;
+                    finish();
+                    return;
+                }
+
+                const start = performance.now();
+                const tick = (now) => {
+                    if (!programmaticScroll) return;
+                    const t = Math.min(1, (now - start) / duration);
+                    container.scrollTop = from + (to - from) * easeInOutCubic(t);
+                    if (t < 1) {
+                        scrollAnimRaf = requestAnimationFrame(tick);
+                    } else {
+                        scrollAnimRaf = null;
+                        container.scrollTop = to;
+                        finish();
+                    }
+                };
+                scrollAnimRaf = requestAnimationFrame(tick);
+            }
+
+            function startSnapSwipe(targetTop, durationMs) {
+                const from = container.scrollTop;
+                const to = targetTop;
+                const dir = to > from ? 1 : to < from ? -1 : 0;
+                const ms = Math.max(0, durationMs == null ? SCROLL_SWIPE_MS : durationMs);
+                swipeAnimOrigin = from;
+                swipeAnimTarget = to;
+                swipeAnimDir = dir;
+                swipeAnimFullMs = ms || SCROLL_SWIPE_MS;
+                swipeAnimToOrigin = false;
+                if (swipePeakTimer) {
+                    clearTimeout(swipePeakTimer);
+                    swipePeakTimer = null;
+                }
+                if (swipeGestureTimer) {
+                    clearTimeout(swipeGestureTimer);
+                    swipeGestureTimer = null;
+                }
+                scrollToY(to, ms);
+            }
+
+            function reverseSnapSwipe() {
+                if (swipeAnimOrigin == null || swipeAnimTarget == null || !swipeAnimDir) return;
+                const cur = container.scrollTop;
+                const dest = swipeAnimToOrigin ? swipeAnimTarget : swipeAnimOrigin;
+                const fullDist = Math.abs(swipeAnimTarget - swipeAnimOrigin) || 1;
+                const remaining = Math.abs(dest - cur);
+                const dur = Math.max(180, Math.round(swipeAnimFullMs * (remaining / fullDist)));
+                swipeAnimToOrigin = !swipeAnimToOrigin;
+                scrollToY(dest, dur);
+            }
+
+            function getScreen4PeekTop() {
+                if (!screen4) return screen3.offsetTop + 6;
+                return Math.round(screen4.offsetTop - container.clientHeight * 0.8);
+            }
+
+            function getSnapChainTops() {
+                return [
+                    screen1.offsetTop,
+                    screen2.offsetTop,
+                    screen3.offsetTop,
+                    getScreen4PeekTop()
+                ];
+            }
+
+            function nearestSnapChainIndex(top) {
+                const tops = getSnapChainTops();
+                let best = 0;
+                for (let i = 1; i < tops.length; i++) {
+                    if (Math.abs(tops[i] - top) < Math.abs(tops[best] - top)) best = i;
+                }
+                return best;
+            }
+
+            function getChainedSnapTop(fromTop, dir) {
+                const tops = getSnapChainTops();
+                const j = nearestSnapChainIndex(fromTop) + dir;
+                if (j < 0 || j >= tops.length) return null;
+                return tops[j];
+            }
+
+            function swipeDurationForDistance(from, to) {
+                const unit = Math.abs(screen2.offsetTop - screen1.offsetTop) || container.clientHeight;
+                const dist = Math.abs(to - from);
+                return Math.max(180, Math.round(SCROLL_SWIPE_MS * (dist / Math.max(unit, 1))));
+            }
+
+            function chainSnapSwipe(dir) {
+                if (swipeAnimTarget == null || !dir) return false;
+                const anchor = swipeAnimToOrigin ? swipeAnimOrigin : swipeAnimTarget;
+                const nextTop = getChainedSnapTop(anchor, dir);
+                if (nextTop == null) return false;
+                if (Math.abs(nextTop - swipeAnimTarget) <= 4 && !swipeAnimToOrigin) return false;
+                startSnapSwipe(nextTop, swipeDurationForDistance(container.scrollTop, nextTop));
+                return true;
+            }
+
+            function scrollToScreen(el) {
+                if (!el || !container) return;
+                startSnapSwipe(el.offsetTop, SCROLL_SWIPE_MS);
+            }
+
+            function getSnapScreenIndex() {
+                if (isExactlyOnScreen(screen1)) return 0;
+                if (isExactlyOnScreen(screen2)) return 1;
+                if (isExactlyOnScreen(screen3)) return 2;
+                return -1;
+            }
+
+            (function bindSnapZoneWheel() {
+                if (!container || !screen1 || !screen2 || !screen3) return;
+
+                swipeWasPastScreen3 = container.scrollTop > screen3.offsetTop + 5;
+
+                container.addEventListener(
+                    'scroll',
+                    () => {
+                        const past = container.scrollTop > screen3.offsetTop + 5;
+                        if (
+                            !programmaticScroll &&
+                            swipeWasPastScreen3 &&
+                            !past &&
+                            isExactlyOnScreen(screen3)
+                        ) {
+                            noteSwipeArrival(-1);
+                        }
+                        swipeWasPastScreen3 = past;
+
+                        if (scrollDownArrow) {
+                            scrollDownArrow.style.opacity = container.scrollTop > 50 ? '0' : '0.55';
+                        }
+                        syncScrollSnap();
+                    },
+                    { passive: true }
+                );
+
+                container.addEventListener(
+                    'wheel',
+                    (e) => {
+                        const st = container.scrollTop;
+                        const s3 = screen3.offsetTop;
+                        const compact = isCompactLayout();
+
+                        if (compact) {
+                            if (e.deltaY <= 0) return;
+                            if (st > s3 + 5 || st < s3 - 4) return;
+                            e.preventDefault();
+                            container.style.scrollSnapType = 'none';
+                            container.scrollTop = Math.max(st + e.deltaY, s3 + 6);
+                            return;
+                        }
+
+                        const gesture = observeWheelGesture(e);
+                        const wheelDir = gesture.dir;
+
+                        if (programmaticScroll && swipeAnimOrigin != null) {
+                            e.preventDefault();
+                            resetSwipeGestureSoon();
+                            if (!wheelDir || !swipeAnimDir) return;
+                            const currentDir = swipeAnimToOrigin ? -swipeAnimDir : swipeAnimDir;
+                            if (wheelDir !== currentDir) {
+                                reverseSnapSwipe();
+                                return;
+                            }
+                            if (wheelDir < 0) return;
+                            const canChain =
+                                (gesture.spedUp && gesture.pulseGap) ||
+                                (gesture.mouseNotch && gesture.isNewGesture);
+                            if (!canChain) return;
+                            chainSnapSwipe(wheelDir);
+                            return;
+                        }
+
+                        if (programmaticScroll) {
+                            e.preventDefault();
+                            return;
+                        }
+
+                        const idx = getSnapScreenIndex();
+                        const freeLimit = getScreen3UpFreeLimit();
+
+                        if (st > freeLimit) {
+                            if (wheelDir < 0) {
+                                if (isExactlyOnScreen(screen3)) {
+                                    e.preventDefault();
+                                    if (!gesture.isNewGesture) {
+                                        resetSwipeGestureSoon();
+                                        return;
+                                    }
+                                    startSnapSwipe(screen2.offsetTop, SCROLL_SWIPE_MS);
+                                    return;
+                                }
+                                const next = st + normalizeWheelDeltaY(e);
+                                if (next > freeLimit) return;
+                                e.preventDefault();
+                                startSnapSwipe(
+                                    screen2.offsetTop,
+                                    swipeDurationForDistance(st, screen2.offsetTop)
+                                );
+                                return;
+                            }
+                            if (st > s3 + 5) return;
+                        }
+
+                        if (idx < 0) return;
+
+                        e.preventDefault();
+
+                        if (!gesture.isNewGesture || !wheelDir) {
+                            if (!gesture.isNewGesture) resetSwipeGestureSoon();
+                            return;
+                        }
+
+                        if (swipeGestureTimer) {
+                            clearTimeout(swipeGestureTimer);
+                            swipeGestureTimer = null;
+                        }
+                        swipeLockDir = 0;
+                        swipeGestureActive = true;
+                        swipeGestureCommitted = true;
+
+                        if (wheelDir > 0) {
+                            if (idx === 0) scrollToScreen(screen2);
+                            else if (idx === 1) scrollToScreen(screen3);
+                            else {
+                                startSnapSwipe(
+                                    getScreen4PeekTop(),
+                                    Math.round(SCROLL_SWIPE_MS * SCREEN4_PEEK_DURATION_RATIO)
+                                );
+                            }
+                        } else if (idx === 1) {
+                            scrollToScreen(screen1);
+                        }
+                    },
+                    { passive: false }
+                );
+            })();
+
+            const btnTop = document.getElementById('btn-top');
+            if (btnTop) {
+                btnTop.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    scrollToScreen(screen1);
+                });
+            }
+
+            syncScrollSnap();
+        })();
+    </script>
+</body>
+
+</html>
