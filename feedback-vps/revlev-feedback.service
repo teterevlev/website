@@ -1,5 +1,5 @@
 [Unit]
-Description=revlev.ru feedback → Telegram
+Description=revlev.ru feedback (file + Cloudflare Worker)
 After=network.target
 
 [Service]
@@ -12,8 +12,6 @@ ExecStart=/opt/revlev/feedback-vps/.venv/bin/uvicorn app.main:app --host 127.0.0
 Restart=on-failure
 RestartSec=3
 
-# Не даём сервису ходить наружу лишнего — только Telegram API.
-# (опционально, если используете systemd sandbox)
 NoNewPrivileges=true
 PrivateTmp=true
 

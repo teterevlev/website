@@ -1,14 +1,14 @@
 # Деплой на VPS
 
-Статика раздаётся nginx’ом из папок репозитория. Форма → Telegram — сервис FastAPI.
+Статика раздаётся nginx’ом из папок репозитория. Форма → FastAPI (файл + forward на Worker → Telegram).
 
 | Путь в репо | Назначение |
 |-------------|------------|
 | `revlev.ru/` | основной сайт |
 | `maket/` | поддомен макета |
 | `pcb/` | поддомен PCB |
-| `feedback-vps/` | форма → Telegram (systemd + uvicorn) |
-| `feedback/` | Cloudflare Worker, тот же API — на будущее |
+| `feedback-vps/` | приём формы: jsonl + best-effort Worker |
+| `feedback/` | Cloudflare Worker → Telegram |
 
 ## Статика (nginx)
 
