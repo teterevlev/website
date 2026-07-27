@@ -112,6 +112,81 @@
                 --s5-btn-pad-y: 0.55rem;
             }
         }
+
+        /* Screen 2: без native-скролла жестами; полоса справа для содержимого */
+        .hero2MediaRow {
+            display: flex;
+            flex-direction: row;
+            align-items: stretch;
+            gap: 0;
+            width: 100%;
+            max-width: calc(480px + 35px);
+            margin-top: 1rem;
+        }
+
+        .hero2MediaRow .flatsTableWrap {
+            flex: 1 1 auto;
+            min-width: 0;
+            margin-top: 0;
+        }
+
+        .hero2VScroll {
+            flex: 0 0 35px;
+            position: relative;
+            align-self: stretch;
+            min-height: 0;
+            touch-action: none;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .hero2VScrollTrack {
+            position: absolute;
+            inset: 0;
+            border-radius: 100px;
+            background: rgba(31, 58, 82, 0.12);
+            box-shadow: inset 0 0 0 1px rgba(31, 58, 82, 0.08);
+        }
+
+        .hero2VScrollThumb {
+            position: absolute;
+            left: 2px;
+            right: 2px;
+            top: 0;
+            height: 40px;
+            border-radius: 100px;
+            background: #2c5c85;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+            cursor: grab;
+            touch-action: none;
+        }
+
+        .hero2VScrollThumb:active,
+        .hero2VScroll.is-dragging .hero2VScrollThumb {
+            cursor: grabbing;
+            background: #1f4363;
+        }
+
+        /* Как screen-3: жесты не крутят внутренний скролл — уходят в .scroll-container / snap */
+        .screen-2 .browserContent {
+            overflow: hidden !important;
+            overscroll-behavior: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .screen-2 .browserContent::-webkit-scrollbar {
+            width: 0;
+            height: 0;
+            display: none;
+        }
+
+        @media (max-width: 900px) and (orientation: portrait) {
+            .hero2MediaRow {
+                max-width: 100%;
+                margin-top: 0.5rem;
+            }
+        }
     </style>
 
 </head>
@@ -158,7 +233,7 @@
             <div class="screen-content">
                 <div class="block-a">
                     <h2>Управляйте макетом прямо с вашего сайта</h2>
-                    <div class="wrap-original-transform">
+                    <div class="wrap-original-transform hero2MediaRow">
                         <div class="flatsTableWrap original-transform">
                             <div class="hero2CursorDemo" id="hero2CursorDemo" aria-hidden="true">
                                 <div class="hero2DemoClickRing" id="hero2DemoClickRing"></div>
@@ -185,7 +260,7 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="browserContent">
+                                <div class="browserContent" id="hero2BrowserContent">
                                     <div class="flatsTableTitle">Выбрать квартиру</div>
                                     <table class="flatsTable">
                                         <thead>
@@ -199,6 +274,11 @@
                                         <tbody id="flatsTableBody"></tbody>
                                     </table>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="hero2VScroll" id="hero2VScroll" role="scrollbar" aria-controls="hero2BrowserContent" aria-orientation="vertical" aria-label="Прокрутка списка квартир">
+                            <div class="hero2VScrollTrack">
+                                <div class="hero2VScrollThumb" id="hero2VScrollThumb"></div>
                             </div>
                         </div>
                     </div>
@@ -753,7 +833,7 @@
                     if (typeof isFormUiFrozen === 'function' && isFormUiFrozen()) return;
 
                     const t = e.target;
-                    if (t && t.closest && t.closest('.screen-2 .browserContent')) return;
+                    if (t && t.closest && t.closest('.hero2VScroll')) return;
 
                     const st = container.scrollTop;
                     const s3 = screen3.offsetTop;
@@ -1359,48 +1439,118 @@
             }, 150);
         });
 
-        // Вложенный скролл только screen-2 .browserContent: на краях — жест родителю
-        (function bindNestedBlockScroll() {
-            const nest = document.querySelector('.screen-2 .browserContent');
+        // Screen 2 .browserContent: overflow hidden (как screen-3) — жесты идут в snap/страницу.
+        // Содержимое крутится только кастомной полосой справа (scrollTop программно).
+        (function bindHero2ContentScroll() {
+            const nest = document.getElementById('hero2BrowserContent') ||
+                document.querySelector('.screen-2 .browserContent');
+            const rail = document.getElementById('hero2VScroll');
+            const thumb = document.getElementById('hero2VScrollThumb');
             if (!nest) return;
 
             function overflows() {
                 return nest.scrollHeight > nest.clientHeight + 1;
             }
 
-            function atTop() {
-                return nest.scrollTop <= 0;
+            function maxScroll() {
+                return Math.max(0, nest.scrollHeight - nest.clientHeight);
             }
 
-            function atBottom() {
-                return nest.scrollTop + nest.clientHeight >= nest.scrollHeight - 1;
+            function syncThumb() {
+                if (!rail || !thumb) return;
+                const trackH = rail.clientHeight;
+                const max = maxScroll();
+                if (!overflows() || trackH < 8) {
+                    thumb.style.opacity = '0.35';
+                    thumb.style.height = Math.max(28, trackH) + 'px';
+                    thumb.style.transform = 'translateY(0)';
+                    rail.setAttribute('aria-valuenow', '0');
+                    return;
+                }
+                thumb.style.opacity = '1';
+                const ratio = nest.clientHeight / nest.scrollHeight;
+                const thumbH = Math.max(36, Math.round(trackH * ratio));
+                const maxTop = Math.max(0, trackH - thumbH);
+                const top = max <= 0 ? 0 : (nest.scrollTop / max) * maxTop;
+                thumb.style.height = thumbH + 'px';
+                thumb.style.transform = 'translateY(' + top + 'px)';
+                rail.setAttribute('aria-valuenow', String(Math.round((nest.scrollTop / max) * 100)));
             }
 
-            nest.addEventListener('wheel', (e) => {
-                if (!overflows()) return;
-                const goingUp = e.deltaY < 0;
-                const goingDown = e.deltaY > 0;
-                if ((goingUp && atTop()) || (goingDown && atBottom())) {
-                    e.preventDefault();
-                    container.scrollTop += e.deltaY;
-                }
-            }, { passive: false });
+            nest.addEventListener('scroll', syncThumb, { passive: true });
+            window.addEventListener('resize', syncThumb);
 
-            let touchY = 0;
-            nest.addEventListener('touchstart', (e) => {
-                touchY = e.touches[0].clientY;
-            }, { passive: true });
+            if (rail && thumb) {
+                rail.setAttribute('aria-valuemin', '0');
+                rail.setAttribute('aria-valuemax', '100');
 
-            nest.addEventListener('touchmove', (e) => {
-                if (!overflows() || e.touches.length !== 1) return;
-                const y = e.touches[0].clientY;
-                const dy = touchY - y;
-                touchY = y;
-                if ((dy < 0 && atTop()) || (dy > 0 && atBottom())) {
-                    e.preventDefault();
-                    container.scrollTop += dy;
+                let dragging = false;
+                let dragOffsetY = 0;
+
+                function thumbMetrics() {
+                    const trackH = rail.clientHeight;
+                    const thumbH = thumb.offsetHeight;
+                    const maxTop = Math.max(0, trackH - thumbH);
+                    return { trackH, thumbH, maxTop };
                 }
-            }, { passive: false });
+
+                function scrollFromThumbTop(top) {
+                    const { maxTop } = thumbMetrics();
+                    const max = maxScroll();
+                    if (maxTop <= 0 || max <= 0) {
+                        nest.scrollTop = 0;
+                        return;
+                    }
+                    const t = Math.max(0, Math.min(maxTop, top));
+                    nest.scrollTop = (t / maxTop) * max;
+                }
+
+                function onPointerMove(e) {
+                    if (!dragging) return;
+                    const rect = rail.getBoundingClientRect();
+                    const y = (e.clientY != null ? e.clientY : (e.touches && e.touches[0].clientY)) - rect.top;
+                    scrollFromThumbTop(y - dragOffsetY);
+                }
+
+                function onPointerUp() {
+                    if (!dragging) return;
+                    dragging = false;
+                    rail.classList.remove('is-dragging');
+                    window.removeEventListener('pointermove', onPointerMove);
+                    window.removeEventListener('pointerup', onPointerUp);
+                    window.removeEventListener('pointercancel', onPointerUp);
+                }
+
+                thumb.addEventListener('pointerdown', (e) => {
+                    if (e.button != null && e.button !== 0) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dragging = true;
+                    rail.classList.add('is-dragging');
+                    const rect = rail.getBoundingClientRect();
+                    const thumbTop = thumb.getBoundingClientRect().top - rect.top;
+                    dragOffsetY = e.clientY - rect.top - thumbTop;
+                    if (thumb.setPointerCapture) thumb.setPointerCapture(e.pointerId);
+                    window.addEventListener('pointermove', onPointerMove);
+                    window.addEventListener('pointerup', onPointerUp);
+                    window.addEventListener('pointercancel', onPointerUp);
+                });
+
+                rail.addEventListener('pointerdown', (e) => {
+                    if (e.target === thumb || thumb.contains(e.target)) return;
+                    if (e.button != null && e.button !== 0) return;
+                    e.preventDefault();
+                    const rect = rail.getBoundingClientRect();
+                    const { thumbH } = thumbMetrics();
+                    scrollFromThumbTop(e.clientY - rect.top - thumbH / 2);
+                });
+            }
+
+            requestAnimationFrame(syncThumb);
+            setTimeout(syncThumb, 100);
+            setTimeout(syncThumb, 500);
+
+            window.__hero2SyncScrollThumb = syncThumb;
         })();
 
         // Таблица квартир — как в building-3d
@@ -1450,6 +1600,10 @@
                     flat.windows.join(',') + '"><td>' + number + '</td><td>' + flat.floor +
                     '</td><td>' + rooms + '</td><td>' + area + '</td></tr>';
             }).join('');
+
+            if (typeof window.__hero2SyncScrollThumb === 'function') {
+                requestAnimationFrame(window.__hero2SyncScrollThumb);
+            }
 
             tbody.addEventListener('click', (e) => {
                 const row = e.target.closest('tr');
