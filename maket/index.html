@@ -327,7 +327,7 @@
                         оптимальный способ внедрения.</p>
 
                     <div class="feedback-wrap" id="feedback-wrap">
-                        <form class="form-container" id="feedback-form" action="https://revlev-feedback.oteterevlev.workers.dev/" method="post">
+                        <form class="form-container" id="feedback-form" action="https://maket.revlev.ru/api/feedback" method="post">
                             <input type="text" name="name" placeholder="Имя / Компания" required autocomplete="organization">
                             <input type="text" name="contact" placeholder="Телефон или Email" required autocomplete="email">
                             <textarea name="message" rows="3" placeholder="Краткое описание задачи"></textarea>
@@ -2241,7 +2241,7 @@
             const wrap = document.getElementById('feedback-wrap');
             if (!form || !success) return;
 
-            const endpoint = form.getAttribute('action') || 'https://revlev-feedback.oteterevlev.workers.dev/';
+            const endpoint = form.getAttribute('action') || 'https://maket.revlev.ru/api/feedback';
             const submitBtn = form.querySelector('button[type="submit"]');
             const defaultLabel = submitBtn ? submitBtn.textContent : '';
             const messageField = form.elements.message;

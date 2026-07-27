@@ -1,6 +1,0 @@
-# Имя = Project name в Cloudflare Dashboard для поддомена pcb.
-name = "pcb"
-compatibility_date = "2025-07-01"
-
-[assets]
-directory = "."

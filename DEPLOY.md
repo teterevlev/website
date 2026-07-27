@@ -1,23 +1,49 @@
-# Деплой на Cloudflare (монорепо)
+# Деплой на VPS
 
-В репозитории несколько независимых проектов. У **каждого** Worker в Dashboard свой **Path**.
+Статика раздаётся nginx’ом из папок репозитория. Форма → Telegram — сервис FastAPI.
 
-| Worker (Project name) | Path | Что это |
-|----------------------|------|---------|
-| `revlev-ru` | `revlev.ru` | основной сайт |
-| `maket` | `maket` | поддомен макета |
-| `pcb` | `pcb` | поддомен PCB |
-| `revlev-feedback` | `feedback` | форма → Telegram |
+| Путь в репо | Назначение |
+|-------------|------------|
+| `revlev.ru/` | основной сайт |
+| `maket/` | поддомен макета |
+| `pcb/` | поддомен PCB |
+| `feedback-vps/` | форма → Telegram (systemd + uvicorn) |
+| `feedback/` | Cloudflare Worker, тот же API — на будущее |
 
-Везде: **Build** пусто, **Deploy** = `npx wrangler deploy`.
+## Статика (nginx)
 
-## Ветки `cloudflare/workers-autoconfig*`
+Пример корней:
 
-Их создаёт бот Cloudflare, когда в Path нет конфига. **Не мержить** эти PR:
+```nginx
+server {
+    server_name revlev.ru www.revlev.ru;
+    root /var/www/revlev.ru/revlev.ru;
+    index index.html;
+}
 
-- часто крутятся с неверным Path (корень репо) → `Missing entry-point`
-- подставляют чужие `name` (например pcb → `revlev-ru`) и ломают другие Worker’ы
+server {
+    server_name maket.revlev.ru;
+    root /var/www/revlev.ru/maket;
+    index index.html;
 
-Закройте PR и удалите ветки в GitHub. Конфиги уже лежат в папках на `main` (`wrangler.toml`).
+    location = /api/feedback {
+        proxy_pass http://127.0.0.1:8001/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
 
-Если билд снова упадёт на autoconfig-ветке — это не прод; смотрите только билды с `main`.
+server {
+    server_name pcb.revlev.ru;
+    root /var/www/revlev.ru/pcb;
+    index index.html;
+}
+```
+
+Обновление сайта: `git pull` в каталоге деплоя (или rsync).
+
+## Feedback (FastAPI)
+
+См. `feedback-vps/README.md`: venv, `.env`, юнит `revlev-feedback.service`.

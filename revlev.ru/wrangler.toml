@@ -1,8 +1,0 @@
-# Имя должно совпадать с Project name в Cloudflare Dashboard.
-# Если у вас другое (например revlev-ru) — поправьте и сюда, и в Dashboard.
-name = "revlev-ru"
-compatibility_date = "2025-07-01"
-
-# Статический сайт без Worker-скрипта: только раздача файлов из этой папки.
-[assets]
-directory = "."

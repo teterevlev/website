@@ -1,5 +1,7 @@
 # feedback — Cloudflare Worker → Telegram
 
+> Прод сейчас на VPS: см. `../feedback-vps/`. Эта папка — тот же API на Cloudflare Worker, на будущее.
+
 Папка `feedback` — исходники edge-функции. Node на своём компьютере не нужен: код крутится на Cloudflare.
 
 Форма на `maket.revlev.ru` шлёт `POST` на URL Worker’а (`*.workers.dev`). Отдельный домен **не нужен**.
