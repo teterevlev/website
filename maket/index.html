@@ -499,6 +499,7 @@
 
         // Dismiss hook for screen2 cursor demo (заполняется ниже)
         let dismissScreen2Demo = function () {};
+        let screen2DemoDismissed = false;
 
         function isExactlyOnScreen(el) {
             if (!el) return false;
@@ -1630,10 +1631,15 @@
                 }) || 1200;
 
                 if (building && nums.length) {
-                    setTimeout(() => {
-                        if (!isExactlyOnScreen(screen2)) return;
+                    // После отключения демо — окна сразу; волна остаётся визуалом
+                    if (screen2DemoDismissed) {
                         building.lightFlatWindows(nums);
-                    }, waveMs);
+                    } else {
+                        setTimeout(() => {
+                            if (!isExactlyOnScreen(screen2)) return;
+                            building.lightFlatWindows(nums);
+                        }, waveMs);
+                    }
                 }
             });
         })();
@@ -1950,6 +1956,7 @@
             function dismissDemo() {
                 if (!demoActive) return;
                 demoActive = false;
+                screen2DemoDismissed = true;
                 clearDemoTimers();
                 cursorDemo.classList.add('is-dismissed');
                 loopRunning = false;
