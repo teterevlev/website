@@ -1089,6 +1089,7 @@ p {
 }
 
 .feedback-wrap {
+    position: relative;
     margin-top: 2rem;
     width: 100%;
     max-width: 420px;
@@ -1096,6 +1097,12 @@ p {
 
 .feedback-wrap .form-container {
     margin-top: 0;
+}
+
+/* После отправки форма невидима, но место под неё сохраняется */
+.feedback-wrap.is-sent .form-container {
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .feedback-success {
@@ -1107,6 +1114,12 @@ p {
 
 .feedback-success[hidden] {
     display: none;
+}
+
+.feedback-wrap.is-sent .feedback-success {
+    position: absolute;
+    inset: 0;
+    display: flex;
 }
 
 .feedback-success-text {

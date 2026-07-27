@@ -68,6 +68,19 @@
         window.MAKET_DEPLOY = '7';
         document.write('<link rel="stylesheet" href="https://revlev.ru/css/maket.css?v=' + encodeURIComponent(window.MAKET_DEPLOY) + '">');
     </script>
+    <!-- Временно, пока не задеплоен maket.css с .feedback-wrap.is-sent -->
+    <style>
+        .feedback-wrap { position: relative; }
+        .feedback-wrap.is-sent .form-container {
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .feedback-wrap.is-sent .feedback-success {
+            position: absolute;
+            inset: 0;
+            display: flex;
+        }
+    </style>
 
 </head>
 
@@ -2225,27 +2238,35 @@
             const form = document.getElementById('feedback-form');
             const success = document.getElementById('feedback-success');
             const againBtn = document.getElementById('feedback-again');
+            const wrap = document.getElementById('feedback-wrap');
             if (!form || !success) return;
 
             const endpoint = form.getAttribute('action') || 'https://revlev-feedback.oteterevlev.workers.dev/';
             const submitBtn = form.querySelector('button[type="submit"]');
             const defaultLabel = submitBtn ? submitBtn.textContent : '';
+            const messageField = form.elements.message;
 
             function showForm() {
                 success.hidden = true;
-                form.hidden = false;
-                const first = form.querySelector('input, textarea');
-                if (first) first.focus({ preventScroll: true });
+                if (wrap) wrap.classList.remove('is-sent');
+                form.removeAttribute('aria-hidden');
+                form.removeAttribute('inert');
+                const focusEl = messageField || form.querySelector('input, textarea');
+                if (focusEl) focusEl.focus({ preventScroll: true });
             }
 
             function showSuccess() {
-                form.hidden = true;
-                form.reset();
+                // name и contact оставляем; очищаем только сообщение
+                if (messageField) messageField.value = '';
                 if (submitBtn) {
                     submitBtn.disabled = false;
                     submitBtn.textContent = defaultLabel;
                 }
+                form.setAttribute('aria-hidden', 'true');
+                form.setAttribute('inert', '');
+                if (wrap) wrap.classList.add('is-sent');
                 success.hidden = false;
+                if (againBtn) againBtn.focus({ preventScroll: true });
             }
 
             if (againBtn) againBtn.addEventListener('click', showForm);
@@ -2292,7 +2313,8 @@
                     form.dataset.busy = '0';
                     if (submitBtn) {
                         submitBtn.disabled = false;
-                        if (!form.hidden && submitBtn.textContent === 'Отправка…') {
+                        const sent = wrap && wrap.classList.contains('is-sent');
+                        if (!sent && submitBtn.textContent === 'Отправка…') {
                             submitBtn.textContent = defaultLabel;
                         }
                     }
