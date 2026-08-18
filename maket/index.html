@@ -1,50 +1,50 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=overlays-content">
-    <title>Интерактивный макет</title>
-    <meta name="description" content="Интерактивный архитектурный макет помогает покупателям нагляднее выбрать квартиру.">
-    <meta name="keywords" content="интерактивный макет, архитектурный макет, выбор квартиры, жилой комплекс, 3D макет, Revlev">
+    <title>Interactive architectural model</title>
+    <meta name="description" content="An interactive architectural model helps buyers choose an apartment more clearly.">
+    <meta name="keywords" content="interactive model, architectural model, apartment selection, residential complex, 3D model, Revlev">
     <meta name="author" content="Oleg Teterevlev">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta name="color-scheme" content="light">
     <meta name="theme-color" content="#FFFFFF">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Интерактивный макет">
+    <meta name="apple-mobile-web-app-title" content="Interactive model">
 
     <link rel="canonical" href="https://maket.revlev.ru/">
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="shortcut icon" href="favicon.ico">
     <link rel="apple-touch-icon" href="favicon.png">
 
-    <!-- Превью в мессенджерах / соцсетях: https://revlev.ru/img/maket-og.jpg (лучше 1200×630) -->
+    <!-- Messenger / social preview: https://revlev.ru/img/maket-og.jpg (ideally 1200×630) -->
     <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Интерактивный макет">
+    <meta property="og:site_name" content="Interactive architectural model">
     <meta property="og:url" content="https://maket.revlev.ru/">
-    <meta property="og:title" content="Интерактивный макет">
-    <meta property="og:description" content="Интерактивный архитектурный макет помогает покупателям нагляднее выбрать квартиру.">
+    <meta property="og:title" content="Interactive architectural model">
+    <meta property="og:description" content="An interactive architectural model helps buyers choose an apartment more clearly.">
     <meta property="og:image" content="https://revlev.ru/img/maket-og.jpg">
     <meta property="og:image:type" content="image/jpeg">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="Интерактивный архитектурный макет">
-    <meta property="og:locale" content="ru_RU">
+    <meta property="og:image:alt" content="Interactive architectural model">
+    <meta property="og:locale" content="en_US">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Интерактивный макет">
-    <meta name="twitter:description" content="Интерактивный архитектурный макет помогает покупателям нагляднее выбрать квартиру.">
+    <meta name="twitter:title" content="Interactive architectural model">
+    <meta name="twitter:description" content="An interactive architectural model helps buyers choose an apartment more clearly.">
     <meta name="twitter:image" content="https://revlev.ru/img/maket-og.jpg">
-    <meta name="twitter:image:alt" content="Интерактивный архитектурный макет">
+    <meta name="twitter:image:alt" content="Interactive architectural model">
 
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": "Интерактивный макет",
+      "name": "Interactive architectural model",
       "url": "https://maket.revlev.ru/",
-      "description": "Интерактивный архитектурный макет помогает покупателям нагляднее выбрать квартиру.",
-      "inLanguage": "ru",
+      "description": "An interactive architectural model helps buyers choose an apartment more clearly.",
+      "inLanguage": "en",
       "author": {
         "@type": "Person",
         "name": "Oleg Teterevlev",
@@ -63,12 +63,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
 
-    <!-- Менять только здесь при деплое -->
+    <!-- Change this value on deploy -->
     <script>
         window.MAKET_DEPLOY = '7';
         document.write('<link rel="stylesheet" href="https://revlev.ru/css/maket.css?v=' + encodeURIComponent(window.MAKET_DEPLOY) + '">');
     </script>
-    <!-- Временно, пока не задеплоен maket.css с .feedback-wrap.is-sent -->
+    <!-- Temporary until maket.css with .feedback-wrap.is-sent is deployed -->
     <style>
         .feedback-wrap { position: relative; }
         .feedback-wrap.is-sent .form-container {
@@ -99,24 +99,24 @@
         <section class="screen snap screen-1">
             <div class="screen-content">
                 <div class="block-a">
-                    <h1>Интерактивный макет помогает покупателям нагляднее выбрать квартиру</h1>
-                    <p>Если сделать архитектурный макет интерактивным, это сильнее впечатлит покупателя и подчеркнет
-                        внимание застройщика к деталям.</p>
-                    <p>Даже если макет уже изготовлен, его можно сделать управляемым.</p>
+                    <h1>An interactive architectural model helps buyers choose an apartment more clearly</h1>
+                    <p>Making an architectural model interactive leaves a stronger impression on the buyer and highlights
+                        the developer’s attention to detail.</p>
+                    <p>Even if the model has already been built, it can still be made controllable.</p>
                 </div>
                 <div class="block-b"></div>
-                <!-- Кнопки вынесены из блока А (grid-column: 1 / -1), чтобы не распирать колонку -->
+                <!-- Buttons are outside block A (grid-column: 1 / -1) so they don’t stretch the column -->
                 <div class="btn-group main-actions" style="position: relative; grid-column: 1 / -1;">
-                    <a href="#" class="btn btn-secondary">Управляемая подсветка</a>
-                    <a href="#" class="btn btn-secondary" id="spacer-voice" style="visibility: hidden;">Голосовое
-                        управление</a>
-                    <a href="#" class="btn btn-primary" id="spacer-cta" style="visibility: hidden;">Получить
-                        консультацию</a>
+                    <a href="#" class="btn btn-secondary">Controllable lighting</a>
+                    <a href="#" class="btn btn-secondary" id="spacer-voice" style="visibility: hidden;">Voice
+                        control</a>
+                    <a href="#" class="btn btn-primary" id="spacer-cta" style="visibility: hidden;">Get a
+                        consultation</a>
 
                     <a href="#" class="btn btn-secondary" id="btn-voice"
-                        style="position: absolute; z-index: 100;">Голосовое управление</a>
+                        style="position: absolute; z-index: 100;">Voice control</a>
                     <a href="#" class="btn btn-primary" id="btn-cta"
-                        style="position: absolute; z-index: 100;">Получить консультацию</a>
+                        style="position: absolute; z-index: 100;">Get a consultation</a>
                 </div>
             </div>
         </section>
@@ -125,7 +125,7 @@
         <section class="screen snap screen-2">
             <div class="screen-content">
                 <div class="block-a">
-                    <h2>Управляйте макетом прямо с вашего сайта</h2>
+                    <h2>Control the model directly from your website</h2>
                     <div class="wrap-original-transform hero2MediaRow">
                         <div class="flatsTableWrap original-transform">
                             <div class="hero2CursorDemo" id="hero2CursorDemo" aria-hidden="true">
@@ -148,20 +148,20 @@
                                                     d="M3 6.2V4.8a3 3 0 1 1 6 0V6.2h1c.66 0 1.2.54 1.2 1.2v5.6c0 .66-.54 1.2-1.2 1.2H2c-.66 0-1.2-.54-1.2-1.2V7.4c0-.66.54-1.2 1.2-1.2h1Zm1.5 0h3V4.8a1.5 1.5 0 0 0-3 0v1.4Z" />
                                             </svg>
                                             <div class="browserUrl">
-                                                <span class="browserUrlPrefix">https://</span>лучший-застройщик.рф
+                                                <span class="browserUrlPrefix">https://</span>best-developer.com
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="browserContent" id="hero2BrowserContent">
-                                    <div class="flatsTableTitle">Выбрать квартиру</div>
+                                    <div class="flatsTableTitle">Choose an apartment</div>
                                     <table class="flatsTable">
                                         <thead>
                                             <tr>
-                                                <th>номер</th>
-                                                <th>этаж</th>
-                                                <th>комнат</th>
-                                                <th>площадь</th>
+                                                <th>unit</th>
+                                                <th>floor</th>
+                                                <th>rooms</th>
+                                                <th>area</th>
                                             </tr>
                                         </thead>
                                         <tbody id="flatsTableBody"></tbody>
@@ -169,20 +169,20 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="hero2VScroll" id="hero2VScroll" role="scrollbar" aria-controls="hero2BrowserContent" aria-orientation="vertical" aria-label="Прокрутка списка квартир">
+                        <div class="hero2VScroll" id="hero2VScroll" role="scrollbar" aria-controls="hero2BrowserContent" aria-orientation="vertical" aria-label="Apartment list scroll">
                             <div class="hero2VScrollTrack">
                                 <div class="hero2VScrollThumb" id="hero2VScrollThumb"></div>
                             </div>
                         </div>
                     </div>
-                    <p style="margin-top: 1.5rem;">Выберите квартиру в каталоге — соответствующее окно сразу загорится
-                        на архитектурном макете.</p>
+                    <p style="margin-top: 1.5rem;">Select an apartment in the catalog — the matching window lights up
+                        on the architectural model.</p>
                 </div>
                 <div class="block-b"></div>
                 <div class="btn-group main-actions" style="visibility: hidden; grid-column: 1 / -1;">
-                    <a href="#" class="btn btn-secondary">Управляемая подсветка</a>
-                    <a href="#" class="btn btn-secondary">Голосовое управление</a>
-                    <a href="#" class="btn btn-primary">Получить консультацию</a>
+                    <a href="#" class="btn btn-secondary">Controllable lighting</a>
+                    <a href="#" class="btn btn-secondary">Voice control</a>
+                    <a href="#" class="btn btn-primary">Get a consultation</a>
                 </div>
             </div>
         </section>
@@ -191,7 +191,7 @@
         <section class="screen snap screen-3">
             <div class="screen-content">
                 <div class="block-a">
-                    <h2>Управляйте макетом голосом</h2>
+                    <h2>Control the model with your voice</h2>
                     <div class="media-row">
                         <div class="block-16x9 flatsTableWrap">
                             <div class="flatsTableInner" id="hero3BrowserShell">
@@ -206,7 +206,7 @@
                                                     d="M3 6.2V4.8a3 3 0 1 1 6 0V6.2h1c.66 0 1.2.54 1.2 1.2v5.6c0 .66-.54 1.2-1.2 1.2H2c-.66 0-1.2-.54-1.2-1.2V7.4c0-.66.54-1.2 1.2-1.2h1Zm1.5 0h3V4.8a1.5 1.5 0 0 0-3 0v1.4Z" />
                                             </svg>
                                             <div class="browserUrl" id="hero3BrowserUrl">
-                                                <span class="browserUrlPrefix">https://</span>лучший-застройщик.рф/flats/<span
+                                                <span class="browserUrlPrefix">https://</span>best-developer.com/flats/<span
                                                     id="hero3BrowserFlatSlug">9</span>
                                             </div>
                                         </div>
@@ -217,50 +217,50 @@
                                     <div class="hero3PageLoader" id="hero3PageLoader" aria-hidden="true">
                                         <div class="hero3PageLoaderBar"><span></span></div>
                                         <div class="hero3PageLoaderSpinner"></div>
-                                        <div class="hero3PageLoaderText">загрузка страницы…</div>
+                                        <div class="hero3PageLoaderText">loading page…</div>
                                     </div>
                                     <div class="flatPage is-active" data-flat="9" id="hero3FlatPage9">
-                                        <div class="flatPageSiteNav">лучший-застройщик.рф / <span>каталог</span> /
-                                            квартира 9</div>
+                                        <div class="flatPageSiteNav">best-developer.com / <span>catalog</span> /
+                                            apartment 9</div>
                                         <div class="flatPageBody">
                                             <div class="flatPagePlan">
-                                                <img src="https://revlev.ru/img/flat1.jpg" alt="Планировка квартиры 9">
+                                                <img src="https://revlev.ru/img/flat1.jpg" alt="Floor plan of apartment 9">
                                             </div>
                                             <div class="flatPageInfo">
-                                                <h2 class="flatPageTitle">Квартира №9</h2>
+                                                <h2 class="flatPageTitle">Apartment No. 9</h2>
                                                 <div class="flatPageSpecs">
-                                                    <div class="flatPageSpec"><strong>3</strong><span>этаж</span></div>
-                                                    <div class="flatPageSpec"><strong>1</strong><span>комната</span>
+                                                    <div class="flatPageSpec"><strong>3</strong><span>floor</span></div>
+                                                    <div class="flatPageSpec"><strong>1</strong><span>room</span>
                                                     </div>
-                                                    <div class="flatPageSpec"><strong>38</strong><span>м²</span></div>
+                                                    <div class="flatPageSpec"><strong>38</strong><span>m²</span></div>
                                                 </div>
                                                 <p class="flatPageTag">
-                                                    <span>Вид на двор</span>
-                                                    <span>высокие потолки</span>
-                                                    <span>готова к показу на макете</span>
+                                                    <span>Courtyard view</span>
+                                                    <span>high ceilings</span>
+                                                    <span>ready to show on the model</span>
                                                 </p>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="flatPage" data-flat="14" id="hero3FlatPage14">
-                                        <div class="flatPageSiteNav">лучший-застройщик.рф / <span>каталог</span> /
-                                            квартира 14</div>
+                                        <div class="flatPageSiteNav">best-developer.com / <span>catalog</span> /
+                                            apartment 14</div>
                                         <div class="flatPageBody">
                                             <div class="flatPagePlan">
-                                                <img src="https://revlev.ru/img/flat2.jpg" alt="Планировка квартиры 14">
+                                                <img src="https://revlev.ru/img/flat2.jpg" alt="Floor plan of apartment 14">
                                             </div>
                                             <div class="flatPageInfo">
-                                                <h2 class="flatPageTitle">Квартира №14</h2>
+                                                <h2 class="flatPageTitle">Apartment No. 14</h2>
                                                 <div class="flatPageSpecs">
-                                                    <div class="flatPageSpec"><strong>4</strong><span>этаж</span></div>
-                                                    <div class="flatPageSpec"><strong>1</strong><span>комната</span>
+                                                    <div class="flatPageSpec"><strong>4</strong><span>floor</span></div>
+                                                    <div class="flatPageSpec"><strong>1</strong><span>room</span>
                                                     </div>
-                                                    <div class="flatPageSpec"><strong>38</strong><span>м²</span></div>
+                                                    <div class="flatPageSpec"><strong>38</strong><span>m²</span></div>
                                                 </div>
                                                 <p class="flatPageTag">
-                                                    <span>Угловая</span>
-                                                    <span>панорамные окна</span>
-                                                    <span>подсветка на макете</span>
+                                                    <span>Corner unit</span>
+                                                    <span>panoramic windows</span>
+                                                    <span>model lighting</span>
                                                 </p>
                                             </div>
                                         </div>
@@ -275,8 +275,8 @@
                             </div>
                         </div>
                     </div>
-                    <p style="margin-top: 1.5rem;">Голосовое управление можно добавить и к уже установленной системе.
-                        Замена существующего контроллера, как правило, не требуется.</p>
+                    <p style="margin-top: 1.5rem;">Voice control can also be added to an already installed system.
+                        Replacing the existing controller is usually not required.</p>
                 </div>
                 <div class="block-b">
                     <img class="mic-portrait" src="https://revlev.ru/img/mic.png" alt="">
@@ -285,9 +285,9 @@
                     </div>
                 </div>
                 <div class="btn-group main-actions" style="visibility: hidden; grid-column: 1 / -1;">
-                    <a href="#" class="btn btn-secondary">Управляемая подсветка</a>
-                    <a href="#" class="btn btn-secondary">Голосовое управление</a>
-                    <a href="#" class="btn btn-primary">Получить консультацию</a>
+                    <a href="#" class="btn btn-secondary">Controllable lighting</a>
+                    <a href="#" class="btn btn-secondary">Voice control</a>
+                    <a href="#" class="btn btn-primary">Get a consultation</a>
                 </div>
             </div>
         </section>
@@ -296,23 +296,23 @@
         <section class="screen screen-4">
             <div class="screen-content">
                 <div class="block-a">
-                    <h2>Работаем как часть вашей команды</h2>
-                    <p>Мы внимательно изучаем проект, учитываем особенности конструкции и существующей электроники,
-                        после чего предлагаем решение, оптимальное именно для вашего макета.</p>
+                    <h2>We work as part of your team</h2>
+                    <p>We study the project carefully, take into account the construction details and existing electronics,
+                        and then propose a solution tailored to your model.</p>
                     <div class="btn-group">
-                        <a href="#" class="btn btn-primary">Запланировать<br>консультацию онлайн</a>
-                        <a href="#" class="btn btn-secondary">Отправить запрос</a>
+                        <a href="#" class="btn btn-primary">Schedule an<br>online consultation</a>
+                        <a href="#" class="btn btn-secondary">Send a request</a>
                     </div>
                 </div>
                 <div class="block-b">
-                    <!-- Невидимый якорь: сюда «приземляется» #btn-cta -->
+                    <!-- Invisible anchor: #btn-cta docks here -->
                     <a href="#" class="btn btn-primary" id="spacer-cta-dock"
-                        style="visibility: hidden; align-self: flex-end; margin-bottom: 2rem; pointer-events: none;">Получить
-                        консультацию</a>
-                    <p>Если существующая система подходит для поставленной задачи — используем её. Если требуется новое
-                        решение — разработаем и поставим собственное.</p>
-                    <p>Мы ценим работу макетной мастерской, заранее согласовываем технические решения и сопровождаем
-                        проект до полного запуска.</p>
+                        style="visibility: hidden; align-self: flex-end; margin-bottom: 2rem; pointer-events: none;">Get a
+                        consultation</a>
+                    <p>If the existing system fits the task — we use it. If a new solution is needed —
+                        we design and supply our own.</p>
+                    <p>We respect the model workshop’s work, agree on technical decisions in advance, and support
+                        the project through launch.</p>
                 </div>
             </div>
         </section>
@@ -321,37 +321,37 @@
         <section class="screen screen-5">
             <div class="screen-content">
                 <div class="block-a">
-                    <h2>Обсудим ваш проект</h2>
-                    <p>Расскажите о вашем архитектурном макете или задаче, которую необходимо решить.</p>
-                    <p>Мы предложим подходящий вариант реализации, ответим на технические вопросы и поможем выбрать
-                        оптимальный способ внедрения.</p>
+                    <h2>Let’s discuss your project</h2>
+                    <p>Tell us about your architectural model or the problem you need to solve.</p>
+                    <p>We’ll suggest a suitable implementation, answer technical questions, and help you choose
+                        the best way to integrate it.</p>
 
                     <div class="feedback-wrap" id="feedback-wrap">
                         <form class="form-container" id="feedback-form" action="https://maket.revlev.ru/api/feedback" method="post">
-                            <input type="text" name="name" placeholder="Имя / Компания" required autocomplete="organization">
-                            <input type="text" name="contact" placeholder="Телефон или Email" required autocomplete="email">
-                            <textarea name="message" rows="3" placeholder="Краткое описание задачи"></textarea>
+                            <input type="text" name="name" placeholder="Name / Company" required autocomplete="organization">
+                            <input type="text" name="contact" placeholder="Phone or Email" required autocomplete="email">
+                            <textarea name="message" rows="3" placeholder="Brief description of the task"></textarea>
                             <button type="submit" class="btn btn-dark"
-                                style="align-self: flex-start; margin-top: 0.5rem;">Отправить</button>
+                                style="align-self: flex-start; margin-top: 0.5rem;">Send</button>
                         </form>
                         <div class="feedback-success" id="feedback-success" hidden>
-                            <p class="feedback-success-text">Запрос отправлен</p>
+                            <p class="feedback-success-text">Request sent</p>
                             <button type="button" class="btn btn-dark" id="feedback-again"
-                                style="align-self: flex-start;">Отправить еще один</button>
+                                style="align-self: flex-start;">Send another</button>
                         </div>
                     </div>
                 </div>
                 <div class="block-b">
-                    <h2>Запланировать встречу</h2>
-                    <p>Выберите удобное время для короткого онлайн-обсуждения проекта.</p>
-                    <a href="https://calendly.com/o-damage/30min" target="_blank" class="btn btn-primary" style="align-self: flex-start;">Выбрать
-                        время</a>
+                    <h2>Schedule a meeting</h2>
+                    <p>Pick a convenient time for a short online discussion of the project.</p>
+                    <a href="https://calendly.com/o-damage/30min" target="_blank" class="btn btn-primary" style="align-self: flex-start;">Choose
+                        a time</a>
 
-                    <a href="https://revlev.ru/" class="site-preview" target="_blank" rel="noopener noreferrer" title="Олег Тетеревлёв. Разработка нестандартной электроники и сложного ПО">
-                        <img class="site-preview-image" src="https://revlev.ru/img/og-small.jpg" alt="Разработка нестандартной электроники и сложного ПО">
+                    <a href="https://revlev.ru/" class="site-preview" target="_blank" rel="noopener noreferrer" title="Oleg Teterevlev. Custom electronics and complex software development">
+                        <img class="site-preview-image" src="https://revlev.ru/img/og-small.jpg" alt="Custom electronics and complex software development">
                         <span class="site-preview-body">
                             <span class="site-preview-title">revlev.ru</span>
-                            <span class="site-preview-desc">Разработка нестандартной электроники и сложного ПО.</span>
+                            <span class="site-preview-desc">Custom electronics and complex software development.</span>
                             <span class="site-preview-url">http://revlev.ru</span>
                         </span>
                     </a>
@@ -363,7 +363,7 @@
 
     </div>
 
-    <!-- Стрелка "вниз" -->
+    <!-- Down arrow -->
     <div class="scroll-down" id="scroll-down-arrow">
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
@@ -2008,8 +2008,8 @@
         // Screen 3 voice demo
         (function screen3VoiceDemo() {
             const HERO_MIC_PHRASES = [
-                'включи квартиру девять',
-                'включи квартиру четырнадцать'
+                'turn on apartment nine',
+                'turn on apartment fourteen'
             ];
             const HERO_MIC_FLAT_NUMBERS = [9, 14];
             const TYPE_MS = 65;
@@ -2294,7 +2294,7 @@
                 form.dataset.busy = '1';
                 if (submitBtn) {
                     submitBtn.disabled = true;
-                    submitBtn.textContent = 'Отправка…';
+                    submitBtn.textContent = 'Sending…';
                 }
 
                 try {
@@ -2309,7 +2309,7 @@
                     showSuccess();
                 } catch (err) {
                     console.error('feedback failed', err);
-                    if (submitBtn) submitBtn.textContent = 'Ошибка — попробуйте ещё раз';
+                    if (submitBtn) submitBtn.textContent = 'Error — try again';
                     setTimeout(() => {
                         if (submitBtn) submitBtn.textContent = defaultLabel;
                     }, 3000);
@@ -2318,7 +2318,7 @@
                     if (submitBtn) {
                         submitBtn.disabled = false;
                         const sent = wrap && wrap.classList.contains('is-sent');
-                        if (!sent && submitBtn.textContent === 'Отправка…') {
+                        if (!sent && submitBtn.textContent === 'Sending…') {
                             submitBtn.textContent = defaultLabel;
                         }
                     }
