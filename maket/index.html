@@ -327,7 +327,7 @@
                         the best way to integrate it.</p>
 
                     <div class="feedback-wrap" id="feedback-wrap">
-                        <form class="form-container" id="feedback-form" action="https://model.revlev.org/api/feedback" method="post">
+                        <form class="form-container" id="feedback-form" action="https://revlev-feedback.oteterevlev.workers.dev/" method="post">
                             <input type="text" name="name" placeholder="Name / Company" required autocomplete="organization">
                             <input type="text" name="contact" placeholder="Phone or Email" required autocomplete="email">
                             <textarea name="message" rows="3" placeholder="Brief description of the task"></textarea>
@@ -2245,7 +2245,7 @@
             const wrap = document.getElementById('feedback-wrap');
             if (!form || !success) return;
 
-            const endpoint = form.getAttribute('action') || 'https://model.revlev.org/api/feedback';
+            const endpoint = form.getAttribute('action') || 'https://revlev-feedback.oteterevlev.workers.dev/';
             const submitBtn = form.querySelector('button[type="submit"]');
             const defaultLabel = submitBtn ? submitBtn.textContent : '';
             const messageField = form.elements.message;
