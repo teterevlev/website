@@ -1011,7 +1011,7 @@ p {
     color: var(--ink);
 }
 
-/* Превью-ссылка на revlev.ru (низ block-b) */
+/* Превью-ссылка на revlev.org (низ block-b) */
 .screen-5 .site-preview {
     display: flex;
     align-items: stretch;
@@ -1030,14 +1030,24 @@ p {
 
 .screen-5 .site-preview-image {
     flex-shrink: 0;
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     width: auto;
     max-width: none;
     height: 116px;
     align-self: stretch;
     aspect-ratio: 320 / 168;
-    object-fit: cover;
-    background: var(--ash);
+    padding: 0.5rem;
+    box-sizing: border-box;
+    background: var(--ash) url("../img/og-bg.jpg") center / cover no-repeat;
+    font-family: var(--font-display);
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    color: var(--ink);
 }
 
 .screen-5 .site-preview-body {
@@ -1693,6 +1703,7 @@ p {
 
     .screen-5 .site-preview-image {
         height: 88px;
+        font-size: 0.8125rem;
     }
 
     .screen-5 .site-preview-title,
