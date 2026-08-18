@@ -1943,7 +1943,11 @@
                     if (!demoActive || !loopRunning) return;
                     playClick(row);
                     targetIndex++;
-                    scheduleStep(targetIndex % HERO2_DEMO_ROW_INDICES.length === 0 ? 1500 : 850);
+                    if (targetIndex % HERO2_DEMO_ROW_INDICES.length === 0) {
+                        scheduleStep(2500);
+                    } else {
+                        scheduleStep(2500);
+                    }
                 }, 700);
             }
 
