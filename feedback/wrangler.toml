@@ -5,4 +5,4 @@ compatibility_date = "2025-07-01"
 # При Git-деплое в Cloudflare: Project name = revlev-feedback, Path = feedback
 
 [vars]
-ALLOW_ORIGINS = "https://model.revlev.org,https://revlev.org,https://maket.revlev.ru,https://revlev.ru,http://localhost:8787,http://127.0.0.1:5500"
+ALLOW_ORIGINS = "https://maket.revlev.org,https://model.revlev.org,https://revlev.org,https://maket.revlev.ru,https://revlev.ru,http://localhost:8787,http://127.0.0.1:5500"
