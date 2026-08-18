@@ -49,8 +49,16 @@ export default {
       return json({ ok: false, error: "required_fields" }, 400, cors);
     }
 
+    const from = (() => {
+      try {
+        return new URL(origin).host;
+      } catch {
+        return origin || "unknown";
+      }
+    })();
+
     const text = [
-      "📩 Новая заявка с maket.revlev.ru",
+      `📩 Новая заявка с ${from}`,
       "",
       `👤 Имя / компания: ${name}`,
       `📞 Контакт: ${contact}`,
