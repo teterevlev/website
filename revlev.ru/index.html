@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Custom electronics and complex software development.">
-  <meta name="keywords" content="electronics, embedded, software, PCB, firmware, Oleg Teterevlev, Revlev">
-  <meta name="author" content="Oleg Teterevlev">
+  <meta name="description" content="Разработка нестандартной электроники и сложного ПО.">
+  <meta name="keywords" content="электроника, встраиваемые системы, ПО, печатные платы, прошивки, Олег Тетеревлёв, Revlev">
+  <meta name="author" content="Олег Тетеревлёв">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="color-scheme" content="light">
   <meta name="theme-color" content="#FFFFFF">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-title" content="Oleg Teterevlev">
-  <title>Oleg Teterevlev</title>
+  <meta name="apple-mobile-web-app-title" content="Олег Тетеревлёв">
+  <title>Олег Тетеревлёв</title>
 
   <link rel="canonical" href="https://revlev.ru/">
   <link rel="icon" type="image/png" href="favicon.png">
@@ -20,22 +20,21 @@
 
   <!-- Превью в мессенджерах / соцсетях: https://revlev.ru/img/og.jpg (лучше 1200×630) -->
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Oleg Teterevlev">
+  <meta property="og:site_name" content="Олег Тетеревлёв">
   <meta property="og:url" content="https://revlev.ru/">
-  <meta property="og:title" content="Oleg Teterevlev">
-  <meta property="og:description" content="Custom electronics and complex software development.">
+  <meta property="og:title" content="Олег Тетеревлёв">
+  <meta property="og:description" content="Разработка нестандартной электроники и сложного ПО.">
   <meta property="og:image" content="https://revlev.ru/img/og.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="2402">
   <meta property="og:image:height" content="1262">
-  <meta property="og:image:alt" content="Oleg Teterevlev — custom electronics and complex software">
-  <meta property="og:locale" content="en_US">
-  <meta property="og:locale:alternate" content="ru_RU">
+  <meta property="og:image:alt" content="Олег Тетеревлёв — разработка нестандартной электроники и сложного ПО">
+  <meta property="og:locale" content="ru_RU">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Oleg Teterevlev">
-  <meta name="twitter:description" content="Custom electronics and complex software development.">
+  <meta name="twitter:title" content="Олег Тетеревлёв">
+  <meta name="twitter:description" content="Разработка нестандартной электроники и сложного ПО.">
   <meta name="twitter:image" content="https://revlev.ru/img/og.jpg">
-  <meta name="twitter:image:alt" content="Oleg Teterevlev — custom electronics and complex software">
+  <meta name="twitter:image:alt" content="Олег Тетеревлёв — разработка нестандартной электроники и сложного ПО">
 
   <script type="application/ld+json">
   {
@@ -43,23 +42,23 @@
     "@graph": [
       {
         "@type": "WebSite",
-        "name": "Oleg Teterevlev",
+        "name": "Олег Тетеревлёв",
         "url": "https://revlev.ru/",
-        "description": "Custom electronics and complex software development.",
-        "inLanguage": ["en", "ru"],
+        "description": "Разработка нестандартной электроники и сложного ПО.",
+        "inLanguage": "ru",
         "author": { "@id": "https://revlev.ru/#person" }
       },
       {
         "@type": "Person",
         "@id": "https://revlev.ru/#person",
-        "name": "Oleg Teterevlev",
-        "alternateName": "Олег Тетеревлёв",
+        "name": "Олег Тетеревлёв",
+        "alternateName": "Oleg Teterevlev",
         "url": "https://revlev.ru/",
         "sameAs": [
           "https://www.linkedin.com/in/teterevlev/",
           "https://t.me/tech0marketing"
         ],
-        "jobTitle": "Electronics and software engineer"
+        "jobTitle": "Инженер электроники и программного обеспечения"
       }
     ]
   }
@@ -70,49 +69,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
-
-  <script>
-    (function () {
-      var hash = window.location.hash;
-      var isRussian = false;
-
-      if (hash === '#en') {
-        isRussian = false;
-      } else if (hash === '#ru') {
-        isRussian = true;
-      } else {
-        var userLang = navigator.language || navigator.userLanguage;
-        if (userLang && userLang.toLowerCase().indexOf('ru') === 0) {
-          isRussian = true;
-          // Set hash to #ru without reloading
-          if (history.replaceState) {
-            history.replaceState(null, null, '#ru');
-          } else {
-            window.location.hash = 'ru';
-          }
-        }
-      }
-
-      if (isRussian) {
-        document.documentElement.lang = 'ru';
-        document.title = 'Олег Тетеревлёв';
-        
-        document.addEventListener('DOMContentLoaded', function () {
-          var desc = document.querySelector('meta[name="description"]');
-          if (desc) desc.setAttribute('content', 'Разработка нестандартной электроники и сложного ПО.');
-          
-          document.querySelectorAll('[data-ru]').forEach(function (el) {
-            el.innerHTML = el.getAttribute('data-ru');
-          });
-        });
-      }
-
-      // Reload page on hash change to apply manual language overrides instantly
-      window.addEventListener('hashchange', function () {
-        window.location.reload();
-      }, false);
-    })();
-  </script>
 </head>
 <body>
   <canvas id="bg-canvas"></canvas>
@@ -120,8 +76,8 @@
 
   <div class="content-layer">
     <main class="hero" id="hero-section">
-      <h1 class="hero-title" id="hero-title" data-en="Oleg Teterevlev" data-ru="Олег Тетеревлёв">Oleg Teterevlev</h1>
-      <p class="hero-subtitle" id="hero-subtitle" data-en="Custom electronics &amp; complex software development." data-ru="Разработка нестандартной электроники и сложного ПО.">Custom electronics &amp; complex software development.</p>
+      <h1 class="hero-title" id="hero-title">Олег Тетеревлёв</h1>
+      <p class="hero-subtitle" id="hero-subtitle">Разработка нестандартной электроники и сложного ПО.</p>
     </main>
 
     <footer class="bottom-bar" id="bottom-bar">
