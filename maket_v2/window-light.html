@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Макет — свет в окнах</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+<style>
+  :root{ --ink:#e4e8eb; --dim:#8c959c; --line:#2c343a; --glow:#e9b44c; }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:#0b0d0f;color:var(--ink);
+    font:13px/1.4 ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  body{display:flex;flex-direction:column}
+  #wrap{flex:1;display:grid;place-items:center;min-height:0;position:relative;z-index:0;overflow:hidden}
+  /* pinned to the viewport, not to the picture area, so the bar can cover its lower part */
+  /* the box is transparent to the pointer, so clicks land on the model underneath;
+     only the controls on the tablet screen take events, and the solid part of the
+     artwork is blocked in script by the same alpha map the parallax uses */
+  #tabletWrap{position:fixed;left:0;bottom:0;width:min(68vw,1080px);z-index:1;pointer-events:none;
+          transform-origin:left bottom;will-change:transform;transition:transform .25s ease-out}
+  #tablet{display:block;width:100%;height:auto;pointer-events:none;user-select:none}
+  /* real controls laid over the drawn ones; positions are shares of the image box,
+     so they follow the tablet through parallax and any resize */
+  #ui{position:absolute;inset:0;pointer-events:none}
+  /* one axonometric row: shared rotate matches the screen plane; left drifts down the column.
+     pointer-events on the row so the gap between switch and label stays in the hover zone */
+  .trow{position:absolute;display:flex;align-items:center;gap:0.55em;pointer-events:auto;cursor:pointer;
+       padding:0.55em 0.75em;margin:-0.55em -0.75em;transform-origin:left center}
+  .tsw{position:relative;flex:none;pointer-events:auto;width:calc(min(68vw,1080px) * 0.033);aspect-ratio:1.88;
+       border:0;padding:0;border-radius:999px;background:#0d1520;cursor:pointer;
+       transition:all .35s ease;
+       box-shadow:inset 0 0 0 1px rgba(255,255,255,.08),0 0 0 rgba(0,128,209,0);
+       overflow:hidden}
+  /* blue fill as opacity layer — gradients don't interpolate, opacity does */
+  .tsw::before{content:"";position:absolute;inset:0;border-radius:inherit;
+       background:linear-gradient(135deg,#0090e8,#0080d1 45%,#006bb0);
+       opacity:0;transition:all .35s ease;
+       box-shadow:inset 0 1px 0 rgba(255,255,255,.28)}
+  .tsw::after{content:"";position:absolute;z-index:1;top:9%;bottom:9%;aspect-ratio:1;border-radius:50%;
+       background:linear-gradient(160deg,#f4f8fb,#d7e6f2);left:5%;
+       transition:all .35s ease;
+       box-shadow:0 1px 2px rgba(0,40,80,.35)}
+  /* hover on switch or its label (whole row) — including off state */
+  .tsw:hover,
+  .trow:hover .tsw{background:#1c2c40;
+       box-shadow:inset 0 0 0 1px rgba(180,220,255,.4),0 0 14px rgba(0,160,240,.45)}
+  .tsw:hover::before,
+  .trow:hover .tsw::before{opacity:.42}
+  .tsw[aria-checked="true"]{box-shadow:inset 0 0 0 1px rgba(0,100,180,.4),0 0 10px rgba(0,128,209,.45)}
+  .tsw[aria-checked="true"]::before{opacity:1}
+  .tsw[aria-checked="true"]:hover,
+  .trow:hover .tsw[aria-checked="true"]{
+       box-shadow:inset 0 0 0 1px rgba(140,210,255,.75),0 0 22px rgba(0,180,255,.9),0 0 8px rgba(100,210,255,.55)}
+  .tsw[aria-checked="true"]:hover::before,
+  .trow:hover .tsw[aria-checked="true"]::before{opacity:1;filter:brightness(1.18)}
+  .tsw[aria-checked="true"]::after{left:51.4%}
+  /* base gradient + hover layer crossfade (gradients themselves don't transition) */
+  .tlab{position:relative;flex:none;pointer-events:auto;cursor:pointer;
+       font:400 clamp(9px,1.2vw,14px)/1.1 "Russo One",sans-serif;
+       letter-spacing:-0.02em;white-space:nowrap;
+       background:linear-gradient(180deg,#f2f6fa 0%,#c5d0dc 55%,#9aabb8 100%);
+       -webkit-background-clip:text;background-clip:text;color:transparent;
+       text-shadow:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.75)) drop-shadow(0 0 6px rgba(120,180,220,.2));
+       transition:all .35s ease}
+  .tlab::after{content:attr(data-text);position:absolute;left:0;top:0;
+       background:linear-gradient(180deg,#ffffff 0%,#f2f9ff 40%,#c8e4ff 100%);
+       -webkit-background-clip:text;background-clip:text;color:transparent;
+       opacity:0;pointer-events:none;transition:all .35s ease}
+  .tlab:hover,
+  .trow:hover .tlab{filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))
+       drop-shadow(0 0 8px rgba(160,220,255,.7)) drop-shadow(0 0 18px rgba(80,190,255,.65))}
+  .tlab:hover::after,
+  .trow:hover .tlab::after{opacity:1}
+  @property --mic{
+    syntax:"<number>";
+    inherits:false;
+    initial-value:0;
+  }
+  .tmic{position:absolute;pointer-events:auto;cursor:pointer;width:calc(min(68vw,1080px) * 0.12);
+       transform-origin:center bottom}
+  /* idle at min; --mic driven by JS hover only */
+  .tmic img{display:block;width:100%;height:auto;transform-origin:center bottom;
+       --mic:0;
+       transform:scale(calc(1 + 0.07 * var(--mic))) scaleY(calc(1 + 0.12 * var(--mic)))
+                 translateY(calc(-6% * var(--mic)));
+       filter:drop-shadow(0 0 calc(6px + 10px * var(--mic)) rgba(0,170,255,calc(0.35 + 0.5 * var(--mic))))
+              drop-shadow(0 0 calc(14px + 18px * var(--mic)) rgba(80,200,255,calc(0.15 + 0.3 * var(--mic))))
+              drop-shadow(0 2px 8px rgba(0,0,0,.55))}
+  canvas{display:block;width:100%;height:auto;max-height:100%;touch-action:none;
+         will-change:transform;transition:transform .25s ease-out}
+  #boot{position:fixed;inset:0;display:grid;place-content:center;color:var(--dim);background:#0b0d0f}
+</style>
+</head>
+<body>
+
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="tabletWrap">
+  <img id="tablet" src="tablet.webp" alt="">
+  <div id="ui"></div>
+</div>
+
+
+<div id="boot">Загрузка…</div>
+
+<script>
+"use strict";
+const SRC_BASE = "maket_base.jpg", SRC_OFF = "maket_off.jpg", SRC_ALL = "maket_all.jpg";
+const TABLET_ALPHA_SRC = "data:image/png;base64,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";
+const ZONES = [[[0.3127, 0.1006], [0.3746, 0.11458], [0.37679, 0.2381], [0.31417, 0.22327]], [[0.3756, 0.11518], [0.41123, 0.10506], [0.41302, 0.22768], [0.37759, 0.23929]], [[0.41799, 0.07024], [0.44009, 0.07262], [0.44009, 0.20327], [0.41919, 0.19821]], [[0.44108, 0.07262], [0.48567, 0.06935], [0.48666, 0.19643], [0.44108, 0.20565]], [[0.6258, 0.11577], [0.64689, 0.12054], [0.64689, 0.2625], [0.6246, 0.25744]], [[0.65346, 0.12321], [0.68232, 0.12738], [0.68232, 0.26935], [0.65267, 0.26071]], [[0.68372, 0.12708], [0.71095, 0.11583], [0.71095, 0.26964], [0.68372, 0.2794]], [[0.80597, 0.14702], [0.87858, 0.16101], [0.8746, 0.33095], [0.80314, 0.31101]], [[0.89132, 0.15804], [0.91262, 0.15], [0.90943, 0.31577], [0.88734, 0.32946]], [[0.38396, 0.30595], [0.36067, 0.31345], [0.36067, 0.26286], [0.38396, 0.25357]], [[0.35939, 0.26286], [0.35939, 0.31345], [0.3496, 0.31054], [0.3496, 0.26286]], [[0.34829, 0.26286], [0.34829, 0.30958], [0.34311, 0.30958], [0.34311, 0.26286]], [[0.3418, 0.26286], [0.3418, 0.30958], [0.2578, 0.27839], [0.2578, 0.2375]], [[0.47094, 0.33393], [0.59295, 0.3744], [0.59295, 0.42113], [0.47094, 0.38065]], [[0.78404, 0.39375], [0.79757, 0.39702], [0.79757, 0.42929], [0.78364, 0.42232]], [[0.82643, 0.3997], [0.86803, 0.37411], [0.86803, 0.41607], [0.82643, 0.44315]]], GRIDS = [{"rw": 633, "rh": 827, "cols": [[4, 28], [28, 103], [107, 156], [165, 242], [264, 316], [344, 398], [403, 433], [454, 508], [519, 539], [540, 619]], "rows": [[0, 197], [197, 288], [288, 380], [380, 472], [472, 561], [561, 650], [650, 736], [736, 827]], "r2n": [9.451915813816478e-05, -2.5169232732522367e-06, 0.31269999218594496, 2.1085367650911304e-05, 0.00014527939506469526, 0.10059999738420759, -8.72704292477028e-06, -1.3669208858871081e-05, 1]}, {"rw": 364, "rh": 829, "cols": [[47, 102], [122, 176], [194, 243], [262, 286], [298, 361]], "rows": [[0, 95], [95, 186], [186, 282], [282, 373], [373, 465], [465, 556], [556, 646], [646, 739], [739, 829]], "r2n": [0.00011214823978262463, 4.681307328817651e-06, 0.37560000085526973, -2.4158167868905884e-05, 0.00015115591915313185, 0.11517999739873978, 3.468526182874794e-05, 6.040452593616995e-06, 1]}, {"rw": 218, "rh": 869, "cols": [[0, 58], [74, 118], [124, 199]], "rows": [[0, 92], [92, 176], [176, 260], [260, 346], [346, 432], [432, 517], [517, 607], [607, 698], [698, 789], [789, 869]], "r2n": [5.547675364036287e-05, 2.9077481920516137e-05, 0.4179899859580265, 3.3434912394246967e-06, 0.0001603572864957268, 0.07023999804542179, -0.00010429571222203725, 6.607166952979018e-05, 1]}, {"rw": 455, "rh": 874, "cols": [[5, 46], [49, 137], [175, 218], [253, 305], [317, 363], [375, 450]], "rows": [[0, 107], [107, 195], [195, 282], [282, 370], [370, 454], [454, 540], [540, 626], [626, 710], [710, 796], [796, 874]], "r2n": [0.0001462189423176398, -1.1456299052088492e-05, 0.44107998404533244, -3.015180931780294e-07, 0.0001468668322224894, 0.07262000129336403, 9.928325339751158e-05, -2.5973291604033756e-05, 1]}, {"rw": 220, "rh": 953, "cols": [[15, 77], [99, 153], [166, 212]], "rows": [[0, 100], [100, 199], [199, 297], [297, 394], [394, 491], [491, 585], [585, 679], [679, 776], [776, 862], [862, 953]], "r2n": [9.549921730098983e-05, -3.6543489066822555e-05, 0.6258000173386495, 2.161391896283028e-05, 0.00013411381907718435, 0.11577000390915644, -5.631927991927609e-07, -5.649104064082682e-05, 1]}, {"rw": 297, "rh": 939, "cols": [[13, 39], [64, 109], [123, 186], [186, 245], [254, 297]], "rows": [[0, 98], [98, 193], [193, 291], [291, 389], [389, 483], [483, 583], [583, 679], [679, 773], [773, 868], [868, 939]], "r2n": [2.856282736248954e-05, -1.936106369775338e-05, 0.6534600227501742, 1.2320697190676879e-06, 0.00013903463875242854, 0.12320999872116817, -0.00010055216318874403, -2.8375343946101782e-05, 1]}, {"rw": 283, "rh": 1029, "cols": [[63, 136], [155, 210], [242, 279]], "rows": [[0, 114], [114, 204], [204, 295], [295, 387], [387, 476], [476, 570], [570, 660], [660, 754], [754, 844], [844, 933], [933, 1029]], "r2n": [7.188271358783424e-05, 0, 0.6837199994712878, -4.371758196064828e-05, 0.00014802720988164745, 0.12708000001453218, -3.423072059045053e-05, 0, 1]}, {"rw": 733, "rh": 1123, "cols": [[0, 113], [113, 209], [209, 283], [394, 569], [575, 718]], "rows": [[0, 132], [132, 244], [244, 358], [358, 472], [472, 584], [584, 693], [693, 805], [805, 914], [914, 1023], [1023, 1123]], "r2n": [5.511656764545754e-05, 7.528886498243808e-06, 0.805970015799164, 1.1033046832380082e-05, 0.00014991988270618537, 0.14702000390915645, -5.001485863414403e-05, 1.2512063941055177e-05, 1]}, {"rw": 231, "rh": 1134, "cols": [[11, 28], [33, 55], [82, 133], [158, 215]], "rows": [[0, 133], [133, 238], [238, 394], [394, 498], [498, 606], [606, 714], [714, 817], [817, 916], [916, 1022], [1022, 1134]], "r2n": [0.0002166775781860231, -2.7935554711125282e-05, 0.8913200038253882, -1.4347107522002891e-05, 0.00014209496191465933, 0.15804000127883186, 0.00013638728546173673, -2.752703612553357e-05, 1]}, {"rw": 241, "rh": 346, "cols": [[0, 17], [24, 79], [186, 237]], "rows": [[0, 159], [159, 248], [248, 346]], "r2n": [-4.368759895231858e-05, 0, 0.38395999495390876, 7.71392367759691e-05, -0.00015138725324862265, 0.30594998314267113, 0.000146813886423458, 0, 1]}, {"rw": 330, "rh": 99, "cols": [[8, 93], [105, 180], [188, 321]], "rows": [[0, 99]], "r2n": [0, 0.00011663347448328599, 0.3593899915172796, 0.00015330305003156567, 0.0001620486232658785, 0.2628599984305246, 0, 0.000616482629564025, 1]}, {"rw": 314, "rh": 52, "cols": [[3, 74], [77, 135], [170, 190], [196, 279]], "rows": [[5, 38], [38, 52]], "r2n": [0, -9.961527740762609e-05, 0.3482899999922248, 0.00014878985445753243, 0, 0.2628599984305246, 0, 0, 1]}, {"rw": 294, "rh": 865, "cols": [[16, 99], [113, 185], [193, 275]], "rows": [[0, 87], [87, 176], [176, 237], [237, 424], [424, 492], [492, 643], [643, 774], [774, 865]], "r2n": [0, -5.4616589251486404e-05, 0.3418000093690909, 0.00015891161326416728, 9.829261710901699e-06, 0.2628599984305246, 0, 0.000164830227248942, 1]}, {"rw": 1256, "rh": 314, "cols": [[9, 70], [88, 154], [154, 263], [283, 367], [373, 444], [464, 546], [564, 729], [737, 827], [841, 930], [959, 1041], [1054, 1231]], "rows": [[0, 110], [110, 216], [216, 314]], "r2n": [9.704079107882115e-05, 0, 0.47093997639455615, 3.215761751781358e-05, 0.00014878985445753243, 0.33392998831612725, -1.7022288476958036e-07, 0, 1]}, {"rw": 143, "rh": 204, "cols": [[0, 127]], "rows": [[0, 112], [112, 204]], "r2n": [-0.0005102867504090687, -0.00011226133770886815, 0.7840399772498259, -0.0002782454343084525, 8.060575618827792e-05, 0.39375000000000004, -0.0007584316341910025, -0.00014075421137421255, 1]}, {"rw": 454, "rh": 287, "cols": [[4, 61], [69, 116], [164, 246], [278, 317], [373, 406]], "rows": [[0, 104], [104, 287]], "r2n": [0.00015952472080696137, 0, 0.8264300109474523, -2.7103810434790272e-05, 0.00015139379607359332, 0.3996999831426712, 7.821699980666309e-05, 0, 1]}];
+const FEATHER = 3;        // outer edge of a glazing plane
+const WIN_FEATHER = 1.3;  // edge of a single window
+const WIN_INSET = 0.86;   // cells shrink toward their centre, leaving the mullions untouched
+
+const c = document.getElementById("c"), x = c.getContext("2d");
+const $ = id => document.getElementById(id);
+const load = s => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = s; });
+const cv = (w, h) => { const e = document.createElement("canvas"); e.width = w; e.height = h; return e; };
+
+let W, H, imgBase, imgOff, imgAll;
+let cutOff, cutAll, litLayer;
+let poly = [], win = [], cell = [], over = [];
+let level = null;             // 0..1 per window, lerps toward over[] / lightAll
+let lightRaf = 0, lightLast = 0;
+const LIGHT_FADE_MS = 120;    // on/off fade for windows
+const grids = GRIDS.filter(Boolean).map(g => ({ ...g, cols: g.cols.map(p => p.slice()) }));
+/* ---- show state ----
+   These four used to be read straight off the bottom bar's controls. The bar is gone,
+   so they live here and are driven through the API at the end of this file. */
+let lightAll = false;     // master light: false = every window dark, true = every window lit
+let demoOn   = false;     // page-wide demo, all zones at once
+let soloOn   = false;     // within the demo: one building at a time, the rest dark
+let rateMs   = 3000;      // switching period per switched-on building, in ms
+
+let span = [];            // [start, count] of each zone's cells inside the flat list
+let demoTimer = null, soloTimer = null, demoSaved = null;
+let soloOrder = [], soloPos = 0, soloZone = 0;
+
+/* ---- projective mapping between the rectified facade and the canvas ---- */
+function apply(m, u, v){
+  const w = m[6] * u + m[7] * v + m[8];
+  return [(m[0] * u + m[1] * v + m[2]) / w * W, (m[3] * u + m[4] * v + m[5]) / w * H];
+}
+const toCanvas = (g, u, v) => apply(g.r2n, u, v);
+
+// every zone keeps its own rectified space; the flat index of a cell is its identity
+function buildCells(){
+  win = []; span = [];
+  for (const g of grids){
+    const start = win.length;
+    for (const [y0, y1] of g.rows)
+      for (const [a, b] of g.cols)
+        win.push([toCanvas(g, a, y0), toCanvas(g, b, y0), toCanvas(g, b, y1), toCanvas(g, a, y1)]);
+    span.push([start, win.length - start]);
+  }
+  cell = win.map(inset);
+}
+
+// scaling a quad about its centroid keeps every edge parallel to the original,
+// so the gap follows the mullions instead of cutting across them
+function inset(p){
+  const cx = p.reduce((s, q) => s + q[0], 0) / p.length;
+  const cy = p.reduce((s, q) => s + q[1], 0) / p.length;
+  return p.map(q => [cx + (q[0] - cx) * WIN_INSET, cy + (q[1] - cy) * WIN_INSET]);
+}
+
+function fillPolys(ctx, list){
+  ctx.fillStyle = "#fff";
+  for (const p of list){
+    ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
+    for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
+    ctx.closePath(); ctx.fill();
+  }
+}
+function cutTo(img, maskCanvas){
+  const e = cv(W, H), ex = e.getContext("2d");
+  ex.drawImage(img, 0, 0, W, H);
+  ex.globalCompositeOperation = "destination-in";
+  ex.drawImage(maskCanvas, 0, 0);
+  return e;
+}
+function softMask(list){
+  const hard = cv(W, H);
+  fillPolys(hard.getContext("2d"), list);
+  const e = cv(W, H), ex = e.getContext("2d");
+  ex.filter = `blur(${WIN_FEATHER}px)`;
+  ex.drawImage(hard, 0, 0);
+  return e;
+}
+
+// per-window brightness 0..1 in the mask alpha, then the same feather as hard cells
+function softMaskLevels(levels){
+  const hard = cv(W, H), hx = hard.getContext("2d");
+  for (let i = 0; i < levels.length; i++){
+    const a = levels[i];
+    if (a < 0.001) continue;
+    const p = cell[i];
+    hx.fillStyle = a >= 0.999 ? "#fff" : `rgba(255,255,255,${a})`;
+    hx.beginPath();
+    hx.moveTo(p[0][0], p[0][1]);
+    for (let j = 1; j < p.length; j++) hx.lineTo(p[j][0], p[j][1]);
+    hx.closePath();
+    hx.fill();
+  }
+  const e = cv(W, H), ex = e.getContext("2d");
+  ex.filter = `blur(${WIN_FEATHER}px)`;
+  ex.drawImage(hard, 0, 0);
+  return e;
+}
+
+function targetLevel(i){
+  const o = over[i];
+  return (o === null ? lightAll : o) ? 1 : 0;
+}
+
+function rebuildLitLayer(){
+  litLayer = cutTo(imgAll, softMaskLevels(level));
+}
+
+function draw(){
+  x.clearRect(0, 0, W, H);
+  x.drawImage(imgBase, 0, 0);
+  x.drawImage(cutOff, 0, 0);
+  if (litLayer) x.drawImage(litLayer, 0, 0);
+}
+
+function snapLight(){
+  if (!level || level.length !== win.length) level = new Float32Array(win.length);
+  for (let i = 0; i < level.length; i++) level[i] = targetLevel(i);
+  rebuildLitLayer();
+  draw();
+}
+
+function lightFrame(now){
+  lightRaf = 0;
+  if (!level) return;
+  if (!lightLast) lightLast = now;
+  const step = Math.min(64, now - lightLast) / LIGHT_FADE_MS;
+  lightLast = now;
+  let dirty = false;
+  for (let i = 0; i < level.length; i++){
+    const tgt = targetLevel(i);
+    const d = tgt - level[i];
+    if (Math.abs(d) < 0.001){ if (level[i] !== tgt){ level[i] = tgt; dirty = true; } continue; }
+    dirty = true;
+    level[i] = Math.abs(d) <= step ? tgt : level[i] + Math.sign(d) * step;
+  }
+  if (dirty){
+    rebuildLitLayer();
+    draw();
+    lightRaf = requestAnimationFrame(lightFrame);
+  } else {
+    lightLast = 0;
+  }
+}
+
+function requestLightFade(){
+  if (!level){ snapLight(); return; }
+  if (!lightRaf){ lightLast = 0; lightRaf = requestAnimationFrame(lightFrame); }
+}
+
+(async function(){
+  const [base, off, all] = await Promise.all([load(SRC_BASE), load(SRC_OFF), load(SRC_ALL)]);
+  imgBase = base; imgOff = off; imgAll = all;
+  W = base.naturalWidth; H = base.naturalHeight;
+  c.width = W; c.height = H;
+
+  poly = ZONES.map(p => p.map(([a, b]) => [a * W, b * H]));
+  buildCells();
+  over = new Array(win.length).fill(null);
+
+  const mask = cv(W, H);
+  fillPolys(mask.getContext("2d"), poly);
+  const soft = cv(W, H), sx = soft.getContext("2d");
+  sx.filter = `blur(${FEATHER}px)`; sx.drawImage(mask, 0, 0); sx.filter = "none";
+  cutOff = cutTo(off, soft);
+  cutAll = cutTo(all, soft);
+
+  $("boot").remove();
+  snapLight();
+  housesStart();
+  parallax(0);
+})();
+
+/* ---- live controls drawn on the tablet ---- */
+const TSW = [
+  // Plane of the tablet screen in the photo (1425×825):
+  //   α — horizontal: lerp of screen top/bot edges (atan2), see prior note
+  //   β — vertical: direction of the toggle column in px
+  //       β = atan2(Δt·H, Δl·W) ≈ 77.5°  (≈12.5° from true vertical)
+  //   One rotate is not enough: after rotate(α) local Y sits at α+90°,
+  //   but the column needs β. Skew closes the gap:
+  //       transform: rotate(α) skewX(φ)   with  φ = α + 90 − β
+  //   (CSS applies skew first, then rotate → baseline stays at α, stems at β.)
+  { l: 19.40, t: 18.63, a: -5.61, sk: 6.89 },
+  { l: 20.29, t: 25.61, a: -6.04, sk: 6.46 },
+  { l: 21.13, t: 32.17, a: -6.44, sk: 6.06 },
+  { l: 22.04, t: 38.88, a: -6.85, sk: 5.65 },
+  { l: 22.91, t: 45.70, a: -7.27, sk: 5.23 },
+  { l: 23.77, t: 52.58, a: -7.69, sk: 4.81 },
+  { l: 24.67, t: 59.58, a: -8.12, sk: 4.38 }
+];
+const HOUSE_NAMES = ["Monarch", "Regent", "Majesty", "Prestige", "Legacy", "Sovereign", "Grandeur"];
+// one switch per building; the numbers are zone indices
+const HOUSES = [[0, 1], [2, 3], [4, 5, 6], [7, 8], [9, 10, 11, 12], [13], [14, 15]];
+const houseOn = HOUSES.map(() => true);
+let housePhase = false;       // one step puts a window out, the next lights one
+let pool = [];                // every window of every switched-on building, in one bag
+let houseTimer = null;
+(function buildTabletUI(){
+  const ui = $("ui");
+  TSW.forEach((s, i) => {
+    const row = document.createElement("div");
+    row.className = "trow";
+    row.style.left = s.l + "%";
+    row.style.top = s.t + "%";
+    row.style.transform = `rotate(${s.a}deg) skewX(${s.sk}deg)`;
+    const id = "tsw-" + i;
+    const b = document.createElement("button");
+    b.className = "tsw"; b.type = "button"; b.id = id;
+    b.setAttribute("role", "switch"); b.setAttribute("aria-checked", "true");
+    b.setAttribute("aria-label", HOUSE_NAMES[i]);
+    const lab = document.createElement("label");
+    lab.className = "tlab";
+    lab.dataset.text = HOUSE_NAMES[i];
+    lab.textContent = HOUSE_NAMES[i];
+    // whole padded row is the hit target (gap + padding), not only the controls
+    row.addEventListener("click", () => {
+      setHouse(i, b.getAttribute("aria-checked") !== "true");
+    });
+    row.append(b, lab);
+    ui.appendChild(row);
+  });
+  // mic in the lower-right of the screen, same plane as the rows
+  const micWrap = document.createElement("div");
+  micWrap.className = "tmic";
+  micWrap.style.left = "50%";
+  micWrap.style.top = "21%";
+  micWrap.style.transform = "rotate(-8.12deg) skewX(9.5deg)";
+  const mic = document.createElement("img");
+  mic.src = "mic_large.png";
+  mic.alt = "";
+  micWrap.appendChild(mic);
+  ui.appendChild(micWrap);
+
+  // JS owns --mic; idle at 0, hover grows — no pulse
+  const MIC_HOVER = 1.2;
+  const MIC_TWEEN = 750;
+  let micVal = 0;
+  let micMode = "idle"; // idle | tween
+  let micTween = null;
+
+  const easeInOut = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
+  const applyMic = (v) => {
+    micVal = v;
+    mic.style.setProperty("--mic", String(v));
+  };
+  const tweenTo = (to) => {
+    micMode = "tween";
+    micTween = { from: micVal, to, t0: performance.now() };
+  };
+
+  micWrap.addEventListener("mouseenter", () => tweenTo(MIC_HOVER));
+  micWrap.addEventListener("mouseleave", () => tweenTo(0));
+
+  (function micFrame(now){
+    if (micMode === "tween" && micTween) {
+      const t = Math.min(1, (now - micTween.t0) / MIC_TWEEN);
+      applyMic(micTween.from + (micTween.to - micTween.from) * easeInOut(t));
+      if (t >= 1) {
+        micTween = null;
+        micMode = "idle";
+      }
+    }
+    requestAnimationFrame(micFrame);
+  })(performance.now());
+})();
+
+/* ---- one demo per building, driven by the tablet switches ----
+   off means the building goes dark; on means it runs the same blink as the global demo,
+   but only inside its own zones. The page-wide demo takes the stage when it is running. */
+const houseCells = h => HOUSES[h].flatMap(z => zoneCells(z));
+
+function rebuildPool(){
+  pool = [];
+  HOUSES.forEach((_, h) => { if (houseOn[h]) pool.push(...houseCells(h)); });
+}
+// the period is per switched-on building: N buildings give N switches per rateMs.
+// Which window moves is drawn from the shared pool, so a bigger building gets its share.
+function houseArm(){
+  clearInterval(houseTimer); houseTimer = null;
+  const live = houseOn.filter(Boolean).length;
+  if (!live || !pool.length) return;
+  houseTimer = setInterval(housesTick, Math.max(25, rateMs / live));
+}
+function lightHalf2(cells){
+  for (const i of cells) over[i] = false;
+  for (const i of shuffled(cells).slice(0, Math.max(1, Math.round(cells.length / 2)))) over[i] = true;
+}
+function applyHouseState(h){
+  const cells = houseCells(h);
+  if (houseOn[h]) lightHalf2(cells); else for (const i of cells) over[i] = false;
+}
+function housesApply(h){
+  applyHouseState(h); rebuildPool(); houseArm();
+  requestLightFade();
+}
+function housesTick(){
+  const lit = [], dark = [];
+  for (const i of pool) (over[i] ? lit : dark).push(i);
+  const p = housePhase ? lit : dark;
+  if (p.length) over[p[Math.random() * p.length | 0]] = !housePhase;
+  housePhase = !housePhase;
+  requestLightFade();
+}
+function housesStart(){
+  HOUSES.forEach((_, h) => applyHouseState(h));
+  rebuildPool(); houseArm();
+  requestLightFade();
+}
+function housesStop(){ clearInterval(houseTimer); houseTimer = null; }
+
+/* ---- parallax ----
+   both layers travel along one axis tilted 10 degrees below the horizon, driven by the
+   pointer. The canvas is scaled just enough that its own travel never uncovers an edge.
+   A plain translate keeps getBoundingClientRect honest, so window picking is unaffected. */
+const TILT = 10 * Math.PI / 180;
+let lastU = 0;
+const BACK = 0.10, FRONT = 0.30;   // full travel, as a share of each layer's own width
+const FRONT_ZOOM = 0.10;           // the near layer also grows as it travels
+const FRONT_OFF = 0.15;            // and sits this far down and to the left of the corner
+function parallax(u){
+  u = lastU = Math.max(-1, Math.min(1, u));
+  const ax = Math.cos(TILT), ay = Math.sin(TILT);
+  const wrap = $("tabletWrap");
+  const cw = c.offsetWidth, tw = wrap.offsetWidth, th = wrap.offsetHeight;
+  const b = u * BACK / 2 * cw, f = u * FRONT / 2 * tw;
+  const ox = -FRONT_OFF * tw, oy = FRONT_OFF * th;
+  c.style.transform = `translate(${(b * ax).toFixed(1)}px, ${(b * ay).toFixed(1)}px) scale(${1 + BACK})`;
+  const k = 1 + FRONT_ZOOM * (u + 1) / 2;   // 1.00 at the far end of the sweep, 1.10 at the near one
+  wrap.style.transform =
+    `translate(${(ox + f * ax).toFixed(1)}px, ${(oy + f * ay).toFixed(1)}px) scale(${k.toFixed(3)})`;
+}
+// the pointer counts as "on the tablet" only where the artwork is actually opaque,
+// so the transparent corners of its box still drive the parallax
+let alphaMap = null;
+(function sampleTablet(){
+  // Data-URI alpha: file:// taints getImageData when drawing local tablet.webp.
+  const grab = () => load(TABLET_ALPHA_SRC).then(img => {
+    const w = img.naturalWidth, h = img.naturalHeight;
+    const t = cv(w, h), tx = t.getContext("2d");
+    tx.drawImage(img, 0, 0);
+    alphaMap = { w, h, data: tx.getImageData(0, 0, w, h).data };
+    parallax(lastU);
+  }).catch(() => { alphaMap = null; parallax(lastU); });
+  grab();
+})();
+function overTablet(e){
+  const r = $("tabletWrap").getBoundingClientRect();
+  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return false;
+  if (!alphaMap) return false;
+  const ix = Math.floor((e.clientX - r.left) / r.width * alphaMap.w);
+  const iy = Math.floor((e.clientY - r.top) / r.height * alphaMap.h);
+  return alphaMap.data[(iy * alphaMap.w + ix) * 4 + 3] > 40;   // frozen only over solid pixels
+}
+addEventListener("pointermove", e => {
+  const on = overTablet(e);
+  $("tabletWrap").classList.toggle("is-over", on);
+  if (on) return;                       // hovering the near layer freezes the parallax where it is
+  parallax(1 - e.clientX / innerWidth * 2);   // layers travel against the pointer
+});
+addEventListener("pointerleave", () => {
+  $("tabletWrap").classList.remove("is-over");
+  parallax(0);
+});
+addEventListener("resize", () => parallax(lastU));
+
+/* ---- picking ---- */
+function toImg(e){
+  const r = c.getBoundingClientRect();
+  return [(e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H];
+}
+function inPoly(px, py, p){
+  let hit = false;
+  for (let i = 0, j = p.length - 1; i < p.length; j = i++){
+    const ax = p[i][0], ay = p[i][1], bx = p[j][0], by = p[j][1];
+    if ((ay > py) !== (by > py) && px < (bx - ax) * (py - ay) / (by - ay) + ax) hit = !hit;
+  }
+  return hit;
+}
+function pickWindow(pt){
+  for (let i = 0; i < win.length; i++) if (inPoly(pt[0], pt[1], win[i])) return i;
+  return -1;
+}
+
+c.addEventListener("pointermove", e => {
+  if (!W) return;
+  c.style.cursor = (!overTablet(e) && pickWindow(toImg(e)) >= 0) ? "pointer" : "default";
+});
+
+c.addEventListener("click", e => {
+  if (overTablet(e)) return;           // the tablet blocks the model where it is actually opaque
+  const i = pickWindow(toImg(e)); if (i < 0) return;
+  const light = lightAll;
+  const next = !(over[i] === null ? light : over[i]);
+  over[i] = (next === light) ? null : next;
+  requestLightFade();
+});
+
+/* ---- demo mode ---- */
+function shuffled(list){                       // Fisher-Yates, so every item has the same odds
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.random() * (i + 1) | 0;
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+function zoneCells(z){ return Array.from({ length: span[z][1] }, (_, k) => span[z][0] + k); }
+const stage = () => soloOn ? zoneCells(soloZone) : over.map((_, i) => i);
+
+function lightHalf(list){
+  over.fill(false);
+  for (const i of shuffled(list).slice(0, Math.max(1, Math.round(list.length / 2)))) over[i] = true;
+}
+function soloNext(){
+  soloZone = soloOrder[soloPos++ % soloOrder.length];
+  lightHalf(zoneCells(soloZone));
+  requestLightFade();
+}
+let demoPhase = false;         // one step puts a window out, the next lights one
+function demoTick(){
+  const lit = [], dark = [];
+  for (const i of stage()) (over[i] ? lit : dark).push(i);
+  const pool = demoPhase ? lit : dark;
+  if (pool.length) over[pool[Math.random() * pool.length | 0]] = !demoPhase;
+  demoPhase = !demoPhase;
+  requestLightFade();
+}
+function arm(){
+  clearInterval(demoTimer);
+  demoTimer = setInterval(demoTick, rateMs);
+}
+function demoRestart(){
+  clearInterval(soloTimer); soloTimer = null;
+  over = new Array(win.length).fill(false);
+  if (soloOn){
+    soloOrder = shuffled(grids.map((_, z) => z)); soloPos = 0;
+    soloNext();
+    soloTimer = setInterval(soloNext, 6000);   // one house holds the stage for six seconds
+  } else {
+    lightHalf(over.map((_, i) => i));
+    requestLightFade();
+  }
+  arm();
+}
+function demoStart(){
+  housesStop();
+  demoSaved = over.slice();
+  demoRestart();
+}
+function demoStop(){
+  clearInterval(demoTimer); demoTimer = null;
+  clearInterval(soloTimer); soloTimer = null;
+  demoSaved = null;
+  housesStart();
+}
+/* ---- control API ----
+   Everything the bottom bar used to do, callable from anywhere. Each entry is also
+   exposed on window.maket, so the page can be driven from a console, a parent frame,
+   or whatever UI is put in front of it later.
+
+   The seven switches drawn on the tablet already call setHouse() on their own;
+   nothing else is wired up by default. */
+
+// Master light. Lights or darkens every window at once, in every zone.
+// Per-window clicks and the demos keep working on top of it.
+function setLight(on){
+  lightAll = !!on;
+  requestLightFade();
+}
+
+// Page-wide demo: half the windows lit, then one window changing per tick.
+// Takes the stage from the per-building demo while it runs, and hands it back on stop.
+function setDemo(on){
+  on = !!on;
+  if (on === demoOn) return;
+  demoOn = on;
+  on ? demoStart() : demoStop();
+}
+
+// Within the page-wide demo: run one building at a time, six seconds each,
+// with the rest of the estate dark. Ignored while the demo is off.
+function setSolo(on){
+  soloOn = !!on;
+  if (demoTimer || soloTimer) demoRestart();
+}
+
+// Switching period in ms, per switched-on building: 3000 means one window
+// per three seconds per building, so N buildings give N switches per 3 s.
+// Clamped to 25 ms at the fast end so the masks can keep up. Applies immediately.
+function setRate(ms){
+  rateMs = Math.max(100, Math.min(3000, +ms || 3000));
+  if (demoTimer) arm();
+  if (houseTimer) houseArm();
+}
+
+// One building on or off, 0..6, in the order of the tablet switches top to bottom.
+// Off darkens it; on gives it half its windows lit and puts it back in the demo pool.
+function setHouse(i, on){
+  if (i < 0 || i >= HOUSES.length) return;
+  houseOn[i] = !!on;
+  const b = $("ui").querySelectorAll(".tsw")[i];
+  if (b) b.setAttribute("aria-checked", String(!!on));
+  if (!demoTimer && !soloTimer) housesApply(i);
+}
+
+// One window on or off by its flat index, 0..506 — the same order as
+// the zones in ZONES and, inside a zone, its cells row by row.
+// Pass null to hand the window back to the master light.
+function setWindow(i, on){
+  if (i < 0 || i >= win.length) return;
+  over[i] = on === null ? null : !!on;
+  requestLightFade();
+}
+
+// Deal a fresh random half in every switched-on building, and stop the page-wide demo.
+function shuffle(){
+  if (demoOn) setDemo(false);
+  housesStart();
+}
+
+window.maket = { setLight, setDemo, setSolo, setRate, setHouse, setWindow, shuffle,
+                 HOUSES, get state(){ return { lightAll, demoOn, soloOn, rateMs,
+                   houses: houseOn.slice(), windows: over.slice() }; } };
+
+</script>
+</body>
+</html>

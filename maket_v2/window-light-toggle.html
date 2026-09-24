@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Макет — свет в окнах</title>
+<style>
+  :root{ --ink:#e4e8eb; --dim:#8c959c; --line:#2c343a; --glow:#e9b44c; --cool:#27ffe6; --lilac:#bda4ff; }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:#0b0d0f;color:var(--ink);
+    font:13px/1.4 ui-sans-serif,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  body{display:flex;flex-direction:column}
+  #wrap{flex:1;display:grid;place-items:center;min-height:0;position:relative;z-index:0;overflow:hidden}
+  /* pinned to the viewport, not to the picture area, so the bar can cover its lower part */
+  #tabletWrap{position:fixed;left:0;bottom:0;width:min(68vw,1080px);z-index:1;
+          transform-origin:left bottom;will-change:transform;transition:transform .25s ease-out}
+  #tablet{display:block;width:100%;height:auto;pointer-events:none;user-select:none}
+  /* real controls laid over the drawn ones; positions are shares of the image box,
+     so they follow the tablet through parallax and any resize */
+  #ui{position:absolute;inset:0}
+  .tsw{position:absolute;width:3.30%;height:3.03%;border:0;padding:0;border-radius:999px;
+       background:#39424c;cursor:pointer;transition:background .15s;
+       box-shadow:inset 0 0 0 1px rgba(255,255,255,.14)}
+  .tsw::after{content:"";position:absolute;top:9%;bottom:9%;aspect-ratio:1;border-radius:50%;
+       background:#e8eef2;left:5%;transition:left .15s,transform .15s}
+  .tsw:hover{background:#4b5662;box-shadow:inset 0 0 0 1px rgba(255,255,255,.30),0 0 7px rgba(180,195,210,.45)}
+  .tsw[aria-checked="true"]{background:#2ebd57}
+  .tsw[aria-checked="true"]:hover{background:#3ad96b;
+       box-shadow:inset 0 0 0 1px rgba(255,255,255,.45),0 0 9px rgba(62,217,107,.6)}
+  .tsw[aria-checked="true"]::after{left:auto;right:5%}
+  .tslider{position:absolute;left:37.54%;top:60.48%;width:18.43%;height:1.70%;
+       transform:rotate(-8.1deg);-webkit-appearance:none;appearance:none;background:transparent;
+       cursor:pointer;margin:0}
+  .tslider::-webkit-slider-runnable-track{height:100%;border-radius:999px;
+       background:linear-gradient(90deg,#f0a93c,#fff6e2 55%,#cfe7ff 70%,#2b9bff)}
+  .tslider::-moz-range-track{height:100%;border-radius:999px;
+       background:linear-gradient(90deg,#f0a93c,#fff6e2 55%,#cfe7ff 70%,#2b9bff)}
+  .tslider::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+       background:#fff;border:0;cursor:pointer;margin-top:-2px;
+       box-shadow:0 0 6px rgba(120,190,255,.9)}
+  .tslider::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:0;
+       box-shadow:0 0 6px rgba(120,190,255,.9)}
+  canvas{display:block;width:100%;height:auto;max-height:100%;touch-action:none;
+         will-change:transform;transition:transform .25s ease-out}
+  #bar{flex:none;position:relative;z-index:2;display:flex;gap:24px;justify-content:center;
+       align-items:center;flex-wrap:wrap;padding:14px;border-top:1px solid var(--line);
+       background:#13171a;background-color:#13171a}
+  label{display:flex;gap:10px;align-items:center;cursor:pointer;user-select:none}
+  .sw{position:relative;width:44px;height:24px;flex:none;border-radius:12px;background:#2a3238;
+      border:1px solid var(--line);transition:background .16s}
+  .sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;
+      background:#7d878e;transition:transform .16s,background .16s}
+  input[type=checkbox]{position:absolute;opacity:0;pointer-events:none}
+  input:checked + .sw{background:#3d3218}
+  input:checked + .sw::after{transform:translateX(20px);background:var(--glow)}
+  #cOut:checked + .sw{background:#123c3a}
+  #cOut:checked + .sw::after{background:var(--cool)}
+  #cWin:checked + .sw{background:#2a2246}
+  #cWin:checked + .sw::after{background:var(--lilac)}
+  #cDemo:checked + .sw{background:#3a1f2a}
+  #cDemo:checked + .sw::after{background:#ff8fa8}
+  #cSolo:checked + .sw{background:#143526}
+  #cSolo:checked + .sw::after{background:#6ee7a5}
+  .txt b{font-weight:500}
+  .txt small{display:block;color:var(--dim);font-size:11px}
+  .sl{display:flex;gap:8px;align-items:center;color:var(--dim);font-size:11.5px}
+  .sl input[type=range]{width:104px;-webkit-appearance:none;appearance:none;background:transparent;height:16px;margin:0}
+  .sl input[type=range]::-webkit-slider-runnable-track{height:3px;background:#333c43;border-radius:2px}
+  .sl input[type=range]::-moz-range-track{height:3px;background:#333c43;border-radius:2px}
+  .sl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;
+      background:#ff8fa8;margin-top:-5px;border:0;cursor:pointer}
+  .sl input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:#ff8fa8;border:0;cursor:pointer}
+  .sl input:disabled::-webkit-slider-thumb{background:#4c555c;cursor:default}
+  .sl input:disabled::-moz-range-thumb{background:#4c555c;cursor:default}
+  .sl b{color:var(--ink);font-weight:500;font-variant-numeric:tabular-nums;min-width:38px}
+  button{background:#1d2429;border:1px solid var(--line);color:var(--ink);border-radius:6px;
+         padding:8px 12px;font:inherit;cursor:pointer}
+  button:hover:not(:disabled){background:#252d33}
+  button:disabled{opacity:.4;cursor:default}
+  #boot{position:fixed;inset:0;display:grid;place-content:center;color:var(--dim);background:#0b0d0f}
+</style>
+</head>
+<body>
+
+<div id="wrap"><canvas id="c"></canvas></div>
+<div id="tabletWrap">
+  <img id="tablet" src="tablet.webp" alt="">
+  <div id="ui"></div>
+</div>
+
+<div id="bar">
+  <label><input type="checkbox" id="cLight"><span class="sw"></span>
+    <span class="txt"><b>Свет в окнах</b><small>зажечь все или погасить все</small></span></label>
+  <label><input type="checkbox" id="cOut"><span class="sw"></span>
+    <span class="txt"><b>Контуры зон</b><small>плоскости остекления</small></span></label>
+  <label><input type="checkbox" id="cWin"><span class="sw"></span>
+    <span class="txt"><b>Границы окон</b><small>тяните линии по горизонтали</small></span></label>
+  <label><input type="checkbox" id="cDemo"><span class="sw"></span>
+    <span class="txt"><b>Деморежим</b><small>половина окон, одно гаснет, одно зажигается</small></span></label>
+  <span class="sl">каждые
+    <input type="range" id="sRate" min="100" max="1000" step="50" value="1000">
+    <b id="vRate">1,0 с</b></span>
+  <label><input type="checkbox" id="cSolo"><span class="sw"></span>
+    <span class="txt"><b>Дом за домом</b><small>демо на одном доме, остальные погашены</small></span></label>
+  <button id="reset">Перетасовать окна</button>
+  <button id="save">Скачать SVG</button>
+  <button id="saveJson">Скачать JSON</button>
+</div>
+
+<div id="boot">Загрузка…</div>
+
+<script>
+"use strict";
+const SRC_BASE = "maket_base.jpg", SRC_OFF = "maket_off.jpg", SRC_ALL = "maket_all.jpg";
+const ZONES = [[[0.3127, 0.1006], [0.3746, 0.11458], [0.37679, 0.2381], [0.31417, 0.22327]], [[0.3756, 0.11518], [0.41123, 0.10506], [0.41302, 0.22768], [0.37759, 0.23929]], [[0.41799, 0.07024], [0.44009, 0.07262], [0.44009, 0.20327], [0.41919, 0.19821]], [[0.44108, 0.07262], [0.48567, 0.06935], [0.48666, 0.19643], [0.44108, 0.20565]], [[0.6258, 0.11577], [0.64689, 0.12054], [0.64689, 0.2625], [0.6246, 0.25744]], [[0.65346, 0.12321], [0.68232, 0.12738], [0.68232, 0.26935], [0.65267, 0.26071]], [[0.68372, 0.12708], [0.71095, 0.11583], [0.71095, 0.26964], [0.68372, 0.2794]], [[0.80597, 0.14702], [0.87858, 0.16101], [0.8746, 0.33095], [0.80314, 0.31101]], [[0.89132, 0.15804], [0.91262, 0.15], [0.90943, 0.31577], [0.88734, 0.32946]], [[0.38396, 0.30595], [0.36067, 0.31345], [0.36067, 0.26286], [0.38396, 0.25357]], [[0.35939, 0.26286], [0.35939, 0.31345], [0.3496, 0.31054], [0.3496, 0.26286]], [[0.34829, 0.26286], [0.34829, 0.30958], [0.34311, 0.30958], [0.34311, 0.26286]], [[0.3418, 0.26286], [0.3418, 0.30958], [0.2578, 0.27839], [0.2578, 0.2375]], [[0.47094, 0.33393], [0.59295, 0.3744], [0.59295, 0.42113], [0.47094, 0.38065]], [[0.78404, 0.39375], [0.79757, 0.39702], [0.79757, 0.42929], [0.78364, 0.42232]], [[0.82643, 0.3997], [0.86803, 0.37411], [0.86803, 0.41607], [0.82643, 0.44315]]], GRIDS = [{"rw": 633, "rh": 827, "cols": [[4, 28], [28, 103], [107, 156], [165, 242], [264, 316], [344, 398], [403, 433], [454, 508], [519, 539], [540, 619]], "rows": [[0, 197], [197, 288], [288, 380], [380, 472], [472, 561], [561, 650], [650, 736], [736, 827]], "r2n": [9.451915813816478e-05, -2.5169232732522367e-06, 0.31269999218594496, 2.1085367650911304e-05, 0.00014527939506469526, 0.10059999738420759, -8.72704292477028e-06, -1.3669208858871081e-05, 1.0], "n2r": [10310.882753929825, -123.56073208096474, -3211.782747259915, -1544.1808349171251, 6837.25138465471, -204.9621363991626, 0.06887578603747106, 0.09238149738476412, 0.9691689638490255]}, {"rw": 364, "rh": 829, "cols": [[47, 102], [122, 176], [194, 243], [262, 286], [298, 361]], "rows": [[0, 95], [95, 186], [186, 282], [282, 373], [373, 465], [465, 556], [556, 646], [646, 739], [739, 829]], "r2n": [0.00011214823978262463, 4.681307328817651e-06, 0.37560000085526973, -2.4158167868905884e-05, 0.00015115591915313185, 0.11517999739873978, 3.468526182874794e-05, 6.040452593616995e-06, 1.0], "n2r": [10042.997023713713, -161.03173752440478, -3753.602055587167, 1879.1860223058168, 6616.145479402308, -1467.8698906925176, -0.3596951153951724, -0.03437908514203084, 1.1390612685872934]}, {"rw": 218, "rh": 869, "cols": [[0, 58], [74, 118], [124, 199]], "rows": [[0, 92], [92, 176], [176, 260], [260, 346], [346, 432], [432, 517], [517, 607], [607, 698], [698, 789], [789, 869]], "r2n": [5.547675364036287e-05, 2.9077481920516137e-05, 0.4179899859580265, 3.3434912394246967e-06, 0.0001603572864957268, 0.07023999804542179, -0.00010429571222203725, 6.607166952979018e-05, 1.0], "n2r": [10103.94234878352, -94.74680224491888, -4216.691705284241, -692.2918453504108, 6428.422400797536, -162.16131815029016, 1.099538741540942, -0.43461828568428956, 0.5709314043999645]}, {"rw": 455, "rh": 874, "cols": [[5, 46], [49, 137], [175, 218], [253, 305], [317, 363], [375, 450]], "rows": [[0, 107], [107, 195], [195, 282], [282, 370], [370, 454], [454, 540], [540, 626], [626, 710], [710, 796], [796, 874]], "r2n": [0.0001462189423176398, -1.1456299052088492e-05, 0.44107998404533244, -3.015180931780294e-07, 0.0001468668322224894, 0.07262000129336403, 9.928325339751158e-05, -2.5973291604033756e-05, 1.0], "n2r": [9763.04251385931, 3.7912767983326165e-07, -4306.282636274498, 492.9969545595745, 6722.552921135958, -705.642890679136, -0.9565018701734956, 0.17460682730657215, 1.4092138816106226]}, {"rw": 220, "rh": 953, "cols": [[15, 77], [99, 153], [166, 212]], "rows": [[0, 100], [100, 199], [199, 297], [297, 394], [394, 491], [491, 585], [585, 679], [679, 776], [776, 862], [862, 953]], "r2n": [9.549921730098983e-05, -3.6543489066822555e-05, 0.6258000173386495, 2.161391896283028e-05, 0.00013411381907718435, 0.11577000390915644, -5.631927991927609e-07, -5.649104064082682e-05, 1.0], "n2r": [10412.838393416301, 88.20098156538323, -6526.565475125094, -1604.942004325738, 7096.061194829567, 182.86170186954143, -0.08480040839020535, 0.4009135555046106, 1.0066543331529125]}, {"rw": 297, "rh": 939, "cols": [[13, 39], [64, 109], [123, 186], [186, 245], [254, 297]], "rows": [[0, 98], [98, 193], [193, 291], [291, 389], [389, 483], [483, 583], [583, 679], [679, 773], [773, 868], [868, 939]], "r2n": [2.856282736248954e-05, -1.936106369775338e-05, 0.6534600227501742, 1.2320697190676879e-06, 0.00013903463875242854, 0.12320999872116817, -0.00010055216318874403, -2.8375343946101782e-05, 1.0], "n2r": [10599.069332746416, 60.89697425158643, -6933.571203426809, -1012.9111464802554, 7010.209460539736, -201.83095784532904, 1.0370176470269123, 0.2050404270696779, 0.29708739402441886]}, {"rw": 283, "rh": 1029, "cols": [[63, 136], [155, 210], [242, 279]], "rows": [[0, 114], [114, 204], [204, 295], [295, 387], [387, 476], [476, 570], [570, 660], [660, 754], [754, 844], [844, 933], [933, 1029]], "r2n": [7.188271358783424e-05, 0.0, 0.6837199994712878, -4.371758196064828e-05, 0.00014802720988164745, 0.12708000001453218, -3.423072059045053e-05, 0.0, 1.0], "n2r": [10494.617421502458, 0.0, -7175.379817881028, 2791.022625598656, 6755.51475164284, -2766.7688028356097, 0.3592383166591251, 0.0, 0.7543815783237566]}, {"rw": 733, "rh": 1123, "cols": [[0, 113], [113, 209], [209, 283], [394, 569], [575, 718]], "rows": [[0, 132], [132, 244], [244, 358], [358, 472], [472, 584], [584, 693], [693, 805], [805, 914], [914, 1023], [1023, 1123]], "r2n": [5.511656764545754e-05, 7.528886498243808e-06, 0.805970015799164, 1.1033046832380082e-05, 0.00014991988270618537, 0.14702000390915645, -5.001485863414403e-05, 1.2512063941055177e-05, 1.0], "n2r": [10444.481615468063, 180.243178361753, -8444.438365420217, -1296.8273349502651, 6730.710364338258, 55.65488356224227, 0.5386052580399574, -0.0752002413617912, 0.5769562514470028]}, {"rw": 231, "rh": 1134, "cols": [[11, 28], [33, 55], [82, 133], [158, 215]], "rows": [[0, 133], [133, 238], [238, 394], [394, 498], [498, 606], [606, 714], [714, 817], [817, 916], [916, 1022], [1022, 1134]], "r2n": [0.0002166775781860231, -2.7935554711125282e-05, 0.8913200038253882, -1.4347107522002891e-05, 0.00014209496191465933, 0.15804000127883186, 0.00013638728546173673, -2.752703612553357e-05, 1.0], "n2r": [10606.782396132492, 246.26747583541902, -9492.957438091837, 2600.30199036494, 6888.860175739141, -3406.4166509827505, -1.3750516516657736, 0.1560421503946142, 2.200950141774927]}, {"rw": 241, "rh": 346, "cols": [[0, 17], [24, 79], [186, 237]], "rows": [[0, 159], [159, 248], [248, 346]], "r2n": [-4.368759895231858e-05, 0.0, 0.38395999495390876, 7.71392367759691e-05, -0.00015138725324862265, 0.30594998314267113, 0.000146813886423458, 0.0, 1.0], "n2r": [-9994.17758776008, 0.0, 3837.364376164828, -2127.1784318090627, -6605.575955313121, 2837.7272721191543, 1.4672840532652778, 0.0, 0.4366216223123131]}, {"rw": 330, "rh": 99, "cols": [[8, 93], [105, 180], [188, 321]], "rows": [[0, 99]], "r2n": [0.0, 0.00011663347448328599, 0.3593899915172796, 0.00015330305003156567, 0.0001620486232658785, 0.2628599984305246, 0.0, 0.000616482629564025, 1.0], "n2r": [1.4064680723720854e-05, 6523.027427008767, -1714.6429842804994, -9530.688636329214, 0.0, 3425.23410816419, 5.875503992080205, 0.0, -1.1115973298734472]}, {"rw": 314, "rh": 52, "cols": [[3, 74], [77, 135], [170, 190], [196, 279]], "rows": [[5, 38], [38, 52]], "r2n": [0.0, -9.961527740762609e-05, 0.3482899999922248, 0.00014878985445753243, 0.0, 0.2628599984305246, 0.0, 0.0, 1.0], "n2r": [0.0, 6720.888353885848, -1766.6527021541651, -10038.62084234325, -0.0, 3496.3512531016786, 0.0, 0.0, 1.0]}, {"rw": 294, "rh": 865, "cols": [[16, 99], [113, 185], [193, 275]], "rows": [[0, 87], [87, 176], [176, 237], [237, 424], [424, 492], [492, 643], [643, 774], [774, 865]], "r2n": [0.0, -5.4616589251486404e-05, 0.3418000093690909, 0.00015891161326416728, 9.829261710901699e-06, 0.2628599984305246, 0.0, 0.000164830227248942, 1.0], "n2r": [-1899.8281230098225, 6292.806293128788, -1004.7657820910088, -9012.617103131064, 0.0, 3080.5126102902254, 1.4855517252167945, 0.0, 0.4922384064026306]}, {"rw": 1256, "rh": 314, "cols": [[9, 70], [88, 154], [154, 263], [283, 367], [373, 444], [464, 546], [564, 729], [737, 827], [841, 930], [959, 1041], [1054, 1231]], "rows": [[0, 110], [110, 216], [216, 314]], "r2n": [9.704079107882115e-05, 0.0, 0.47093997639455615, 3.215761751781358e-05, 0.00014878985445753243, 0.33392998831612725, -1.7022288476958036e-07, 0.0, 1.0], "n2r": [10296.439026463253, 0.0, -4849.00475207059, -2229.279844516783, 6720.888353885848, -1194.4491721335032, 0.0017526895539386645, 0.0, 0.999174588422841]}, {"rw": 143, "rh": 204, "cols": [[0, 127]], "rows": [[0, 112], [112, 204]], "r2n": [-0.0005102867504090687, -0.00011226133770886815, 0.7840399772498259, -0.0002782454343084525, 8.060575618827792e-05, 0.39375000000000004, -0.0007584316341910025, -0.00014075421137421255, 1.0], "n2r": [11814.829638887215, 165.40942575189007, -9328.428722673507, -1770.7359605921972, 7326.651830802207, -1496.5413761202146, 8.711502007024409, 1.1567088415415965, -6.2856199417562335]}, {"rw": 454, "rh": 287, "cols": [[4, 61], [69, 116], [164, 246], [278, 317], [373, 406]], "rows": [[0, 104], [104, 287]], "r2n": [0.00015952472080696137, 0.0, 0.8264300109474523, -2.7103810434790272e-05, 0.00015139379607359332, 0.3996999831426712, 7.821699980666309e-05, 0.0, 1.0], "n2r": [10539.20192739819, 0.0, -8709.912764237095, 4063.198967541851, 6605.290480422954, -5998.08406090479, -0.8243447551176875, 0.0, 1.6812632449963854]}];
+const FEATHER = 3;        // outer edge of a glazing plane
+const WIN_FEATHER = 1.3;  // edge of a single window
+const WIN_INSET = 0.86;   // cells shrink toward their centre, leaving the mullions untouched
+const GRAB = 7;           // how close to a divider counts as grabbing it, in canvas px
+
+const c = document.getElementById("c"), x = c.getContext("2d");
+const $ = id => document.getElementById(id);
+const load = s => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = s; });
+const cv = (w, h) => { const e = document.createElement("canvas"); e.width = w; e.height = h; return e; };
+
+let W, H, imgBase, imgOff, imgAll;
+let cutOff, cutAll, ovOn, ovOff;
+let poly = [], win = [], cell = [], over = [];
+const grids = GRIDS.filter(Boolean).map(g => ({ ...g, cols: g.cols.map(p => p.slice()) }));
+let drag = null;          // {zone, col, side}
+let span = [];            // [start, count] of each zone's cells inside the flat list
+let demoTimer = null, soloTimer = null, demoSaved = null;
+let soloOrder = [], soloPos = 0, soloZone = 0;
+
+/* ---- projective mapping between the rectified facade and the canvas ---- */
+function apply(m, u, v){
+  const w = m[6] * u + m[7] * v + m[8];
+  return [(m[0] * u + m[1] * v + m[2]) / w * W, (m[3] * u + m[4] * v + m[5]) / w * H];
+}
+function unapply(m, px, py){
+  const a = px / W, b = py / H;
+  const w = m[6] * a + m[7] * b + m[8];
+  return [(m[0] * a + m[1] * b + m[2]) / w, (m[3] * a + m[4] * b + m[5]) / w];
+}
+const toRect = (g, px, py) => unapply(g.n2r, px, py);
+const toCanvas = (g, u, v) => apply(g.r2n, u, v);
+
+// every zone keeps its own rectified space; the flat index of a cell never changes,
+// so the per-window overrides survive any dragging
+function buildCells(){
+  win = []; span = [];
+  for (const g of grids){
+    const start = win.length;
+    for (const [y0, y1] of g.rows)
+      for (const [a, b] of g.cols)
+        win.push([toCanvas(g, a, y0), toCanvas(g, b, y0), toCanvas(g, b, y1), toCanvas(g, a, y1)]);
+    span.push([start, win.length - start]);
+  }
+  cell = win.map(inset);
+}
+
+// scaling a quad about its centroid keeps every edge parallel to the original,
+// so the gap follows the mullions instead of cutting across them
+function inset(p){
+  const cx = p.reduce((s, q) => s + q[0], 0) / p.length;
+  const cy = p.reduce((s, q) => s + q[1], 0) / p.length;
+  return p.map(q => [cx + (q[0] - cx) * WIN_INSET, cy + (q[1] - cy) * WIN_INSET]);
+}
+
+function fillPolys(ctx, list){
+  ctx.fillStyle = "#fff";
+  for (const p of list){
+    ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
+    for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]);
+    ctx.closePath(); ctx.fill();
+  }
+}
+function cutTo(img, maskCanvas){
+  const e = cv(W, H), ex = e.getContext("2d");
+  ex.drawImage(img, 0, 0, W, H);
+  ex.globalCompositeOperation = "destination-in";
+  ex.drawImage(maskCanvas, 0, 0);
+  return e;
+}
+function softMask(list){
+  const hard = cv(W, H);
+  fillPolys(hard.getContext("2d"), list);
+  const e = cv(W, H), ex = e.getContext("2d");
+  ex.filter = `blur(${WIN_FEATHER}px)`;
+  ex.drawImage(hard, 0, 0);
+  return e;
+}
+
+(async function(){
+  const [base, off, all] = await Promise.all([load(SRC_BASE), load(SRC_OFF), load(SRC_ALL)]);
+  imgBase = base; imgOff = off; imgAll = all;
+  W = base.naturalWidth; H = base.naturalHeight;
+  c.width = W; c.height = H;
+
+  poly = ZONES.map(p => p.map(([a, b]) => [a * W, b * H]));
+  buildCells();
+  over = new Array(win.length).fill(null);
+
+  const mask = cv(W, H);
+  fillPolys(mask.getContext("2d"), poly);
+  const soft = cv(W, H), sx = soft.getContext("2d");
+  sx.filter = `blur(${FEATHER}px)`; sx.drawImage(mask, 0, 0); sx.filter = "none";
+  cutOff = cutTo(off, soft);
+  cutAll = cutTo(all, soft);
+
+  rebuildOverrides();
+  $("boot").remove();
+  draw();
+  housesStart();
+  parallax(0);
+})();
+
+// Windows that disagree with the master switch get their own cut-out. Both states go
+// into one mask each and only then get blurred: cells in the same state merge first,
+// so the softening lands on the outside of a run and never on a shared border.
+function rebuildOverrides(){
+  const light = $("cLight").checked;
+  const on = [], off = [];
+  for (let i = 0; i < win.length; i++){
+    if (over[i] === null || over[i] === light) continue;
+    (over[i] ? on : off).push(cell[i]);
+  }
+  ovOn = cutTo(imgAll, softMask(on));
+  ovOff = cutTo(imgOff, softMask(off));
+  $("reset").disabled = false;
+}
+
+function trace(list, color, w){
+  x.strokeStyle = color; x.lineWidth = w;
+  for (const p of list){
+    x.beginPath(); x.moveTo(p[0][0], p[0][1]);
+    for (let i = 1; i < p.length; i++) x.lineTo(p[i][0], p[i][1]);
+    x.closePath(); x.stroke();
+  }
+}
+function dividers(){
+  const out = [];
+  grids.forEach((g, z) => g.cols.forEach((p, i) => p.forEach((u, s) =>
+    out.push({ zone: z, col: i, side: s, a: toCanvas(g, u, 0), b: toCanvas(g, u, g.rh) }))));
+  return out;
+}
+
+function draw(){
+  const light = $("cLight").checked;
+  x.clearRect(0, 0, W, H);
+  x.drawImage(imgBase, 0, 0);
+  x.drawImage(light ? cutAll : cutOff, 0, 0);
+  x.drawImage(ovOn, 0, 0);
+  x.drawImage(ovOff, 0, 0);
+
+  if ($("cWin").checked){
+    for (const d of dividers()){
+      const held = drag && drag.zone === d.zone && drag.col === d.col && drag.side === d.side;
+      x.strokeStyle = held ? "#ffffff" : "#bda4ff";
+      x.lineWidth = held ? 2 : 1.2;
+      x.beginPath(); x.moveTo(d.a[0], d.a[1]); x.lineTo(d.b[0], d.b[1]); x.stroke();
+    }
+  }
+  if ($("cOut").checked){
+    trace(poly, "#27ffe6", 1.4);
+    x.font = "600 13px ui-sans-serif, system-ui, sans-serif";
+    x.textAlign = "center"; x.textBaseline = "bottom";
+    x.lineWidth = 3; x.strokeStyle = "rgba(0,0,0,.75)"; x.fillStyle = "#27ffe6";
+    poly.forEach((p, i) => {
+      const top = p.slice().sort((a, b) => a[1] - b[1]).slice(0, 2);   // midpoint of the upper edge
+      const mx = (top[0][0] + top[1][0]) / 2, my = (top[0][1] + top[1][1]) / 2 - 5;
+      const id = "zone" + String(i).padStart(2, "0");
+      x.strokeText(id, mx, my); x.fillText(id, mx, my);
+    });
+  }
+}
+
+/* ---- live controls drawn on the tablet ---- */
+const TSW = [                       // measured off the artwork; the top row is extrapolated
+  { l: 18.52, t: 11.81, a: -4.6 }, { l: 19.41, t: 18.79, a: -5.7 },
+  { l: 20.25, t: 25.35, a: -5.7 }, { l: 21.16, t: 32.05, a: -6.7 },
+  { l: 22.03, t: 38.88, a: -7.1 }, { l: 22.89, t: 45.76, a: -8.1 },
+  { l: 23.79, t: 52.76, a: -9.0 }
+];
+// one switch per building; the numbers are zone indices
+const HOUSES = [[0, 1], [2, 3], [4, 5, 6], [7, 8], [9, 10, 11, 12], [13], [14, 15]];
+const houseOn = HOUSES.map(() => true);
+let housePhase = false;       // one step puts a window out, the next lights one
+let pool = [];                // every window of every switched-on building, in one bag
+let houseTimer = null;
+(function buildTabletUI(){
+  const ui = $("ui");
+  TSW.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.className = "tsw"; b.type = "button";
+    b.setAttribute("role", "switch"); b.setAttribute("aria-checked", "true");
+    b.style.left = s.l + "%"; b.style.top = s.t + "%";
+    b.style.transform = `rotate(${s.a}deg)`;
+    b.addEventListener("click", () => {
+      const now = b.getAttribute("aria-checked") !== "true";
+      b.setAttribute("aria-checked", String(now));
+      houseOn[i] = now;
+      if (!demoTimer && !soloTimer) housesApply(i);
+    });
+    ui.appendChild(b);
+  });
+  const r = document.createElement("input");
+  r.type = "range"; r.className = "tslider"; r.min = 0; r.max = 100; r.value = 80;
+  r.addEventListener("input", () => {
+    c.style.filter = `brightness(${(0.45 + r.value / 100 * 0.8).toFixed(2)})`;
+  });
+  ui.appendChild(r);
+})();
+
+/* ---- one demo per building, driven by the tablet switches ----
+   off means the building goes dark; on means it runs the same blink as the global demo,
+   but only inside its own zones. The page-wide demo takes the stage when it is running. */
+const houseCells = h => HOUSES[h].flatMap(z => zoneCells(z));
+
+function rebuildPool(){
+  pool = [];
+  HOUSES.forEach((_, h) => { if (houseOn[h]) pool.push(...houseCells(h)); });
+}
+// the slider is the rate per switched-on building: N buildings give N switches per second.
+// Which window moves is drawn from the shared pool, so a bigger building gets its share.
+function houseArm(){
+  clearInterval(houseTimer); houseTimer = null;
+  const live = houseOn.filter(Boolean).length;
+  if (!live || !pool.length) return;
+  houseTimer = setInterval(housesTick, Math.max(25, +$("sRate").value / live));
+}
+function lightHalf2(cells){
+  for (const i of cells) over[i] = false;
+  for (const i of shuffled(cells).slice(0, Math.max(1, Math.round(cells.length / 2)))) over[i] = true;
+}
+function setHouse(h){
+  const cells = houseCells(h);
+  if (houseOn[h]) lightHalf2(cells); else for (const i of cells) over[i] = false;
+}
+function housesApply(h){
+  setHouse(h); rebuildPool(); houseArm();
+  rebuildOverrides(); draw();
+}
+function housesTick(){
+  const lit = [], dark = [];
+  for (const i of pool) (over[i] ? lit : dark).push(i);
+  const p = housePhase ? lit : dark;
+  if (p.length) over[p[Math.random() * p.length | 0]] = !housePhase;
+  housePhase = !housePhase;
+  rebuildOverrides(); draw();
+}
+function housesStart(){
+  HOUSES.forEach((_, h) => setHouse(h));
+  rebuildPool(); houseArm();
+  rebuildOverrides(); draw();
+}
+function housesStop(){ clearInterval(houseTimer); houseTimer = null; }
+
+/* ---- parallax ----
+   both layers travel along one axis tilted 10 degrees below the horizon, driven by the
+   pointer. The canvas is scaled just enough that its own travel never uncovers an edge.
+   A plain translate keeps getBoundingClientRect honest, so window picking is unaffected. */
+const TILT = 10 * Math.PI / 180;
+let lastU = 0;
+const BACK = 0.10, FRONT = 0.30;   // full travel, as a share of each layer's own width
+const FRONT_ZOOM = 0.10;           // the near layer also grows as it travels
+const FRONT_OFF = 0.15;            // and sits this far down and to the left of the corner
+function parallax(u){
+  u = lastU = Math.max(-1, Math.min(1, u));
+  const ax = Math.cos(TILT), ay = Math.sin(TILT);
+  const wrap = $("tabletWrap");
+  const cw = c.offsetWidth, tw = wrap.offsetWidth, th = wrap.offsetHeight;
+  const b = u * BACK / 2 * cw, f = u * FRONT / 2 * tw;
+  const ox = -FRONT_OFF * tw, oy = FRONT_OFF * th;
+  c.style.transform = `translate(${(b * ax).toFixed(1)}px, ${(b * ay).toFixed(1)}px) scale(${1 + BACK})`;
+  const k = 1 + FRONT_ZOOM * (u + 1) / 2;   // 1.00 at the far end of the sweep, 1.10 at the near one
+  wrap.style.transform =
+    `translate(${(ox + f * ax).toFixed(1)}px, ${(oy + f * ay).toFixed(1)}px) scale(${k.toFixed(3)})`;
+}
+// the pointer counts as "on the tablet" only where the artwork is actually opaque,
+// so the transparent corners of its box still drive the parallax
+let alphaMap = null;
+(function sampleTablet(){
+  const img = $("tablet");
+  const grab = () => {
+    const w = 240, h = Math.round(w * img.naturalHeight / img.naturalWidth);
+    const t = cv(w, h), tx = t.getContext("2d");
+    tx.drawImage(img, 0, 0, w, h);
+    alphaMap = { w, h, data: tx.getImageData(0, 0, w, h).data };
+  };
+  const ready = () => { grab(); parallax(lastU); };   // offsets need the laid-out size
+  img.complete ? ready() : img.addEventListener("load", ready);
+})();
+function overTablet(e){
+  const r = $("tabletWrap").getBoundingClientRect();
+  if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) return false;
+  if (!alphaMap) return true;
+  const ix = Math.floor((e.clientX - r.left) / r.width * alphaMap.w);
+  const iy = Math.floor((e.clientY - r.top) / r.height * alphaMap.h);
+  return alphaMap.data[(iy * alphaMap.w + ix) * 4 + 3] > 40;   // frozen only over solid pixels
+}
+addEventListener("pointermove", e => {
+  if (overTablet(e)) return;            // hovering the near layer freezes the parallax where it is
+  parallax(1 - e.clientX / innerWidth * 2);   // layers travel against the pointer
+});
+addEventListener("pointerleave", () => parallax(0));
+addEventListener("resize", () => parallax(lastU));
+
+/* ---- picking ---- */
+function toImg(e){
+  const r = c.getBoundingClientRect();
+  return [(e.clientX - r.left) / r.width * W, (e.clientY - r.top) / r.height * H];
+}
+function segDist(p, a, b){
+  const vx = b[0] - a[0], vy = b[1] - a[1];
+  const t = Math.max(0, Math.min(1, ((p[0] - a[0]) * vx + (p[1] - a[1]) * vy) / (vx * vx + vy * vy)));
+  return Math.hypot(p[0] - (a[0] + t * vx), p[1] - (a[1] + t * vy));
+}
+function pickLine(pt){
+  if (!$("cWin").checked) return null;
+  let best = null, bd = GRAB;
+  for (const d of dividers()){
+    const dist = segDist(pt, d.a, d.b);
+    if (dist < bd){ bd = dist; best = d; }
+  }
+  return best;
+}
+function inPoly(px, py, p){
+  let hit = false;
+  for (let i = 0, j = p.length - 1; i < p.length; j = i++){
+    const ax = p[i][0], ay = p[i][1], bx = p[j][0], by = p[j][1];
+    if ((ay > py) !== (by > py) && px < (bx - ax) * (py - ay) / (by - ay) + ax) hit = !hit;
+  }
+  return hit;
+}
+function pickWindow(pt){
+  for (let i = 0; i < win.length; i++) if (inPoly(pt[0], pt[1], win[i])) return i;
+  return -1;
+}
+
+c.addEventListener("pointerdown", e => {
+  if (!W) return;
+  const pt = toImg(e), line = pickLine(pt);
+  if (line){
+    drag = { zone: line.zone, col: line.col, side: line.side, moved: false };
+    c.setPointerCapture(e.pointerId);
+    draw();
+  }
+});
+c.addEventListener("pointermove", e => {
+  if (!W) return;
+  const pt = toImg(e);
+  if (drag){
+    const g = grids[drag.zone], cols = g.cols;
+    const u = toRect(g, pt[0], pt[1])[0];
+    const p = cols[drag.col];
+    // stay inside the plane and never cross the neighbouring divider
+    const lo = drag.side === 0 ? (drag.col ? cols[drag.col - 1][1] : 0) : p[0] + 6;
+    const hi = drag.side === 1 ? (drag.col < cols.length - 1 ? cols[drag.col + 1][0] : g.rw) : p[1] - 6;
+    p[drag.side] = Math.max(lo, Math.min(hi, u));
+    drag.moved = true;
+    buildCells(); rebuildOverrides(); draw();
+    return;
+  }
+  c.style.cursor = pickLine(pt) ? "col-resize" : (pickWindow(pt) >= 0 ? "pointer" : "default");
+});
+function endDrag(){ if (drag){ const m = drag.moved; drag = null; draw(); return m; } return false; }
+c.addEventListener("pointerup", e => { if (endDrag()) e.stopPropagation(); });
+c.addEventListener("pointercancel", endDrag);
+
+c.addEventListener("click", e => {
+  if (drag) return;
+  const pt = toImg(e);
+  if (pickLine(pt)) return;
+  const i = pickWindow(pt); if (i < 0) return;
+  const light = $("cLight").checked;
+  const next = !(over[i] === null ? light : over[i]);
+  over[i] = (next === light) ? null : next;
+  rebuildOverrides(); draw();
+});
+
+/* ---- demo mode ---- */
+function shuffled(list){                       // Fisher-Yates, so every item has the same odds
+  const a = list.slice();
+  for (let i = a.length - 1; i > 0; i--){
+    const j = Math.random() * (i + 1) | 0;
+    const t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+const zoneCells = z => Array.from({ length: span[z][1] }, (_, k) => span[z][0] + k);
+const stage = () => $("cSolo").checked ? zoneCells(soloZone) : over.map((_, i) => i);
+
+function lightHalf(list){
+  over.fill(false);
+  for (const i of shuffled(list).slice(0, Math.max(1, Math.round(list.length / 2)))) over[i] = true;
+}
+function soloNext(){
+  soloZone = soloOrder[soloPos++ % soloOrder.length];
+  lightHalf(zoneCells(soloZone));
+  rebuildOverrides(); draw();
+}
+let demoPhase = false;         // one step puts a window out, the next lights one
+function demoTick(){
+  const lit = [], dark = [];
+  for (const i of stage()) (over[i] ? lit : dark).push(i);
+  const pool = demoPhase ? lit : dark;
+  if (pool.length) over[pool[Math.random() * pool.length | 0]] = !demoPhase;
+  demoPhase = !demoPhase;
+  rebuildOverrides(); draw();
+}
+function arm(){
+  clearInterval(demoTimer);
+  demoTimer = setInterval(demoTick, +$("sRate").value);
+}
+function demoRestart(){
+  clearInterval(soloTimer); soloTimer = null;
+  over = new Array(win.length).fill(false);
+  if ($("cSolo").checked){
+    soloOrder = shuffled(grids.map((_, z) => z)); soloPos = 0;
+    soloNext();
+    soloTimer = setInterval(soloNext, 6000);   // one house holds the stage for six seconds
+  } else {
+    lightHalf(over.map((_, i) => i));
+    rebuildOverrides(); draw();
+  }
+  arm();
+}
+function demoStart(){
+  housesStop();
+  demoSaved = over.slice();
+  demoRestart();
+}
+function demoStop(){
+  clearInterval(demoTimer); demoTimer = null;
+  clearInterval(soloTimer); soloTimer = null;
+  demoSaved = null;
+  housesStart();
+}
+$("cDemo").addEventListener("change", e => e.target.checked ? demoStart() : demoStop());
+$("cSolo").addEventListener("change", () => { if (demoTimer || soloTimer) demoRestart(); });
+$("sRate").addEventListener("input", e => {
+  $("vRate").textContent = (+e.target.value / 1000).toFixed(1).replace(".", ",") + " с";
+  if (demoTimer) arm();                     // re-arm so the new rate applies at once
+  if (houseTimer) houseArm();
+});
+
+$("cLight").addEventListener("change", () => { rebuildOverrides(); draw(); });
+$("cOut").addEventListener("change", draw);
+$("cWin").addEventListener("change", draw);
+$("reset").addEventListener("click", () => {
+  if ($("cDemo").checked){
+    $("cDemo").checked = false; demoSaved = null;
+    clearInterval(demoTimer); demoTimer = null;
+    clearInterval(soloTimer); soloTimer = null;
+  }
+  housesStart();
+});
+
+function download(text, name, mime){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([text], { type: mime }));
+  a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+}
+
+// the grid as the page currently holds it, dividers included, ready to be fed back in
+$("saveJson").addEventListener("click", () => {
+  const out = grids.map((g, z) => ({
+    zone: z,
+    rw: g.rw, rh: g.rh,
+    cols: g.cols.map(p => [Math.round(p[0]), Math.round(p[1])]),
+    rows: g.rows.map(p => [Math.round(p[0]), Math.round(p[1])]),
+    r2n: g.r2n, n2r: g.n2r
+  }));
+  download(JSON.stringify(out, null, 1), "setka_okon.json", "application/json");
+});
+
+$("save").addEventListener("click", () => {
+  const SW = 2512, SH = 1680, sx = SW / W, sy = SH / H;
+  let body = "", n = 0;
+  grids.forEach((g, z) => {
+    const rows = g.rows.length * g.cols.length;
+    const part = [];
+    for (let k = 0; k < rows; k++, n++)
+      part.push(`      <path stroke="#BDA4FF" stroke-width="2" fill="none" id="z${z}w${k}" d="M`
+        + cell[n].map(q => `${(q[0] * sx).toFixed(1)} ${(q[1] * sy).toFixed(1)}`).join("L") + 'Z"/>');
+    body += `    <g id="zone${String(z).padStart(2, "0")}">\n${part.join("\n")}\n    </g>\n`;
+  });
+  const svg = `<svg width="${SW}" height="${SH}" viewBox="0 0 ${SW} ${SH}" fill="none" xmlns="http://www.w3.org/2000/svg">\n${body}</svg>\n`;
+  download(svg, "okna_vse_zony.svg", "image/svg+xml");
+});
+</script>
+</body>
+</html>
