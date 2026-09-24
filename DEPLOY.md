@@ -6,6 +6,7 @@
 |-------------|---------|
 | `revlev.ru/` | `revlev.org` |
 | `maket/` | `model.revlev.org`, `maket.revlev.org` (canonical → model; 301 между хостами — Redirect Rules в Cloudflare) |
+| `pcb/` | `pcb.revlev.org` |
 | `feedback/` | Cloudflare Worker → Telegram |
 
 ## VPS (`ru` → `.ru`)
