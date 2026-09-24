@@ -75,18 +75,23 @@
   .trow:hover .tlab::after{opacity:1}
   @property --mic{
     syntax:"<number>";
-    inherits:false;
+    inherits:true;
     initial-value:0;
   }
+  @property --gr{syntax:"<number>";inherits:true;initial-value:0}
+  @property --gg{syntax:"<number>";inherits:true;initial-value:170}
+  @property --gb{syntax:"<number>";inherits:true;initial-value:255}
   .tmic{position:absolute;pointer-events:auto;cursor:pointer;width:calc(min(68vw,1080px) * 0.12);
-       transform-origin:center bottom}
-  /* idle at min; --mic driven by JS hover only */
+       --mic:0;--gr:0;--gg:170;--gb:255;transform-origin:center bottom;
+       transform:rotate(-8.12deg) skewX(9.5deg);
+       transition:transform .5s ease,--gr .45s ease,--gg .45s ease,--gb .45s ease}
+  .tmic.is-live{--gr:233;--gg:180;--gb:76;
+       transform:translate(42%, 48%) scale(1.45)}
   .tmic img{display:block;width:100%;height:auto;transform-origin:center bottom;
-       --mic:0;
        transform:scale(calc(1 + 0.07 * var(--mic))) scaleY(calc(1 + 0.12 * var(--mic)))
                  translateY(calc(-6% * var(--mic)));
-       filter:drop-shadow(0 0 calc(6px + 10px * var(--mic)) rgba(0,170,255,calc(0.35 + 0.5 * var(--mic))))
-              drop-shadow(0 0 calc(14px + 18px * var(--mic)) rgba(80,200,255,calc(0.15 + 0.3 * var(--mic))))
+       filter:drop-shadow(0 0 calc(6px + 10px * var(--mic)) rgba(var(--gr),var(--gg),var(--gb),calc(0.35 + 0.5 * var(--mic))))
+              drop-shadow(0 0 calc(14px + 18px * var(--mic)) rgba(var(--gr),var(--gg),var(--gb),calc(0.15 + 0.35 * var(--mic))))
               drop-shadow(0 2px 8px rgba(0,0,0,.55))}
   canvas{display:block;width:100%;height:auto;max-height:100%;touch-action:none;
          will-change:transform;transition:transform .25s ease-out}
@@ -119,7 +124,8 @@ const load = s => new Promise((ok, no) => { const i = new Image(); i.onload = ()
 const cv = (w, h) => { const e = document.createElement("canvas"); e.width = w; e.height = h; return e; };
 
 let W, H, imgBase, imgOff, imgAll;
-let cutOff, cutAll, litLayer;
+let cutOff, cutAll;
+let litHard, litSoft, litLayer; // reused offscreen canvases (no alloc per fade frame)
 let poly = [], win = [], cell = [], over = [];
 let level = null;             // 0..1 per window, lerps toward over[] / lightAll
 let lightRaf = 0, lightLast = 0;
@@ -180,6 +186,12 @@ function cutTo(img, maskCanvas){
   ex.drawImage(maskCanvas, 0, 0);
   return e;
 }
+function ensureLitCanvases(){
+  if (litHard && litHard.width === W) return;
+  litHard = cv(W, H);
+  litSoft = cv(W, H);
+  litLayer = cv(W, H);
+}
 function softMask(list){
   const hard = cv(W, H);
   fillPolys(hard.getContext("2d"), list);
@@ -191,7 +203,9 @@ function softMask(list){
 
 // per-window brightness 0..1 in the mask alpha, then the same feather as hard cells
 function softMaskLevels(levels){
-  const hard = cv(W, H), hx = hard.getContext("2d");
+  ensureLitCanvases();
+  const hx = litHard.getContext("2d");
+  hx.clearRect(0, 0, W, H);
   for (let i = 0; i < levels.length; i++){
     const a = levels[i];
     if (a < 0.001) continue;
@@ -203,10 +217,12 @@ function softMaskLevels(levels){
     hx.closePath();
     hx.fill();
   }
-  const e = cv(W, H), ex = e.getContext("2d");
+  const ex = litSoft.getContext("2d");
+  ex.clearRect(0, 0, W, H);
   ex.filter = `blur(${WIN_FEATHER}px)`;
-  ex.drawImage(hard, 0, 0);
-  return e;
+  ex.drawImage(litHard, 0, 0);
+  ex.filter = "none";
+  return litSoft;
 }
 
 function targetLevel(i){
@@ -215,7 +231,15 @@ function targetLevel(i){
 }
 
 function rebuildLitLayer(){
-  litLayer = cutTo(imgAll, softMaskLevels(level));
+  ensureLitCanvases();
+  const mask = softMaskLevels(level);
+  const ex = litLayer.getContext("2d");
+  ex.globalCompositeOperation = "source-over";
+  ex.clearRect(0, 0, W, H);
+  ex.drawImage(imgAll, 0, 0, W, H);
+  ex.globalCompositeOperation = "destination-in";
+  ex.drawImage(mask, 0, 0);
+  ex.globalCompositeOperation = "source-over";
 }
 
 function draw(){
@@ -337,44 +361,59 @@ let houseTimer = null;
   micWrap.className = "tmic";
   micWrap.style.left = "50%";
   micWrap.style.top = "21%";
-  micWrap.style.transform = "rotate(-8.12deg) skewX(9.5deg)";
   const mic = document.createElement("img");
   mic.src = "mic_large.png";
   mic.alt = "";
   micWrap.appendChild(mic);
   ui.appendChild(micWrap);
 
-  // JS owns --mic; idle at 0, hover grows — no pulse
+  // --mic = glow strength (JS); --gr/gg/gb = glow color (CSS, blue↔yellow on .is-live)
   const MIC_HOVER = 1.2;
   const MIC_TWEEN = 750;
   let micVal = 0;
-  let micMode = "idle"; // idle | tween
+  let micMode = "idle";
   let micTween = null;
+  let micRaf = 0;
 
   const easeInOut = t => (t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2);
   const applyMic = (v) => {
     micVal = v;
-    mic.style.setProperty("--mic", String(v));
+    micWrap.style.setProperty("--mic", String(v));
+  };
+  const micFrame = (now) => {
+    micRaf = 0;
+    if (micMode !== "tween" || !micTween) return;
+    const t = Math.min(1, (now - micTween.t0) / MIC_TWEEN);
+    applyMic(micTween.from + (micTween.to - micTween.from) * easeInOut(t));
+    if (t >= 1) {
+      micTween = null;
+      micMode = "idle";
+      return;
+    }
+    micRaf = requestAnimationFrame(micFrame);
   };
   const tweenTo = (to) => {
     micMode = "tween";
     micTween = { from: micVal, to, t0: performance.now() };
+    if (!micRaf) micRaf = requestAnimationFrame(micFrame);
   };
 
-  micWrap.addEventListener("mouseenter", () => tweenTo(MIC_HOVER));
-  micWrap.addEventListener("mouseleave", () => tweenTo(0));
-
-  (function micFrame(now){
-    if (micMode === "tween" && micTween) {
-      const t = Math.min(1, (now - micTween.t0) / MIC_TWEEN);
-      applyMic(micTween.from + (micTween.to - micTween.from) * easeInOut(t));
-      if (t >= 1) {
-        micTween = null;
-        micMode = "idle";
-      }
-    }
-    requestAnimationFrame(micFrame);
-  })(performance.now());
+  micWrap.addEventListener("mouseenter", () => {
+    if (!micWrap.classList.contains("is-live")) tweenTo(MIC_HOVER);
+  });
+  micWrap.addEventListener("mouseleave", () => {
+    if (!micWrap.classList.contains("is-live")) tweenTo(0);
+  });
+  micWrap.addEventListener("click", () => {
+    const on = micWrap.classList.toggle("is-live");
+    micWrap.setAttribute("aria-pressed", String(on));
+    // live keeps a steady yellow glow; off returns to hover/idle
+    if (on) tweenTo(MIC_HOVER);
+    else tweenTo(micWrap.matches(":hover") ? MIC_HOVER : 0);
+  });
+  micWrap.setAttribute("role", "button");
+  micWrap.setAttribute("aria-pressed", "false");
+  micWrap.setAttribute("aria-label", "Микрофон");
 })();
 
 /* ---- one demo per building, driven by the tablet switches ----
