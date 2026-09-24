@@ -1,5 +1,8 @@
-# Статический сайт revlev.ru
+# Статический сайт (папка `revlev.ru/`)
 
-Код — обычные HTML/CSS/JS. На VPS раздаётся nginx’ом из этой папки (см. `../DEPLOY.md`).
+На ветке **`main`** эта папка деплоится на Cloudflare Pages как **revlev.org**.
+На ветке **`ru`** — на VPS как **revlev.ru** (см. `../DEPLOY.md`).
 
-Форма на `maket.revlev.ru` ходит в сервис `../feedback-vps/` (не сюда).
+Код — обычные HTML/CSS/JS.
+
+Форма на лендинге макета ходит в Worker `../feedback/` (или на VPS — в `../feedback-vps/`).

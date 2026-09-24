@@ -1,8 +1,8 @@
 # Правила вёрстки интерактивного макета
 
-Правила извлечены из `maket/index.html`, `scroll.html`, `revlev.ru/css/maket.css`, `background.js` и `building-scene.js`. Соблюдать при доработке страницы и при переносе в другие экраны/проекты.
+Правила извлечены из `maket/index.html`, `scroll.html`, `maket/css/maket.css`, `maket/js/background-blue.js` и `maket/js/building-scene.js`. Соблюдать при доработке страницы и при переносе в другие экраны/проекты.
 
-Стили макета живут в `revlev.ru/css/maket.css` (деплой **revlev.ru**); HTML — в `maket/` (деплой **maket**). Cache-bust: `?v=` из `window.MAKET_DEPLOY` в `maket/index.html`.
+Стили и ассеты макета живут в `maket/` (деплой **model.revlev.org** / **maket.revlev.org** на Cloudflare Pages). Cache-bust: `?v=` и `window.MAKET_DEPLOY` в `maket/index.html`.
 
 **Заготовка скролла без WebGL:** `scroll.html` — один файл (HTML+CSS+JS), 5 экранов, тот же движок свайпа. Копировать как основу для похожих лендингов; продуктовые слои (3D, PCB, формы, sticky CTA) брать из `index.html` / §2–§12 ниже.
 
@@ -175,10 +175,11 @@ Peek: `scrollTop = screen4.offsetTop - 0.8 * clientHeight` (видно ~20% scre
 - Шрифт полей наследует body.
 - Кнопка «Отправить»: `.btn.btn-dark`, inline `margin-top: 0.5rem` (учитывать при выравнивании превью).
 
-### Превью-ссылка на revlev.ru (`.site-preview`)
+### Превью-ссылка на revlev.org (`.site-preview`)
 
 - Внизу **block-b** screen-5: горизонтальный «мессенджерный» баннер (картинка слева, текст справа).
-- Картинка: `https://revlev.ru/img/og-small.jpg`; заголовок — Russo One, описание/имя — Inter; на mobile размеры текста как у `p` screen-5, картинка ниже (`88px` vs `116px`).
+- Фон превью: `maket/img/og-bg.jpg`; заголовок — Russo One, описание/имя — Inter; на mobile размеры текста как у `p` screen-5, картинка ниже (`88px` vs `116px`).
+- Ссылка ведёт на `https://revlev.org/` (навигация, не ресурс страницы).
 - **Выравнивание с низом textarea** (desktop + mobile landscape, колонки рядом):
   - у `.site-preview`: `margin-top: auto` (прижать к низу колонки B);
   - `margin-bottom: calc(gap формы + margin-top кнопки + высота .btn.btn-dark)`;
@@ -270,4 +271,4 @@ Peek: `scrollTop = screen4.offsetTop - 0.8 * clientHeight` (видно ~20% scre
 - Не выравнивать `.site-preview` с textarea через `padding-bottom` у `.block-b` / «магический» `--s5-submit-space` — только `margin-top: auto` + `margin-bottom = gap + mt кнопки + высота кнопки` (§8).
 - Не считать «1rem = gap + margin» одним числом: gap и `margin-top` кнопки **складываются** (desktop `1 + 0.5`).
 - Не форсировать на screen-5 portrait две колонки ради выравнивания превью — A и B должны быть друг под другом; высота 2×A — через JS.
-- Не забывать: после правок `maket.css` нужен деплой **revlev.ru** и бамп `MAKET_DEPLOY` в HTML.
+- Не забывать: после правок `maket.css` бамп `MAKET_DEPLOY` / `?v=` в `maket/index.html` (деплой только папки `maket/`).

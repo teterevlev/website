@@ -1,16 +1,26 @@
-# Деплой на VPS
+# Деплой
+
+## Cloudflare Pages (`main` → `.org`)
+
+| Путь в репо | Хост(ы) |
+|-------------|---------|
+| `revlev.ru/` | `revlev.org` |
+| `maket/` | `model.revlev.org`, `maket.revlev.org` (canonical → model; 301 между хостами — Redirect Rules в Cloudflare) |
+| `feedback/` | Cloudflare Worker → Telegram |
+
+## VPS (`ru` → `.ru`)
 
 Статика раздаётся nginx’ом из папок репозитория. Форма → FastAPI (файл + forward на Worker → Telegram).
 
 | Путь в репо | Назначение |
 |-------------|------------|
-| `revlev.ru/` | основной сайт |
-| `maket/` | поддомен макета |
-| `pcb/` | поддомен PCB |
+| `revlev.ru/` | основной сайт `revlev.ru` |
+| `maket/` | поддомен `maket.revlev.ru` |
+| `pcb/` | поддомен `pcb.revlev.ru` |
 | `feedback-vps/` | приём формы: jsonl + best-effort Worker |
 | `feedback/` | Cloudflare Worker → Telegram |
 
-## Статика (nginx)
+## Статика (nginx, ветка `ru`)
 
 Пример корней:
 
