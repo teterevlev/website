@@ -5,7 +5,7 @@
 | Путь в репо | Хост(ы) |
 |-------------|---------|
 | `revlev.ru/` | `revlev.org` |
-| `maket/` | `model.revlev.org`, `maket.revlev.org` (canonical → model; 301 между хостами — Redirect Rules в Cloudflare) |
+| `maket/` | `model.revlev.org`, `maket.revlev.org` (canonical → model; 301 между хостами — Redirect Rules в Cloudflare). Intro: `maket/intro/` + `maket/img/intro/` — см. `maket/INTRO.md` |
 | `pcb/` | `pcb.revlev.org` |
 | `feedback/` | Cloudflare Worker → Telegram |
 

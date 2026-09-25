@@ -4,6 +4,8 @@
 
 Стили и ассеты макета живут в `maket/` (деплой **model.revlev.org** / **maket.revlev.org** на Cloudflare Pages). Cache-bust: `?v=` и `window.MAKET_DEPLOY` в `maket/index.html`.
 
+**Intro (screen 0):** интерактивный макет в iframe — см. [`maket/INTRO.md`](maket/INTRO.md). Лаборатория: `maket_v2/window-light.html`.
+
 **Заготовка скролла без WebGL:** `scroll.html` — один файл (HTML+CSS+JS), 5 экранов, тот же движок свайпа. Копировать как основу для похожих лендингов; продуктовые слои (3D, PCB, формы, sticky CTA) брать из `index.html` / §2–§12 ниже.
 
 ---
@@ -15,9 +17,11 @@
 ### Структура
 
 - `.scroll-container` — единственный scrollport (`overflow-y: auto`); `html`/`body` — `overflow: hidden`, `overscroll-behavior: none`.
+- **Screen 0 (intro):** `.snap` + чёрный фон; контент — полноэкранный iframe `intro/index.html` (`.intro-frame`). В цепочке свайпа это новый «первый» экран.
 - Экраны 1–3: класс `.snap` (`scroll-snap-align: start`, `scroll-snap-stop: always`).
 - Экраны 4–5: без `.snap`; свободный скролл. Screen 5: `height: auto`, `min-height: 100svh` на mobile.
 - CSS `scroll-snap-type: y mandatory` на контейнере; JS выключает snap в зоне после screen 3 (см. slack).
+- Индексы snap-цепочки: `0=screen0 → 1=screen1 → 2=screen2 → 3=screen3 → peek screen4`. При добавлении экрана в начало сдвигать все ветки `idx === N` и `getSnapChainTops()`, не только HTML.
 
 ### Константы (подгонять в одном месте)
 
@@ -33,34 +37,62 @@ Peek: `scrollTop = screen4.offsetTop - 0.8 * clientHeight` (видно ~20% scre
 
 ### Desktop (не compact)
 
-- Snap-экраны 1–3: wheel перехватывается; анимация `easeInOutCubic` через rAF (`scroll-behavior: auto` на время анимации).
+- Snap-экраны 0–3: wheel перехватывается; анимация `easeInOutCubic` через rAF (`scroll-behavior: auto` на время анимации).
 - **Новый жест:** разгон (`spedUp`), смена направления, щелчок мыши (`deltaMode === 1`), длинная пауза; короткая пауза + \|delta\| ≤ peak = хвост инерции.
 - Peak = \|delta\| за событие (не `/dt`); при затухании peak остывает (`* 0.9`), иначе второй флик никогда не превысит пик.
 - Листать только на новом жесте; инерция того же жеста не даёт второй свайп.
 - Во время анимации: колесо **против** движения → откат к origin; **разгон вниз** (`spedUp && pulseGap` или mouse notch) → чейн на следующий snap; **чейн вверх запрещён** (иначе 3→2→1 одним жестом).
+- **С screen 0 / intro чейн вниз тоже запрещён** (`swipeFromFirstSnap`): один жест = один экран. После прилёта — короткий `swipeIgnoreUntil` (~320 ms), чтобы хвост трекпада не стартовал 0→1→2.
 - С screen 3 вниз → недосвайп (peek). С exact screen 3 вверх → обычный свайп на screen 2.
 - Зона screen 4 + slack: snap off (`scrollTop > screen3.offsetTop - slack * vh`). Вверх — нативный smooth, пока не пересечён `freeLimit`; затем программный свайп на screen 2 с длительностью ∝ дистанции. Не clamp’ить на screen 3 сразу — иначе рывок.
 - Compact: CSS-snap; на exact screen 3 вниз — escape за порог `+6` без peek.
+
+### Intro iframe (`screen-0`)
+
+Wheel/touch над iframe **не всплывают** в `.scroll-container`. Мост:
+
+- `maket/intro/index.html` шлёт `postMessage`: `maket-intro-wheel` / `maket-intro-swipe`.
+- Родитель (`maket/index.html`): при `scrollTop < screen1` принимает сообщения и делает **ровно один** `startSnapSwipe(screen1)` вниз; пока `programmaticScroll` или `swipeIgnoreUntil` — игнор.
+- Не прогонять intro-wheel через полный `onSnapWheel` + `chainSnapSwipe`: поток delta из iframe за время анимации (700 ms) выглядит как серия «новых» жестов и уносит на 2–3 экрана.
+
+Sticky CTA / Voice: якоря и `fixed` считаются от `screen-1` (`introShift = screen1.offsetTop`), на screen 0 кнопки остаются absolute у spacer’ов и не всплывают поверх intro.
 
 ### Mobile / compact
 
 - Критерий как в CSS: `max-width: 900px` **или** `(orientation: landscape) and (max-height: 500px)`.
 - Не включать desktop wheel-hijack; оставить mandatory snap + escape с screen 3.
+- Intro: touch → `maket-intro-swipe` в родителе (один шаг на screen 1).
 
 ### Чего не делать (скролл)
 
 - Не глотать wheel через `preventDefault` без пути к новому жесту (залипание до паузы/движения мыши).
 - Не чейнить по одной паузе между тиками без разгона — один флик улетит до peek/screen 4.
+- Не чейнить свайп, начатый с screen 0 / intro (см. `swipeFromFirstSnap`).
 - Не оставлять snap `mandatory` в зоне screen 4 / slack — нативный вверх будет рваным или перескочит 3→2.
 - Не мерить «скорость» как `delta/dt` на первом тике после паузы — peak занижается, второй тик ложно = разгон.
+- Не отменять rAF-анимацию (`cancelAnimationFrame`) без `finish` / `endProgrammaticScroll` — остаётся `scroll-snap-type: none` + `scroll-behavior: auto` и свайпы «замирают».
+- Не считать, что `swipeAnimOrigin === screen0.offsetTop` надёжно весь жест: при чейне `startSnapSwipe` перезаписывает origin текущим `scrollTop`; для «с первого экрана» нужен отдельный флаг.
+- Не бампить только HTML при вставке экрана в начало: обновить `getSnapScreenIndex`, ветки `wheelDir`/`idx`, `getSnapChainTops`, freeze-массивы экранов, стрелку, CTA/`introShift`.
+
+### Заметки с отладки (screen 0 + iframe)
+
+Что реально ломало «как у старого первого экрана»:
+
+1. **Цепочка индексов.** Старый `idx === 0` был screen 1 → вниз на screen 2. После вставки screen 0 все `idx` и tops сдвигаются на +1; пропуск любой ветки даёт перескок или «мёртвый» свайп.
+2. **Iframe глушит wheel.** Без `postMessage` родитель не видит жест. С наивным пробросом в `onSnapWheel` каждый тик трекпада во время 700 ms анимации может пройти `canChain` → 0→1→2→peek одним физическим фликом.
+3. **Хвост инерции после прилёта.** Анимация длиннее, чем остывание peak (`~2.5 × GESTURE_GAP`). После land на screen 1 оставшиеся события выглядят как *новый* жест → сразу ещё один экран. Лечится `swipeIgnoreUntil` после свайпа с первого snap.
+4. **Синтетический event.** У bridged wheel `preventDefault` — no-op; нельзя опираться на «как у контейнера». Надёжнее отдельный путь «один шаг на screen 1», а не полный gesture pipeline.
+5. **Отмена анимации.** `scrollToY` в начале делает `cancelScrollAnim()`; если предыдущий rAF убить без `finish`, контейнер залипает со стилями programmatic scroll и перестаёт слушаться до reload.
+6. **Проверка в автоматизации.** `postMessage` из той же страницы работает; wheel на контейнере при перекрытом iframe не имитирует intro. После правок скролла нужен бамп `MAKET_DEPLOY` / `?v=`.
 
 ---
 
 ## 1. Структура страницы
 
 - Страница — вертикальная лента полноэкранных секций (`.screen`), каждая высотой `100vh`.
+- **Screen 0 (intro):** чёрный фон, без `.screen-content`; iframe `intro/index.html` на весь экран. Подробности — [`maket/INTRO.md`](maket/INTRO.md).
 - На mobile (≤900px / compact landscape): `100dvh` для scrollport и экранов — только в media query, не глобально.
-- Контент экранов 1–3 закрепляется через `scroll-snap-type: y mandatory` + `.snap` (`scroll-snap-align: start`, `scroll-snap-stop: always`).
+- Контент экранов 0–3 закрепляется через `scroll-snap-type: y mandatory` + `.snap` (`scroll-snap-align: start`, `scroll-snap-stop: always`).
 - После screen 3: snap off (JS по `getScreen3UpFreeLimit()` / slack), свободный скролл 4–5; с screen 3 вниз на desktop — недосвайп (peek), см. §0.
 - `body` / `html`: `overflow: hidden`; скролл только у `.scroll-container` (`overflow-x: hidden`).
 - `overscroll-behavior: none` — без «отскока» страницы.
@@ -73,9 +105,10 @@ Peek: `scrollTop = screen4.offsetTop - 0.8 * clientHeight` (видно ~20% scre
 2. `.grain-overlay` — лёгкий SVG-шум, opacity ≈ `0.022`
 3. `#sceneLayer` — Three.js сцена дома (`building-scene.js`), между фоном и текстом
 4. `#pcbOverlay` — fixed `pcb.png` (`z-index: 1`, `pointer-events: none`)
-5. `.scroll-container` — контент (`z-index: 2`)
+5. `.scroll-container` — контент (`z-index: 2`); screen-0 iframe перекрывает PCB/3D за счёт непрозрачного чёрного фона
 6. UI поверх контента (стрелка, fixed CTA) — `z-index` 90–200
 
+- **Экран 0:** фон `#000`; сцена внутри iframe (не каустики/3D лендинга).
 - Экраны 1–3: фон секции **прозрачный** — видны шейдер и 3D.
 - Экран 4: тёмный оверлей `rgba(0,0,0,0.8)`, светлый текст.
 - Экран 5: сплошной белый фон, тёмный текст; высота и превью — см. §8 и §10.
@@ -201,7 +234,7 @@ Peek: `scrollTop = screen4.offsetTop - 0.8 * clientHeight` (видно ~20% scre
 ## 9. Навигация «вниз»
 
 - `.scroll-down` — fixed по центру снизу, bounce-анимация, `pointer-events: none`.
-- Скрывается при `scrollTop > 50` (opacity) и полностью на мобиле (`display: none`).
+- На screen 0 цвет белый; скрывается при `scrollTop > 50` (opacity) и полностью на мобиле (`display: none`).
 
 ## 10. Адаптив: breakpoint и ориентации
 
@@ -272,3 +305,4 @@ Peek: `scrollTop = screen4.offsetTop - 0.8 * clientHeight` (видно ~20% scre
 - Не считать «1rem = gap + margin» одним числом: gap и `margin-top` кнопки **складываются** (desktop `1 + 0.5`).
 - Не форсировать на screen-5 portrait две колонки ради выравнивания превью — A и B должны быть друг под другом; высота 2×A — через JS.
 - Не забывать: после правок `maket.css` бамп `MAKET_DEPLOY` / `?v=` в `maket/index.html` (деплой только папки `maket/`).
+- Intro / плоскость / sync `maket_v2` ↔ `maket/intro` — см. [`maket/INTRO.md`](maket/INTRO.md), раздел «Чего не делать».

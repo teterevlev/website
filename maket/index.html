@@ -64,8 +64,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
 
     <!-- Change this value on deploy -->
-    <script>window.MAKET_DEPLOY = '8';</script>
-    <link rel="stylesheet" href="css/maket.css?v=8">
+    <script>window.MAKET_DEPLOY = '9';</script>
+    <link rel="stylesheet" href="css/maket.css?v=9">
     <!-- Temporary until maket.css with .feedback-wrap.is-sent is deployed -->
     <style>
         .feedback-wrap { position: relative; }
@@ -113,6 +113,17 @@
     <div id="signalWavesLayer" aria-hidden="true"></div>
 
     <div class="scroll-container">
+        <!-- Screen 0: interactive model intro (maket_v2/window-light) -->
+        <section class="screen snap screen-0" aria-label="Intro">
+            <iframe
+                class="intro-frame"
+                src="intro/index.html"
+                title="Interactive architectural model"
+                loading="eager"
+                allow="autoplay"
+            ></iframe>
+        </section>
+
         <!-- Screen 1 -->
         <section class="screen snap screen-1">
             <div class="screen-content">
@@ -402,6 +413,7 @@
 
     <script>
         const container = document.querySelector('.scroll-container');
+        const screen0 = document.querySelector('.screen-0');
         const screen1 = document.querySelector('.screen-1');
         const screen2 = document.querySelector('.screen-2');
         const screen3 = document.querySelector('.screen-3');
@@ -421,7 +433,7 @@
         let programmaticScrollTimer = null;
         let scrollAnimRaf = null;
 
-        // Длительность обычного программного свайпа (кнопки / 1↔2↔3), мс
+        // Длительность обычного программного свайпа (кнопки / 0↔1↔2↔3), мс
         const SCROLL_SWIPE_MS = 700;
         // Недосвайп screen3→peek: доля от SCROLL_SWIPE_MS (подгонять)
         const SCREEN4_PEEK_DURATION_RATIO = 0.75;
@@ -453,6 +465,9 @@
         let swipeAnimDir = 0; // origin → target
         let swipeAnimFullMs = SCROLL_SWIPE_MS;
         let swipeAnimToOrigin = false;
+        // Свайп начат с screen0 — без чейна и с игнором хвоста инерции
+        let swipeFromFirstSnap = false;
+        let swipeIgnoreUntil = 0;
 
         function easeInOutCubic(t) {
             return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
@@ -592,9 +607,15 @@
             const finish = () => {
                 const dir = swipeAnimDir;
                 const toOrigin = swipeAnimToOrigin;
+                const fromFirst = swipeFromFirstSnap;
                 clearSwipeAnimEndpoints();
+                swipeFromFirstSnap = false;
                 endProgrammaticScroll();
                 if (dir) noteSwipeArrival(toOrigin ? -dir : dir);
+                // Один жест с первого экрана = один snap; хвост трекпада не листает дальше
+                if (fromFirst && !toOrigin && dir > 0) {
+                    swipeIgnoreUntil = performance.now() + 320;
+                }
             };
 
             if (Math.abs(to - from) < 1 || duration === 0) {
@@ -624,6 +645,14 @@
             const to = targetTop;
             const dir = to > from ? 1 : to < from ? -1 : 0;
             const ms = Math.max(0, durationMs == null ? SCROLL_SWIPE_MS : durationMs);
+            // Первый экран цепочки (как раньше screen1): только один шаг за жест
+            if (
+                !programmaticScroll &&
+                screen0 &&
+                Math.abs(from - screen0.offsetTop) <= 4
+            ) {
+                swipeFromFirstSnap = true;
+            }
             swipeAnimOrigin = from;
             swipeAnimTarget = to;
             swipeAnimDir = dir;
@@ -655,6 +684,7 @@
 
         function getSnapChainTops() {
             return [
+                screen0.offsetTop,
                 screen1.offsetTop,
                 screen2.offsetTop,
                 screen3.offsetTop,
@@ -707,9 +737,10 @@
         }
 
         function getSnapScreenIndex() {
-            if (isExactlyOnScreen(screen1)) return 0;
-            if (isExactlyOnScreen(screen2)) return 1;
-            if (isExactlyOnScreen(screen3)) return 2;
+            if (isExactlyOnScreen(screen0)) return 0;
+            if (isExactlyOnScreen(screen1)) return 1;
+            if (isExactlyOnScreen(screen2)) return 2;
+            if (isExactlyOnScreen(screen3)) return 3;
             return -1;
         }
 
@@ -718,7 +749,7 @@
         // Во время анимации колесо назад — возврат на исходный snap.
         // Mobile: CSS-snap; на screen 3 — только escape.
         (function bindSnapZoneWheel() {
-            if (!container || !screen1 || !screen2 || !screen3) return;
+            if (!container || !screen0 || !screen1 || !screen2 || !screen3) return;
 
             swipeWasPastScreen3 = container.scrollTop > screen3.offsetTop + 5;
 
@@ -739,13 +770,16 @@
                 { passive: true }
             );
 
-            container.addEventListener(
-                'wheel',
-                (e) => {
+            function onSnapWheel(e) {
                     if (typeof isFormUiFrozen === 'function' && isFormUiFrozen()) return;
 
                     const t = e.target;
                     if (t && t.closest && t.closest('.hero2VScroll')) return;
+
+                    if (!programmaticScroll && performance.now() < swipeIgnoreUntil) {
+                        e.preventDefault();
+                        return;
+                    }
 
                     const st = container.scrollTop;
                     const s3 = screen3.offsetTop;
@@ -767,6 +801,7 @@
                     // Незавершённый свайп:
                     // — против движения → назад на origin
                     // — разгон вниз → следующий экран (чейн вверх запрещён: иначе 3→2→1 одним жестом)
+                    // — с screen0 / intro-iframe чейн выключен: иначе один жест улетает на 2–3 экрана
                     if (programmaticScroll && swipeAnimOrigin != null) {
                         e.preventDefault();
                         resetSwipeGestureSoon();
@@ -777,6 +812,8 @@
                             return;
                         }
                         if (wheelDir < 0) return;
+                        // С первого экрана (и intro) чейн выключен — иначе 0→1→2→3 одним жестом
+                        if (swipeFromFirstSnap) return;
                         const canChain =
                             (gesture.spedUp && gesture.pulseGap) ||
                             (gesture.mouseNotch && gesture.isNewGesture);
@@ -838,8 +875,9 @@
                     swipeGestureCommitted = true;
 
                     if (wheelDir > 0) {
-                        if (idx === 0) scrollToScreen(screen2);
-                        else if (idx === 1) scrollToScreen(screen3);
+                        if (idx === 0) scrollToScreen(screen1);
+                        else if (idx === 1) scrollToScreen(screen2);
+                        else if (idx === 2) scrollToScreen(screen3);
                         else {
                             startSnapSwipe(
                                 getScreen4PeekTop(),
@@ -847,12 +885,34 @@
                             );
                         }
                     } else if (idx === 1) {
+                        scrollToScreen(screen0);
+                    } else if (idx === 2) {
                         scrollToScreen(screen1);
                     }
-                    // idx === 2 вверх уже обработан free-band (slack); вниз — peek выше
-                },
-                { passive: false }
-            );
+                    // screen3 вверх уже обработан free-band (slack); вниз — peek выше
+            }
+
+            container.addEventListener('wheel', onSnapWheel, { passive: false });
+
+            // Intro iframe: жесты не всплывают. Как старый первый экран — ровно один snap вниз.
+            window.addEventListener('message', (ev) => {
+                const d = ev.data;
+                if (!d || typeof d !== 'object') return;
+                if (container.scrollTop >= screen1.offsetTop - 4) return;
+                if (programmaticScroll || performance.now() < swipeIgnoreUntil) return;
+
+                if (d.type === 'maket-intro-swipe') {
+                    if (d.dir > 0) {
+                        swipeFromFirstSnap = true;
+                        startSnapSwipe(screen1.offsetTop, SCROLL_SWIPE_MS);
+                    }
+                    return;
+                }
+                if (d.type !== 'maket-intro-wheel') return;
+                if (!(d.deltaY > 0)) return;
+                swipeFromFirstSnap = true;
+                startSnapSwipe(screen1.offsetTop, SCROLL_SWIPE_MS);
+            });
         })();
 
         function bindScrollTo(el, target) {
@@ -1091,7 +1151,7 @@
 
             // Фиксируем 1–4: иначе 100dvh сжимается с клавиатурой, якорь CTA
             // (absolute от screen-1) перестаёт совпадать с spacer на screen-4
-            [screen1, screen2, screen3, screen4].forEach((el) => {
+            [screen0, screen1, screen2, screen3, screen4].forEach((el) => {
                 if (!el) return;
                 const h = Math.round(el.offsetHeight);
                 el.style.height = h + 'px';
@@ -1116,7 +1176,7 @@
             const root = document.documentElement;
             root.classList.remove('form-keyboard-lock');
             root.style.removeProperty('--lock-screen-h');
-            [screen1, screen2, screen3, screen4, screen5].forEach((el) => {
+            [screen0, screen1, screen2, screen3, screen4, screen5].forEach((el) => {
                 if (!el) return;
                 el.style.removeProperty('height');
                 el.style.removeProperty('min-height');
@@ -1210,6 +1270,7 @@
             const isMobile = isCompactLayout();
             let st = container.scrollTop;
 
+            scrollDownArrow.style.color = (screen0 && st < screen1.offsetTop - 4) ? '#fff' : '';
             if (st > 50) {
                 scrollDownArrow.style.opacity = '0';
             } else {
@@ -1222,11 +1283,11 @@
 
             // Голосовая кнопка — только desktop
             if (!isMobile) {
-                if (st === 0) {
+                if (st <= screen1.offsetTop) {
                     btnVoice.style.position = 'absolute';
                     btnVoice.style.top = voiceOrigTop + 'px';
                     btnVoice.style.left = voiceOrigLeft + 'px';
-                } else if (st > 0 && st < screen2.offsetTop) {
+                } else if (st > screen1.offsetTop && st < screen2.offsetTop) {
                     btnVoice.style.position = 'fixed';
                     btnVoice.style.top = voiceFixedTop + 'px';
                     btnVoice.style.left = voiceFixedLeft + 'px';
@@ -1240,7 +1301,7 @@
             // CTA: fixed до якоря, затем absolute на screen-4 (и на desktop, и на mobile)
             if (isFormUiFrozen() || st >= ctaDockScroll) {
                 applyCtaDocked();
-            } else if (!isMobile && st === 0) {
+            } else if (st < screen1.offsetTop - 4 || (!isMobile && st <= screen1.offsetTop)) {
                 clearCtaShelfExtras();
                 btnCta.style.position = 'absolute';
                 btnCta.style.top = ctaOrigTop + 'px';
@@ -1275,14 +1336,15 @@
 
                 voiceOrigTop = spacerVoice.offsetTop;
                 voiceOrigLeft = spacerVoice.offsetLeft;
+                const introShift = screen1.offsetTop;
                 const rectV = spacerVoice.getBoundingClientRect();
-                voiceFixedTop = rectV.top + st;
+                voiceFixedTop = rectV.top + st - introShift;
                 voiceFixedLeft = rectV.left;
 
                 ctaOrigTop = spacerCta.offsetTop;
                 ctaOrigLeft = spacerCta.offsetLeft;
                 const rectC = spacerCta.getBoundingClientRect();
-                ctaFixedTop = rectC.top + st;
+                ctaFixedTop = rectC.top + st - introShift;
                 ctaFixedLeft = rectC.left;
                 ctaShelfWidth = null;
                 ctaLockX = false;
