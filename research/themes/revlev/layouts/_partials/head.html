@@ -40,16 +40,28 @@
     {{- $ogRes = .Resources.GetMatch "{cover*,Cover*,thumbnail*,Thumbnail*}" -}}
   {{- end -}}
 {{- end -}}
+{{- /* Social crawlers reject SVG — fall back to site default */ -}}
+{{- if $ogRes -}}
+  {{- $ext := path.Ext $ogRes.Name | lower -}}
+  {{- if eq $ext ".svg" -}}
+    {{- $ogRes = false -}}
+  {{- end -}}
+{{- end -}}
 {{- if $ogRes -}}
   {{- $ogURL = $ogRes.Permalink -}}
   {{- $ogW = $ogRes.Width -}}
   {{- $ogH = $ogRes.Height -}}
+  {{- if or (not $ogW) (not $ogH) (eq $ogW 0) (eq $ogH 0) -}}
+    {{- $ogW = 1200 -}}
+    {{- $ogH = 630 -}}
+  {{- end -}}
   {{- $ext := path.Ext $ogRes.Name | lower -}}
   {{- if eq $ext ".png" -}}{{- $ogType = "image/png" -}}
   {{- else if eq $ext ".webp" -}}{{- $ogType = "image/webp" -}}
   {{- else if eq $ext ".gif" -}}{{- $ogType = "image/gif" -}}
   {{- else -}}{{- $ogType = "image/jpeg" -}}{{- end -}}
-{{- else -}}
+{{- end -}}
+{{- if not $ogRes -}}
   {{- $ogURL = "img/og.jpg" | absURL -}}
   {{- $ogW = 1200 -}}
   {{- $ogH = 630 -}}
