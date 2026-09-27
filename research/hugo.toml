@@ -1,0 +1,29 @@
+baseURL = "https://research.revlev.org/"
+languageCode = "en-us"
+title = "Research"
+theme = "revlev"
+
+enableRobotsTXT = false
+canonifyURLs = false
+relativeURLs = false
+disableKinds = ["taxonomy", "term"]
+
+[pagination]
+  pagerSize = 20
+
+[params]
+  author = "Oleg Teterevlev"
+  description = "Notes on electronics, embedded systems, and software."
+  mainSite = "https://revlev.org/"
+
+[outputs]
+  home = ["HTML", "RSS"]
+  section = ["HTML"]
+  page = ["HTML"]
+
+[markup]
+  [markup.highlight]
+    style = "friendly"
+    noClasses = false
+  [markup.goldmark.renderer]
+    unsafe = false

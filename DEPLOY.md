@@ -7,7 +7,26 @@
 | `revlev.ru/` | `revlev.org` |
 | `maket/` | `model.revlev.org`, `maket.revlev.org` (canonical → model; 301 между хостами — Redirect Rules в Cloudflare). Intro: `maket/intro/` + `maket/img/intro/` — см. `maket/INTRO.md` |
 | `pcb/` | `pcb.revlev.org` |
+| `research/` | `research.revlev.org` (Cloudflare Pages, Hugo; см. `research/README.md`) |
 | `feedback/` | Cloudflare Worker → Telegram |
+
+### Research (Hugo → Pages)
+
+Pages project: **`research`** (`research-9u6.pages.dev`). Domain: **`research.revlev.org`** (CNAME → pages.dev).
+
+Build settings (уже в проекте):
+
+| Setting | Value |
+|---------|-------|
+| Root directory | `research` |
+| Build command | `hugo --minify -b https://research.revlev.org/` |
+| Build output directory | `public` |
+| Production branch | `main` |
+| Env `HUGO_VERSION` | `0.148.2` (Production + Preview) |
+
+Осталось один раз: Dashboard → project `research` → **Connect to Git** → `teterevlev/website`, затем push папки `research/` в `main` (или Upload assets из `research/public/`).
+
+Локально: `cd research && hugo server -D` — гайд: `research/README.md`.
 
 ## VPS (`ru` → `.ru`)
 

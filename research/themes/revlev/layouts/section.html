@@ -1,0 +1,20 @@
+{{ define "main" }}
+<section class="page-intro">
+  <h1 class="page-title">{{ .Title }}</h1>
+  {{ with .Content }}
+  <div class="page-lead prose">{{ . }}</div>
+  {{ end }}
+</section>
+
+<section class="post-list" aria-label="Posts">
+  {{ range .Pages }}
+  <article class="post-card">
+    <time class="post-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 Jan 2006" }}</time>
+    <h2 class="post-card-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+    {{ with .Summary }}
+    <p class="post-card-summary">{{ . | plainify | truncate 200 }}</p>
+    {{ end }}
+  </article>
+  {{ end }}
+</section>
+{{ end }}

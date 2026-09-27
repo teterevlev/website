@@ -4,8 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Intro — interactive model</title>
-<script>document.documentElement.dataset.layout=innerWidth<700?"phone":"desktop";
-document.documentElement.dataset.fit=innerWidth<1150&&innerWidth>=700?"crop":"contain"</script>
+<script>(function(){
+  var phone=innerWidth<700||(innerHeight<=500&&innerWidth>innerHeight);
+  document.documentElement.dataset.layout=phone?"phone":"desktop";
+  document.documentElement.dataset.fit=(!phone&&innerWidth<1150)?"crop":"contain";
+})()</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
@@ -170,7 +173,8 @@ document.documentElement.dataset.fit=innerWidth<1150&&innerWidth>=700?"crop":"co
   html[data-layout="phone"] #tabletWrap{left:50%;top:50%;bottom:auto;width:var(--tablet-w);
          transform:translate(-50%,-50%) scale(var(--tablet-scale));transform-origin:center center}
   html[data-layout="phone"] .tsw{width:calc(var(--tablet-w) * 0.042)}
-  html[data-layout="phone"] .tlab{font-size:clamp(11px,2.8vw,15px)}
+  /* labels from tablet width — 2.8vw blows up in landscape where tablet ≪ viewport */
+  html[data-layout="phone"] .tlab{font-size:clamp(10px, calc(var(--tablet-w) * 0.038), 15px)}
   html[data-layout="phone"] .tmic{width:calc(var(--tablet-w) * var(--mic-ratio));
          font-size:calc(var(--tablet-w) * 0.034);
          transform:translateX(50%)}
@@ -185,10 +189,16 @@ document.documentElement.dataset.fit=innerWidth<1150&&innerWidth>=700?"crop":"co
          transform:translate(-50%, 100%);
          line-height:1.25}
 
-  html[data-layout="phone"][data-orient="landscape"]{ --tablet-w:min(50vw,420px); --tablet-scale:1.12 }
-  html[data-layout="phone"][data-orient="landscape"] #wrap{display:grid;place-items:center}
-  html[data-layout="phone"][data-orient="landscape"] canvas{position:static;left:auto;top:auto;width:100% !important;
-         transform:none;max-height:100dvh}
+  /* Fill width (cover): short landscape used to letterbox because canvas was height-capped.
+     Tablet tracks viewport width, not the old 52vh cap that kept it tiny next to side bars. */
+  html[data-layout="phone"][data-orient="landscape"]{ --tablet-w:min(42vw, 400px); --tablet-scale:1.04 }
+  html[data-layout="phone"][data-orient="landscape"] .tsw{width:calc(var(--tablet-w) * 0.048)}
+  html[data-layout="phone"][data-orient="landscape"] .tlab{font-size:clamp(8px, calc(var(--tablet-w) * 0.045), 12px)}
+  html[data-layout="phone"][data-orient="landscape"] .trow{gap:0.4em}
+  html[data-layout="phone"][data-orient="landscape"] #wrap{display:block;position:relative;height:100%;overflow:hidden;background:#000}
+  html[data-layout="phone"][data-orient="landscape"] canvas{position:absolute;left:50%;top:0;
+         width:100% !important;height:auto !important;max-width:none;max-height:none;
+         margin:0 !important;transform:translateX(-50%);object-fit:unset}
 </style>
 </head>
 <body>
@@ -722,18 +732,26 @@ const REF_W = 1150;
 const MAC_W = 1440;           // MacBook reference — optimal tablet size
 const PHONE_MAX = 700;
 const TABLET_RATIO = 0.68;
+/* Short landscape (phones ~844×390): width alone would pick desktop — also gate on height. */
+const PHONE_LANDSCAPE_MAX_H = 500;
 /* dark marble plane top edge: measured angle, mid-Y keeps height placement */
 const PLANE_ANGLE = -16.56 * Math.PI / 180;
 const PLANE_MID_Y = 0.587;
-const PLANE_LIFT = 70; // px up; tweak by hand
+const PLANE_LIFT = 70; // px up at ~desktop canvas height; scales with cr.height
+const PLANE_LIFT_REF_H = 720; // canvas height the 70px lift was tuned against
 let layoutMode = "";
 let layoutFit = "";
 
+function isPhoneViewport(){
+  if (innerWidth < PHONE_MAX) return true;
+  // same idea as maket compact: landscape + short viewport
+  return innerHeight <= PHONE_LANDSCAPE_MAX_H && innerWidth > innerHeight;
+}
 function detectLayoutMode(){
-  return innerWidth < PHONE_MAX ? "phone" : "desktop";
+  return isPhoneViewport() ? "phone" : "desktop";
 }
 function detectFit(){
-  if (innerWidth < PHONE_MAX) return "";
+  if (isPhoneViewport()) return "";
   return innerWidth < REF_W ? "crop" : "contain";
 }
 function isPhoneLayout(){ return layoutMode === "phone"; }
@@ -747,6 +765,9 @@ function clearSceneInline(){
     wrap.style[p] = "";
   });
   bleed.style.top = "";
+  bleed.style.left = "";
+  bleed.style.right = "";
+  bleed.style.width = "";
   bleed.style.clipPath = "";
   bleed.style.background = "";
   bleed.style.display = "";
@@ -757,24 +778,39 @@ function clearSceneInline(){
 function updateFloorExt(){
   /* Continues the dark marble parallelogram from the photo to the viewport bottom:
      slanted top at PLANE_ANGLE; gradient TR #16171b → BL #000.
-     Edge is a line in image space; sample at viewport L/R so it tracks parallax. */
+     Edge is a line in image space; sample at viewport L/R so it tracks parallax.
+     Phone landscape: canvas is narrower than the viewport — sample/clip to the
+     canvas box so the edge is not extrapolated sky-high off-image. */
   const el = $("belowTablet");
   const cr = c.getBoundingClientRect();
   if (!cr.height){ el.style.display = "none"; return; }
   const aspect = cr.width / cr.height;
   const dy = Math.abs(Math.tan(PLANE_ANGLE)) * aspect; // ΔY across image width
+  // Keep the visual lift proportional to the photo; fixed 70px is too much on short landscape
+  const lift = PLANE_LIFT * Math.min(1.15, Math.max(0.25, cr.height / PLANE_LIFT_REF_H));
+  const phoneLandscape = layoutMode === "phone"
+    && document.documentElement.dataset.orient === "landscape";
+  const x0 = phoneLandscape ? cr.left : 0;
+  const x1 = phoneLandscape ? cr.right : innerWidth;
   // image-space edge: y_norm(x) = MID + (x - 0.5) * dy  (left higher, right lower)
   const yAt = (clientX) => {
     const x = (clientX - cr.left) / cr.width;
-    return cr.top + (PLANE_MID_Y + (x - 0.5) * dy) * cr.height - PLANE_LIFT;
+    return cr.top + (PLANE_MID_Y + (x - 0.5) * dy) * cr.height - lift;
   };
-  const yL = yAt(0);
-  const yR = yAt(innerWidth);
+  const yL = yAt(x0);
+  const yR = yAt(x1);
   const top = Math.min(yL, yR, innerHeight);
   if (top >= innerHeight - 0.5){ el.style.display = "none"; return; }
   el.style.display = "block";
-  el.style.left = "0";
-  el.style.right = "0";
+  if (phoneLandscape){
+    el.style.left = cr.left + "px";
+    el.style.width = cr.width + "px";
+    el.style.right = "auto";
+  } else {
+    el.style.left = "0";
+    el.style.right = "0";
+    el.style.width = "";
+  }
   el.style.bottom = "0";
   el.style.top = top + "px";
   el.style.background = "linear-gradient(to bottom left, #16171b 0%, #000 100%)";
@@ -809,18 +845,26 @@ function layoutPhone(wrap, bleed){
   document.documentElement.style.removeProperty("--canvas-w");
   document.documentElement.style.removeProperty("--tablet-w");
   document.documentElement.style.removeProperty("--stage-h");
-  const landscape = matchMedia("(orientation: landscape)").matches;
+  const landscape = matchMedia("(orientation: landscape)").matches
+    || (innerWidth > innerHeight && innerHeight <= PHONE_LANDSCAPE_MAX_H);
   document.documentElement.dataset.orient = landscape ? "landscape" : "portrait";
   void wrap.offsetWidth;
   const s = getComputedStyle(document.documentElement).getPropertyValue("--tablet-scale").trim() || "1.18";
   const sNum = parseFloat(s) || 1.18;
-  const cr = c.getBoundingClientRect();
-  const cy = cr.top + cr.height / 2 + wrap.offsetHeight * sNum / 3;
-  wrap.style.left = (cr.left + cr.width / 2) + "px";
-  wrap.style.top = cy + "px";
-  wrap.style.bottom = "auto";
+  const th = wrap.offsetHeight * sNum;
   wrap.style.right = "auto";
+  wrap.style.bottom = "auto";
   wrap.style.transformOrigin = "center center";
+  if (landscape){
+    // Canvas is taller than the viewport (width-cover, top-aligned) — do not
+    // use canvas mid-Y or the tablet sits below the fold.
+    wrap.style.left = (innerWidth / 2) + "px";
+    wrap.style.top = Math.min(innerHeight - th * 0.38, innerHeight * 0.78) + "px";
+  } else {
+    const cr = c.getBoundingClientRect();
+    wrap.style.left = (cr.left + cr.width / 2) + "px";
+    wrap.style.top = (cr.top + cr.height / 2 + th / 3) + "px";
+  }
   wrap.style.transform = "translate(-50%, -50%) scale(" + s + ")";
   updateFloorExt();
 }

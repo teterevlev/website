@@ -1,0 +1,6 @@
+baseURL = "https://research.revlev.org/"
+title = "revlev"
+
+[module]
+  [module.hugoVersion]
+    min = "0.128.0"

@@ -60,13 +60,16 @@ Snap-цепочка: **0 → 1 → 2 → 3** → peek / screen 4–5.
 
 | `data-layout` / `data-fit` | Условие | Поведение |
 |----------------------------|---------|-----------|
-| `desktop` + `contain` | width ≥ 1150 | canvas влезает в wrap; parallax |
-| `desktop` + `crop` | 700–1149 | высота как при 1150, обрезка по бокам; parallax; планшет у левого края |
-| `phone` | width &lt; 700 | full-bleed мобильный планшет; parallax выкл |
+| `desktop` + `contain` | width ≥ 1150 и не short-landscape | canvas влезает в wrap; parallax |
+| `desktop` + `crop` | 700–1149, высота &gt; 500 или portrait | высота как при 1150, обрезка по бокам; parallax |
+| `phone` | width &lt; 700 **или** landscape и height ≤ 500 | full-bleed / landscape-compact; parallax выкл |
+
+Телефоны в landscape часто шире 700px (844–932) — без проверки высоты уходили в desktop и раздували планшет. Порог высоты как у compact в лендинге (`PHONE_LANDSCAPE_MAX_H = 500`).
 
 Константы: `REF_W = 1150`, `MAC_W = 1440`, `PHONE_MAX = 700`, `TABLET_RATIO = 0.68`.
 
-- Ширина планшета: `--tablet-w` от ширины canvas (на ≥ MacBook — 68%; между MacBook и 1150 — заморозка абсолютного размера MacBook; ниже — плавное уменьшение).
+- Landscape phone: `--tablet-w: min(42vw, 52vh, 360px)` — учитывает высоту; canvas `max-width/max-height: 100%`.
+- Ширина планшета (desktop): `--tablet-w` от ширины canvas (на ≥ MacBook — 68%; между MacBook и 1150 — заморозка абсолютного размера MacBook; ниже — плавное уменьшение).
 - `applyLayout()` полностью сбрасывает inline-стили canvas/tablet перед пересчётом (resize = cold load).
 - На canvas и `#tabletWrap` **нет** CSS `transition` на `transform` — иначе parallax дёргается.
 
@@ -84,15 +87,18 @@ Snap-цепочка: **0 → 1 → 2 → 3** → peek / screen 4–5.
 |-----------|----------|--------|
 | `PLANE_ANGLE` | −16.56° | угол верхней кромки (замерен) |
 | `PLANE_MID_Y` | 0.587 | высота кромки по центру кадра (доля высоты изображения) |
-| `PLANE_LIFT` | 70 (px) | подъём всей кромки вверх; **крутить руками** |
+| `PLANE_LIFT` | 70 (px) | подъём кромки; масштабируется от высоты canvas (`PLANE_LIFT_REF_H = 720`) |
+| `PLANE_LIFT_REF_H` | 720 | высота canvas, при которой 70px совпадает с ручной подгонкой |
 
 Геометрия:
 
 1. Линия в координатах изображения:  
    `y_norm(x) = PLANE_MID_Y + (x − 0.5) · dy`,  
    где `dy = |tan(PLANE_ANGLE)| · (width/height)`.
-2. Сэмпл линии на **левом и правом краю viewport** (не на краях canvas) — иначе при parallax кромка едет в противофазе с фото.
+2. Сэмпл линии на **левом и правом краю viewport** (не на краях canvas) — иначе при parallax кромка едет в противофазе с фото.  
+   **Исключение — phone landscape:** canvas уже viewport → сэмпл и `#belowTablet` по боксу canvas (иначе экстраполяция уводит кромку слишком высоко).
 3. `clip-path: polygon(…)` на `#belowTablet`.
+4. `PLANE_LIFT` масштабируется: `lift = 70 * clamp(cr.height / 720, 0.25…1.15)` — на коротком landscape 70px слишком много.
 
 Градиент фона:
 
