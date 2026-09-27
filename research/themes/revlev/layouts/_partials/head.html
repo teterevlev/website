@@ -6,8 +6,16 @@
 {{- else -}}
   {{- $title = printf "%s — %s" site.Title site.Params.author -}}
 {{- end -}}
+{{- $desc := "" -}}
+{{- with .Description -}}{{- $desc = . -}}{{- else -}}
+  {{- with .Params.summary -}}{{- $desc = . -}}{{- else -}}
+    {{- with .Summary -}}{{- $desc = (. | plainify | truncate 160) -}}{{- else -}}
+      {{- $desc = site.Params.description -}}
+    {{- end -}}
+  {{- end -}}
+{{- end -}}
 <title>{{ $title }}</title>
-<meta name="description" content="{{ with .Description }}{{ . }}{{ else }}{{ with .Summary }}{{ . | plainify | truncate 160 }}{{ else }}{{ site.Params.description }}{{ end }}{{ end }}">
+<meta name="description" content="{{ $desc }}">
 <meta name="author" content="{{ site.Params.author }}">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="color-scheme" content="light">
@@ -18,21 +26,50 @@
 <link rel="shortcut icon" href="{{ "favicon.ico" | absURL }}">
 <link rel="apple-touch-icon" href="{{ "favicon.png" | absURL }}">
 
-{{- $ogImage := "img/og.jpg" | absURL -}}
+{{- /* OG image: post cover (or params.image), else site default */ -}}
+{{- $ogRes := false -}}
+{{- $ogURL := "" -}}
+{{- $ogType := "image/jpeg" -}}
+{{- $ogW := 1200 -}}
+{{- $ogH := 630 -}}
+{{- if .IsPage -}}
+  {{- with .Params.image -}}
+    {{- $ogRes = $.Resources.GetMatch . -}}
+  {{- end -}}
+  {{- if not $ogRes -}}
+    {{- $ogRes = .Resources.GetMatch "{cover*,Cover*,thumbnail*,Thumbnail*}" -}}
+  {{- end -}}
+{{- end -}}
+{{- if $ogRes -}}
+  {{- $ogURL = $ogRes.Permalink -}}
+  {{- $ogW = $ogRes.Width -}}
+  {{- $ogH = $ogRes.Height -}}
+  {{- $ext := path.Ext $ogRes.Name | lower -}}
+  {{- if eq $ext ".png" -}}{{- $ogType = "image/png" -}}
+  {{- else if eq $ext ".webp" -}}{{- $ogType = "image/webp" -}}
+  {{- else if eq $ext ".gif" -}}{{- $ogType = "image/gif" -}}
+  {{- else -}}{{- $ogType = "image/jpeg" -}}{{- end -}}
+{{- else -}}
+  {{- $ogURL = "img/og.jpg" | absURL -}}
+  {{- $ogW = 1200 -}}
+  {{- $ogH = 630 -}}
+  {{- $ogType = "image/jpeg" -}}
+{{- end -}}
+
 <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
 <meta property="og:site_name" content="{{ site.Title }}">
 <meta property="og:url" content="{{ .Permalink }}">
 <meta property="og:title" content="{{ $title }}">
-<meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{ with .Summary }}{{ . | plainify | truncate 160 }}{{ else }}{{ site.Params.description }}{{ end }}{{ end }}">
-<meta property="og:image" content="{{ $ogImage }}">
-<meta property="og:image:type" content="image/jpeg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
+<meta property="og:description" content="{{ $desc }}">
+<meta property="og:image" content="{{ $ogURL }}">
+<meta property="og:image:type" content="{{ $ogType }}">
+<meta property="og:image:width" content="{{ $ogW }}">
+<meta property="og:image:height" content="{{ $ogH }}">
 <meta property="og:locale" content="en_US">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ $title }}">
-<meta name="twitter:description" content="{{ with .Description }}{{ . }}{{ else }}{{ with .Summary }}{{ . | plainify | truncate 160 }}{{ else }}{{ site.Params.description }}{{ end }}{{ end }}">
-<meta name="twitter:image" content="{{ $ogImage }}">
+<meta name="twitter:description" content="{{ $desc }}">
+<meta name="twitter:image" content="{{ $ogURL }}">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

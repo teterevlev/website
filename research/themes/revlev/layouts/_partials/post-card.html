@@ -1,0 +1,28 @@
+{{- $img := false -}}
+{{- with .Params.image -}}
+  {{- $img = $.Resources.GetMatch . -}}
+  {{- if not $img -}}
+    {{- $img = resources.Get . -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $img -}}
+  {{- $img = .Resources.GetMatch "{cover*,Cover*,thumbnail*,Thumbnail*}" -}}
+{{- end -}}
+<article class="post-card">
+  {{- with $img }}
+  <a class="post-card-media" href="{{ $.RelPermalink }}" tabindex="-1" aria-hidden="true">
+    <img src="{{ .RelPermalink }}" alt="" width="{{ .Width }}" height="{{ .Height }}" loading="lazy">
+  </a>
+  {{- end }}
+  <div class="post-card-body">
+    <time class="post-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 Jan 2006" }}</time>
+    <h2 class="post-card-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+    {{ with .Params.summary }}
+    <p class="post-card-summary">{{ . | plainify | truncate 200 }}</p>
+    {{ else }}
+    {{ with .Summary }}
+    <p class="post-card-summary">{{ . | plainify | truncate 200 }}</p>
+    {{ end }}
+    {{ end }}
+  </div>
+</article>

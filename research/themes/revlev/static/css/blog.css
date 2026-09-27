@@ -158,12 +158,35 @@ a:hover {
 }
 
 .post-card {
+  display: grid;
+  grid-template-columns: minmax(0, 9.5rem) minmax(0, 1fr);
+  gap: var(--sp-md);
+  align-items: start;
   padding-bottom: var(--sp-lg);
   border-bottom: 1px solid var(--mist);
 }
 
 .post-card:last-child {
   border-bottom: none;
+}
+
+.post-card-media {
+  display: block;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--ash);
+  aspect-ratio: 16 / 10;
+}
+
+.post-card-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.post-card-body {
+  min-width: 0;
 }
 
 .post-date {
@@ -194,6 +217,16 @@ a:hover {
 .post-card-summary {
   margin: 0;
   color: var(--graphite);
+}
+
+@media (max-width: 640px) {
+  .post-card {
+    grid-template-columns: 1fr;
+  }
+
+  .post-card-media {
+    max-width: 100%;
+  }
 }
 
 .post-meta {
