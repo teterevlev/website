@@ -15,8 +15,8 @@
   </a>
   {{- end }}
   <div class="post-card-body">
-    <time class="post-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 Jan 2006" }}</time>
     <h2 class="post-card-title"><a href="{{ .RelPermalink }}">{{ .Title }}</a></h2>
+    <time class="post-date" datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 Jan 2006" }}</time>
     {{ with .Params.summary }}
     <p class="post-card-summary">{{ . | plainify | truncate 200 }}</p>
     {{ else }}
