@@ -5,6 +5,10 @@ draft: false
 summary: "Most extraction requests don't need a frontier model: a cheap one gets them right, and validators catch the rest. This article shows how to retry the same model with the error, then escalate to a stronger model that sees what went wrong, using a small Pydantic AI capability, pydantic-ai-escalation. It covers why the framework's built-in fallback doesn't fit, why counting failures correctly is harder than it looks, and two production traps the tests caught."
 ---
 
+# Cheap model first, stronger model when it matters: escalating on validation failure in Pydantic AI
+
+![A small robot hands a document up a staircase to larger robots](cover.png)
+
 Most requests in an extraction pipeline don't need a frontier model. A cheap model reads the invoice, pulls out the line items and the total, and gets it right. The interesting part is the rest: the answers where the lines don't add up to the total, the vendor isn't in the database, the date is in the future.
 
 Output validators catch those. The question is what happens next.
@@ -14,6 +18,8 @@ The policy I wanted is simple to state:
 1. Try the cheap model.
 2. If validation fails, let the same model retry, and show it the error.
 3. If it still fails, move to a stronger model, and show it what went wrong before.
+
+![Escalation policy: cheap model, retry with feedback, then a stronger model](1.png)
 
 Step 2 is cheap and fixes a surprising share of failures: a model told "the lines add up to 30, but the total is 99" usually corrects itself. Step 3 is what keeps the pipeline from failing on the inputs that are genuinely hard. Frontier pricing gets paid only for those.
 
@@ -31,6 +37,8 @@ Pydantic AI has two relevant tools.
 - Every retry is a new request, and `FallbackModel` starts each request from its first model. Combine it with `ModelRetry` and the run keeps retrying the cheapest model until the retry budget is spent, never reaching the stronger ones.
 
 Neither of these is a bug. `FallbackModel` is built for availability: the provider is down, try another one. What I needed is escalation for quality, and that's a different job.
+
+![Fallback for availability versus escalation for quality](2.png)
 
 ## A capability, not a model wrapper
 
@@ -64,6 +72,8 @@ agent = Agent(
 
 With these levels, a run makes at most five requests: two on the cheap model, two on the middle one, one on the strongest. It stops at the first answer that passes validation. The stronger models see every earlier attempt and its error, so they know what didn't work.
 
+![Five requests across three levels: two on gpt-4o-mini, two on gpt-5.6-terra, one on gpt-5.6-sol, with an output retry budget of 4](attempts.svg)
+
 The same configuration fits in a YAML agent spec, which means the escalation policy can be tuned without touching code:
 
 ```yaml
@@ -80,6 +90,8 @@ capabilities:
 ## "Count the failures" is harder than it sounds
 
 The whole capability rests on one number: how many times has output validation failed in this run? My first prototype counted every retry in the history. Tests showed it was wrong in three ways.
+
+![Sorting the message history: only this run's output failures count](3.png)
 
 **Tool retries aren't output failures.** An agent that calls tools gets retries from them too: a lookup found nothing, an argument was malformed. That says nothing about whether the model can produce a valid answer. Counting those would escalate tool-heavy agents for no reason, burning through the levels before the model had even tried to answer.
 
