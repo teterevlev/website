@@ -7,7 +7,7 @@ summary: "Most extraction requests don't need a frontier model: a cheap one gets
 
 # Cheap model first, stronger model when it matters: escalating on validation failure in Pydantic AI
 
-![A small robot hands a document up a staircase to larger robots](cover.png)
+![A small robot hands a document up a staircase to larger robots](cover.jpg)
 
 Most requests in an extraction pipeline don't need a frontier model. A cheap model reads the invoice, pulls out the line items and the total, and gets it right. The interesting part is the rest: the answers where the lines don't add up to the total, the vendor isn't in the database, the date is in the future.
 
@@ -19,7 +19,7 @@ The policy I wanted is simple to state:
 2. If validation fails, let the same model retry, and show it the error.
 3. If it still fails, move to a stronger model, and show it what went wrong before.
 
-![Escalation policy: cheap model, retry with feedback, then a stronger model](1.png)
+![Escalation policy: cheap model, retry with feedback, then a stronger model](1.jpg)
 
 Step 2 is cheap and fixes a surprising share of failures: a model told "the lines add up to 30, but the total is 99" usually corrects itself. Step 3 is what keeps the pipeline from failing on the inputs that are genuinely hard. Frontier pricing gets paid only for those.
 
@@ -38,7 +38,7 @@ Pydantic AI has two relevant tools.
 
 Neither of these is a bug. `FallbackModel` is built for availability: the provider is down, try another one. What I needed is escalation for quality, and that's a different job.
 
-![Fallback for availability versus escalation for quality](2.png)
+![Fallback for availability versus escalation for quality](2.jpg)
 
 ## A capability, not a model wrapper
 
@@ -91,7 +91,7 @@ capabilities:
 
 The whole capability rests on one number: how many times has output validation failed in this run? My first prototype counted every retry in the history. Tests showed it was wrong in three ways.
 
-![Sorting the message history: only this run's output failures count](3.png)
+![Sorting the message history: only this run's output failures count](3.jpg)
 
 **Tool retries aren't output failures.** An agent that calls tools gets retries from them too: a lookup found nothing, an argument was malformed. That says nothing about whether the model can produce a valid answer. Counting those would escalate tool-heavy agents for no reason, burning through the levels before the model had even tried to answer.
 
