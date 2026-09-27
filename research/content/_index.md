@@ -1,6 +1,6 @@
 ---
 title: "Research"
-description: "Notes on electronics, embedded systems, and software."
+description: "Notes on Robotics and AI"
 ---
 
-Notes on electronics, embedded systems, and software by Oleg Teterevlev.
+Notes on Robotics and AI by Oleg Teterevlev.
