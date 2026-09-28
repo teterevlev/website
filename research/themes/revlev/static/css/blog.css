@@ -52,7 +52,7 @@ body {
   font-size: var(--fs-base);
   line-height: 1.6;
   color: var(--ink);
-  background: var(--snow);
+  background: var(--blue-pale);
 }
 
 a {
@@ -65,14 +65,26 @@ a:hover {
   color: var(--blue);
 }
 
+.shell {
+  width: min(100%, calc(var(--content-max) + 2 * var(--content-pad-x)));
+  margin: 0 auto;
+  padding-left: var(--content-pad-x);
+  padding-right: var(--content-pad-x);
+}
+
 .site-header {
+  background: var(--white);
+  border-bottom: 1px solid var(--mist);
+  box-shadow: inset 0 -2px 0 var(--blue-light);
+}
+
+.site-header-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--sp-md);
-  width: min(100%, calc(var(--content-max) + 2 * var(--content-pad-x)));
-  margin: 0 auto;
-  padding: var(--sp-lg) var(--content-pad-x) var(--sp-md);
+  padding-top: var(--sp-lg);
+  padding-bottom: var(--sp-md);
 }
 
 .header-back,
@@ -104,17 +116,25 @@ a:hover {
 
 .site-main {
   flex: 1;
-  width: min(100%, calc(var(--content-max) + 2 * var(--content-pad-x)));
-  margin: 0 auto;
-  padding: var(--sp-md) var(--content-pad-x) var(--sp-xl);
+  box-sizing: border-box;
+  width: min(calc(100% - 1.5rem), calc(var(--content-max) + 2 * var(--content-pad-x)));
+  margin: var(--sp-md) auto var(--sp-lg);
+  padding: var(--sp-lg) var(--content-pad-x) var(--sp-xl);
+  background: var(--white);
+  border: 1px solid var(--mist);
+  border-radius: 12px;
 }
 
 .site-footer {
-  width: min(100%, calc(var(--content-max) + 2 * var(--content-pad-x)));
-  margin: 0 auto;
-  padding: var(--sp-lg) var(--content-pad-x) var(--sp-xl);
+  background: var(--white);
+  border-top: 1px solid var(--mist);
   font-size: var(--fs-sm);
   color: var(--slate);
+}
+
+.site-footer-inner {
+  padding-top: var(--sp-lg);
+  padding-bottom: var(--sp-xl);
 }
 
 .site-footer a {
@@ -131,7 +151,9 @@ a:hover {
 }
 
 .page-intro {
-  margin-bottom: var(--sp-xl);
+  margin-bottom: var(--sp-lg);
+  padding-bottom: var(--sp-lg);
+  border-bottom: 1px solid var(--mist);
 }
 
 .page-title {
@@ -154,7 +176,10 @@ a:hover {
 .post-list {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-lg);
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .post-card {
@@ -162,11 +187,16 @@ a:hover {
   grid-template-columns: 8.5rem minmax(0, 1fr);
   gap: var(--sp-md);
   align-items: start;
-  padding-bottom: var(--sp-lg);
+  padding: var(--sp-lg) 0;
   border-bottom: 1px solid var(--mist);
 }
 
+.post-card:first-child {
+  padding-top: 0;
+}
+
 .post-card:last-child {
+  padding-bottom: 0;
   border-bottom: none;
 }
 
@@ -251,6 +281,8 @@ a:hover {
 
 .post-header {
   margin-bottom: var(--sp-lg);
+  padding-bottom: var(--sp-lg);
+  border-bottom: 1px solid var(--mist);
 }
 
 .prose > *:first-child {
