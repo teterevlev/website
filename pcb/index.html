@@ -39,21 +39,34 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    "name": "PCB Portfolio",
-    "url": "https://pcb.revlev.org/",
-    "description": "PCB portfolio — custom electronics boards by Oleg Teterevlev.",
-    "inLanguage": "en",
-    "author": {
-      "@type": "Person",
-      "name": "Oleg Teterevlev",
-      "url": "https://revlev.org/"
-    },
-    "isPartOf": {
-      "@type": "WebSite",
-      "name": "Oleg Teterevlev",
-      "url": "https://revlev.org/"
-    }
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "name": "PCB Portfolio",
+        "url": "https://pcb.revlev.org/",
+        "description": "PCB portfolio — custom electronics boards by Oleg Teterevlev.",
+        "inLanguage": "en",
+        "author": { "@id": "https://revlev.org/#person" },
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "Oleg Teterevlev",
+          "url": "https://revlev.org/"
+        }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://revlev.org/#person",
+        "name": "Oleg Teterevlev",
+        "alternateName": "Олег Тетеревлёв",
+        "url": "https://revlev.org/",
+        "sameAs": [
+          "https://www.linkedin.com/in/teterevlev/",
+          "https://github.com/teterevlev",
+          "https://t.me/tech0marketing"
+        ],
+        "jobTitle": "Electronics and software engineer"
+      }
+    ]
   }
   </script>
 
@@ -79,7 +92,9 @@
     <!-- Global Social Links -->
     <div class="global-social-links" id="global-social-links">
       <a href="https://www.linkedin.com/in/teterevlev/" class="header-back" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      <a href="https://github.com/teterevlev" class="header-back" target="_blank" rel="noopener noreferrer">GitHub</a>
       <a href="https://t.me/tech0marketing" class="header-back" target="_blank" rel="noopener noreferrer">Telegram</a>
+      <a href="https://research.revlev.org/" class="header-back">Research</a>
     </div>
 
     <!-- Slides -->
@@ -216,9 +231,11 @@
         <div class="slide-inner">
           <div class="slide-text" style="grid-column: 1 / -1; align-self: center; height: auto; text-align: center; margin: 0 auto; padding: 0; display: flex; flex-direction: column; justify-content: center; align-items: center;">
             <h2 class="slide-title" style="margin-bottom: 2rem;"><a href="#more">Portfolio is being updated...</a></h2>
-            <div class="footer-links" style="display: flex; gap: 2rem; justify-content: center;">
+            <div class="footer-links" style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
               <a href="https://www.linkedin.com/in/teterevlev/" class="header-back" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              <a href="https://github.com/teterevlev" class="header-back" target="_blank" rel="noopener noreferrer">GitHub</a>
               <a href="https://t.me/tech0marketing" class="header-back" target="_blank" rel="noopener noreferrer">Telegram</a>
+              <a href="https://research.revlev.org/" class="header-back">Research</a>
             </div>
           </div>
         </div>

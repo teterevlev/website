@@ -40,21 +40,34 @@
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "Interactive architectural model",
-      "url": "https://model.revlev.org/",
-      "description": "An interactive architectural model helps buyers choose an apartment more clearly.",
-      "inLanguage": "en",
-      "author": {
-        "@type": "Person",
-        "name": "Oleg Teterevlev",
-        "url": "https://revlev.org/"
-      },
-      "isPartOf": {
-        "@type": "WebSite",
-        "name": "Oleg Teterevlev",
-        "url": "https://revlev.org/"
-      }
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": "Interactive architectural model",
+          "url": "https://model.revlev.org/",
+          "description": "An interactive architectural model helps buyers choose an apartment more clearly.",
+          "inLanguage": "en",
+          "author": { "@id": "https://revlev.org/#person" },
+          "isPartOf": {
+            "@type": "WebSite",
+            "name": "Oleg Teterevlev",
+            "url": "https://revlev.org/"
+          }
+        },
+        {
+          "@type": "Person",
+          "@id": "https://revlev.org/#person",
+          "name": "Oleg Teterevlev",
+          "alternateName": "Олег Тетеревлёв",
+          "url": "https://revlev.org/",
+          "sameAs": [
+            "https://www.linkedin.com/in/teterevlev/",
+            "https://github.com/teterevlev",
+            "https://t.me/tech0marketing"
+          ],
+          "jobTitle": "Electronics and software engineer"
+        }
+      ]
     }
     </script>
 
@@ -381,7 +394,7 @@
                         <span class="site-preview-body">
                             <span class="site-preview-title">revlev.org</span>
                             <span class="site-preview-desc">Custom electronics and complex software development.</span>
-                            <span class="site-preview-url">http://revlev.org</span>
+                            <span class="site-preview-url">https://revlev.org</span>
                         </span>
                     </a>
                 </div>

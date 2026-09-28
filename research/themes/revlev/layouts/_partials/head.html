@@ -83,6 +83,45 @@
 <meta name="twitter:description" content="{{ $desc }}">
 <meta name="twitter:image" content="{{ $ogURL }}">
 
+{{- $person := dict
+  "@type" "Person"
+  "@id" "https://revlev.org/#person"
+  "name" "Oleg Teterevlev"
+  "alternateName" "Олег Тетеревлёв"
+  "url" "https://revlev.org/"
+  "sameAs" (slice
+    "https://www.linkedin.com/in/teterevlev/"
+    "https://github.com/teterevlev"
+    "https://t.me/tech0marketing"
+  )
+  "jobTitle" "Electronics and software engineer"
+-}}
+{{- $pageLd := dict
+  "@type" (cond .IsPage "BlogPosting" "WebSite")
+  "name" $title
+  "url" .Permalink
+  "description" $desc
+  "inLanguage" "en"
+  "author" (dict "@id" "https://revlev.org/#person")
+  "isPartOf" (dict
+    "@type" "WebSite"
+    "name" "Oleg Teterevlev"
+    "url" "https://revlev.org/"
+  )
+-}}
+{{- if .IsPage -}}
+  {{- $pageLd = merge $pageLd (dict
+    "headline" $title
+    "datePublished" (.Date.Format "2006-01-02")
+    "dateModified" (.Lastmod.Format "2006-01-02")
+  ) -}}
+{{- end -}}
+{{- $ld := dict
+  "@context" "https://schema.org"
+  "@graph" (slice $pageLd $person)
+-}}
+<script type="application/ld+json">{{ $ld | jsonify | safeJS }}</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
