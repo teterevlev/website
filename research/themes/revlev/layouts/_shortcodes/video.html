@@ -1,0 +1,17 @@
+{{- $src := .Get "src" -}}
+{{- $res := .Page.Resources.GetMatch $src -}}
+{{- if not $res -}}
+  {{- errorf "video shortcode: resource %q not found in %s" $src .Page.File.Path -}}
+{{- end -}}
+<video
+  class="prose-video"
+  src="{{ $res.RelPermalink }}"
+  autoplay
+  muted
+  loop
+  playsinline
+  disablepictureinpicture
+  disableremoteplayback
+  preload="metadata"
+></video>
+{{- /* muted is required for reliable autoplay; pointer-events:none blocks context menu */ -}}

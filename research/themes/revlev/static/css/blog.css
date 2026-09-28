@@ -354,6 +354,16 @@ a:hover {
   border-radius: 8px;
 }
 
+.prose-video {
+  display: block;
+  max-width: min(100%, 720px);
+  width: auto;
+  height: auto;
+  border-radius: 8px;
+  background: var(--ash);
+  pointer-events: none;
+}
+
 .prose hr {
   margin: 2em 0;
   border: none;

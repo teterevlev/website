@@ -18,7 +18,7 @@ The policy I wanted is simple to state:
 2. If validation fails, let the same model retry, and show it the error.
 3. If it still fails, move to a stronger model, and show it what went wrong before.
 
-![Escalation policy: cheap model, retry with feedback, then a stronger model](1.jpg)
+{{< video src="escalation-site.mp4" >}}
 
 Step 2 is cheap and fixes a surprising share of failures: a model told "the lines add up to 30, but the total is 99" usually corrects itself. Step 3 is what keeps the pipeline from failing on the inputs that are genuinely hard. Frontier pricing gets paid only for those.
 
