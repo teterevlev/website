@@ -444,8 +444,9 @@ a {
   transform: scale(1.012);
 }
 
-/* Last slide: title centered in left column, device shadow on the right */
+/* Last slide: title centered left, shadow lower (~30% from bottom), links full-width below */
 .slide-inner--more {
+  grid-template-rows: 1fr auto;
   align-items: stretch;
 }
 
@@ -466,8 +467,31 @@ a {
 #more .slide-image {
   grid-column: 2;
   grid-row: 1;
-  align-self: center;
+  align-self: end;
   margin-top: 0;
+  margin-bottom: 30%;
+}
+
+.slide-more-links {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 1.5rem 0 0.5rem;
+}
+
+.slide-more-links a {
+  font-size: var(--fs-sm);
+  font-weight: 450;
+  color: var(--slate);
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.slide-more-links a:hover {
+  color: var(--ink);
 }
 
 /* Shadow asset — 0.webp is already the shadow silhouette */
@@ -884,12 +908,14 @@ a {
 
   #more .slide-inner--more {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 33vh) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 28vh) minmax(0, 1fr) auto;
   }
 
   #more .slide-image {
     grid-column: 1;
     grid-row: 1;
+    align-self: end;
+    margin-bottom: 0;
   }
 
   #more .slide-text {
@@ -897,6 +923,13 @@ a {
     grid-row: 2;
     text-align: center;
     align-items: center;
+  }
+
+  #more .slide-more-links {
+    grid-column: 1;
+    grid-row: 3;
+    gap: 1.25rem;
+    padding-top: 1rem;
   }
 }
 
