@@ -89,14 +89,6 @@
       <div class="header-counter"><span id="counter-current">1</span> / <span id="counter-total">9</span></div>
     </header>
 
-    <!-- Global Social Links -->
-    <div class="global-social-links" id="global-social-links">
-      <a href="https://www.linkedin.com/in/teterevlev/" class="header-back" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-      <a href="https://github.com/teterevlev" class="header-back" target="_blank" rel="noopener noreferrer">GitHub</a>
-      <a href="https://t.me/tech0marketing" class="header-back" target="_blank" rel="noopener noreferrer">Telegram</a>
-      <a href="https://research.revlev.org/" class="header-back">Research</a>
-    </div>
-
     <!-- Slides -->
     <div class="slides-container" id="slides-container">
 
@@ -228,16 +220,19 @@
 
       <!-- Slide 10 -->
       <article class="slide" id="more">
-        <div class="slide-inner">
-          <div class="slide-text" style="grid-column: 1 / -1; align-self: center; height: auto; text-align: center; margin: 0 auto; padding: 0; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-            <h2 class="slide-title" style="margin-bottom: 2rem;"><a href="#more">Portfolio is being updated...</a></h2>
-            <div class="footer-links" style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
-              <a href="https://www.linkedin.com/in/teterevlev/" class="header-back" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-              <a href="https://github.com/teterevlev" class="header-back" target="_blank" rel="noopener noreferrer">GitHub</a>
-              <a href="https://t.me/tech0marketing" class="header-back" target="_blank" rel="noopener noreferrer">Telegram</a>
-              <a href="https://research.revlev.org/" class="header-back">Research</a>
-            </div>
+        <div class="slide-inner slide-inner--more">
+          <div class="slide-text">
+            <h2 class="slide-title"><a href="#more">Portfolio is being updated...</a></h2>
           </div>
+          <div class="slide-image">
+            <img class="slide-device-shadow" src="img/0.webp" alt="" draggable="false" aria-hidden="true">
+          </div>
+          <nav class="slide-more-links" aria-label="Links">
+            <a href="https://www.linkedin.com/in/teterevlev/" class="header-back" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a href="https://github.com/teterevlev" class="header-back" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="https://t.me/tech0marketing" class="header-back" target="_blank" rel="noopener noreferrer">Telegram</a>
+            <a href="https://research.revlev.org/" class="header-back">Research</a>
+          </nav>
         </div>
       </article>
 
@@ -287,7 +282,6 @@
       const btnNext   = document.getElementById('arrow-next');
       
       document.getElementById('counter-total').textContent = TOTAL - 1; // 9 boards
-      const globalSocial = document.getElementById('global-social-links');
 
       /* ---- Update UI (dots, counter, arrows, hash) ---- */
       function syncHash(index) {
@@ -307,7 +301,6 @@
       function updateUI(index) {
         current = index;
         document.getElementById('counter-current').textContent = (index + 1);
-        globalSocial.style.display = (index === TOTAL - 1) ? 'none' : 'flex';
         
         dots.forEach(function (d, i) {
           d.classList.toggle('active', i === index);
