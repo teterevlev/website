@@ -1,5 +1,7 @@
 /* Design tokens — aligned with revlev.org */
-:root {
+:root,
+[data-theme="light"] {
+  color-scheme: light;
   --white: #FFFFFF;
   --snow: #FAFBFC;
   --ash: #F2F3F5;
@@ -29,6 +31,23 @@
   --sp-xl: 3.5rem;
   --content-max: 40rem;
   --content-pad-x: clamp(1.25rem, 4vw, 2rem);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --white: #14171c;
+  --snow: #1a1d23;
+  --ash: #242830;
+  --mist: #2e333c;
+  --smoke: #5c6370;
+  --slate: #9aa0a8;
+  --graphite: #c4c8cf;
+  --ink: #f2f3f5;
+  --blue-pale: #0f1218;
+  --blue-light: #3d4f8c;
+  --blue: #7b93f8;
+  --blue-deep: #a8b8fc;
+  --blue-ink: #c5d0ff;
 }
 
 *,
@@ -112,6 +131,50 @@ a:hover {
 .header-nav {
   display: flex;
   gap: var(--sp-md);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--mist);
+  border-radius: 8px;
+  background: var(--snow);
+  color: var(--graphite);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.theme-toggle:hover {
+  color: var(--ink);
+  border-color: var(--smoke);
+}
+
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.theme-icon {
+  display: none;
+}
+
+[data-theme="light"] .theme-icon-moon,
+:root:not([data-theme]) .theme-icon-moon {
+  display: block;
+}
+
+[data-theme="dark"] .theme-icon-sun {
+  display: block;
 }
 
 .site-main {
@@ -323,8 +386,8 @@ a:hover {
   font-size: 0.9em;
   padding: 0.1em 0.35em;
   border-radius: 4px;
-  background: var(--ash);
-  color: var(--ink);
+  background: color-mix(in srgb, var(--blue) 14%, var(--ash));
+  color: var(--blue-deep);
 }
 
 .prose pre {
@@ -339,6 +402,7 @@ a:hover {
 .prose pre code {
   padding: 0;
   background: transparent;
+  color: var(--blue-deep);
 }
 
 .prose blockquote {
@@ -377,5 +441,9 @@ a:hover {
 @media (max-width: 640px) {
   .header-nav {
     display: none;
+  }
+
+  .header-actions {
+    gap: 0;
   }
 }
