@@ -5,10 +5,24 @@
 | Путь в репо | Хост(ы) |
 |-------------|---------|
 | `revlev.ru/` | `revlev.org` |
-| `maket/` | `model.revlev.org`, `maket.revlev.org` (canonical → model; 301 между хостами — Redirect Rules в Cloudflare). Intro: `maket/intro/` + `maket/img/intro/` — см. `maket/INTRO.md` |
+| `maket/` | `model.revlev.org` (canonical). Хост `maket.revlev.org` → **301** на model (см. ниже). Intro: `maket/intro/` + `maket/img/intro/` — см. `maket/INTRO.md` |
 | `pcb/` | `pcb.revlev.org` |
 | `research/` | `research.revlev.org` (Cloudflare Pages, Hugo; см. `research/README.md`) |
 | `feedback/` | Cloudflare Worker → Telegram |
+
+### 301: `maket.revlev.org` → `model.revlev.org` (не удалять)
+
+Канонический хост макета — **`model.revlev.org`**. Старый **`maket.revlev.org`** должен всегда отдавать **301** на тот же путь на model.
+
+| Что | Значение |
+|-----|----------|
+| Где | Cloudflare Dashboard → **Rules** → **Redirect Rules** |
+| Фаза | `http_request_dynamic_redirect` |
+| From | `https://maket.revlev.org/*` |
+| To | `https://model.revlev.org/$1` |
+| Status | **301** |
+
+Canonical / `og:url` / sitemap в `maket/` указывают на **model.revlev.org**. Правило редиректа — в Cloudflare (не в репо); при чистке DNS/Workers/доменов **не снимать**.
 
 ### Research (Hugo → Pages)
 

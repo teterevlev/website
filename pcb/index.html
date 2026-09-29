@@ -62,7 +62,7 @@
         "sameAs": [
           "https://www.linkedin.com/in/teterevlev/",
           "https://github.com/teterevlev",
-          "https://t.me/tech0marketing"
+          "https://t.me/oleg_teterevlev"
         ],
         "jobTitle": "Electronics and software engineer"
       }
@@ -83,10 +83,24 @@
   <div class="content-layer">
 
     <!-- Header -->
-    <header class="site-header">
-      <a href="https://revlev.org/" class="header-back">Oleg Teterevlev</a>
-      <div class="header-title">PCB Portfolio</div>
-      <div class="header-counter"><span id="counter-current">1</span> / <span id="counter-total">9</span></div>
+    <header class="site-header" id="site-header">
+      <div class="site-header-inner">
+        <a href="https://revlev.org/" class="header-back">Oleg Teterevlev</a>
+        <div class="header-title">PCB Portfolio</div>
+        <div class="header-actions">
+          <div class="header-counter"><span id="counter-current">1</span> / <span id="counter-total">9</span></div>
+          <button type="button" class="header-burger" id="header-burger" aria-label="Open menu" aria-expanded="false" aria-controls="header-nav">
+            <span class="burger-line" aria-hidden="true"></span>
+            <span class="burger-line" aria-hidden="true"></span>
+            <span class="burger-line" aria-hidden="true"></span>
+          </button>
+          <nav class="header-nav" id="header-nav" aria-label="Social">
+            <a class="header-link" href="https://www.linkedin.com/in/teterevlev/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            <a class="header-link" href="https://github.com/teterevlev" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a class="header-link" href="https://t.me/oleg_teterevlev" target="_blank" rel="noopener noreferrer">Telegram</a>
+          </nav>
+        </div>
+      </div>
     </header>
 
     <!-- Slides -->
@@ -227,12 +241,6 @@
           <div class="slide-image">
             <img class="slide-device-shadow" src="img/0.webp" alt="" draggable="false" aria-hidden="true">
           </div>
-          <nav class="slide-more-links" aria-label="Links">
-            <a href="https://www.linkedin.com/in/teterevlev/" class="header-back" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            <a href="https://github.com/teterevlev" class="header-back" target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a href="https://t.me/tech0marketing" class="header-back" target="_blank" rel="noopener noreferrer">Telegram</a>
-            <a href="https://research.revlev.org/" class="header-back">Research</a>
-          </nav>
         </div>
       </article>
 
@@ -280,8 +288,29 @@
       const counter   = document.getElementById('slide-counter');
       const btnPrev   = document.getElementById('arrow-prev');
       const btnNext   = document.getElementById('arrow-next');
-      
+      const header    = document.getElementById('site-header');
+      const burger    = document.getElementById('header-burger');
+
       document.getElementById('counter-total').textContent = TOTAL - 1; // 9 boards
+
+      /* ---- Mobile burger ---- */
+      function closeNav() {
+        if (!header || !burger) return;
+        header.classList.remove('nav-open');
+        burger.setAttribute('aria-expanded', 'false');
+        burger.setAttribute('aria-label', 'Open menu');
+      }
+
+      if (burger && header) {
+        burger.addEventListener('click', function () {
+          var open = header.classList.toggle('nav-open');
+          burger.setAttribute('aria-expanded', open ? 'true' : 'false');
+          burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        });
+        header.querySelectorAll('.header-nav a').forEach(function (link) {
+          link.addEventListener('click', closeNav);
+        });
+      }
 
       /* ---- Update UI (dots, counter, arrows, hash) ---- */
       function syncHash(index) {
@@ -301,6 +330,7 @@
       function updateUI(index) {
         current = index;
         document.getElementById('counter-current').textContent = (index + 1);
+        closeNav();
         
         dots.forEach(function (d, i) {
           d.classList.toggle('active', i === index);

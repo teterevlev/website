@@ -31,6 +31,7 @@
 
   --content-max: 1440px;
   --content-pad-x: 3rem;
+  --header-h: 3.5rem;
 }
 
 
@@ -123,65 +124,124 @@ a {
 
 
 /* ============================================================
-   HEADER / NAV
+   HEADER / NAV — fixed bar like research (no dark theme)
    ============================================================ */
 .site-header {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   right: 0;
   z-index: 30;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: min(100%, calc(var(--content-max) + 2 * var(--content-pad-x)));
-  margin-inline: auto;
-  padding: 1.5rem var(--content-pad-x);
-  background: transparent;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--white);
+  border-bottom: 1px solid var(--mist);
+  box-shadow: inset 0 -2px 0 var(--blue-light);
   pointer-events: auto;
   opacity: 0;
   transform: translateY(-12px);
   animation: fade-down 0.8s var(--ease-out) 0.15s forwards;
 }
 
-.site-header .header-back,
-.site-header .header-title,
-.site-header .header-counter {
-  text-shadow:
-    0 0 10px #fff,
-    0 0 4px #fff,
-    0 1px 2px #fff;
+.site-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem;
+  width: min(100%, calc(var(--content-max) + 2 * var(--content-pad-x)));
+  margin-inline: auto;
+  padding: 0.85rem var(--content-pad-x);
+  min-height: var(--header-h);
 }
 
-.header-back {
-  font-size: var(--fs-sm);
-  font-weight: 450;
-  color: var(--slate);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  border-bottom: 1px solid transparent;
-  padding-bottom: 2px;
-  transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease);
-}
-
-.header-back:hover {
-  color: var(--ink);
-  border-color: var(--ink);
-}
-
-.header-title {
-  font-family: "Russo One", sans-serif;
-  font-size: 1.05rem;
-  font-weight: 400;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-}
-
+.header-back,
+.header-title,
+.header-link,
 .header-counter {
   font-size: var(--fs-sm);
   font-weight: 450;
   color: var(--slate);
+  text-decoration: none;
+  transition: color var(--dur-fast) var(--ease);
+}
+
+.header-back:hover,
+.header-title:hover,
+.header-link:hover {
+  color: var(--ink);
+}
+
+.header-title {
+  font-family: "Russo One", sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.header-burger {
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--mist);
+  border-radius: 8px;
+  background: var(--snow);
+  color: var(--graphite);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease);
+}
+
+.header-burger:hover {
+  color: var(--ink);
+  border-color: var(--smoke);
+}
+
+.header-burger:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.burger-line {
+  display: block;
+  width: 14px;
+  height: 1.5px;
+  background: currentColor;
+  border-radius: 1px;
+  transition: transform var(--dur-fast) var(--ease), opacity var(--dur-fast) var(--ease);
+}
+
+.site-header.nav-open .burger-line:nth-child(1) {
+  transform: translateY(6.5px) rotate(45deg);
+}
+
+.site-header.nav-open .burger-line:nth-child(2) {
+  opacity: 0;
+}
+
+.site-header.nav-open .burger-line:nth-child(3) {
+  transform: translateY(-6.5px) rotate(-45deg);
+}
+
+.header-counter {
   letter-spacing: 0.04em;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
   min-width: 3.5rem;
   text-align: right;
@@ -230,8 +290,8 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem var(--content-pad-x);
-  /* consistent padding around the slide */
+  padding: calc(var(--header-h) + 0.75rem) var(--content-pad-x) 2rem;
+  /* consistent padding around the slide; top clears fixed header */
 }
 
 /* Layout: text left-center, image right-bottom */
@@ -384,9 +444,8 @@ a {
   transform: scale(1.012);
 }
 
-/* Last slide: title centered in left column, full-width links below, device shadow on the right */
+/* Last slide: title centered in left column, device shadow on the right */
 .slide-inner--more {
-  grid-template-rows: 1fr auto;
   align-items: stretch;
 }
 
@@ -409,21 +468,6 @@ a {
   grid-row: 1;
   align-self: center;
   margin-top: 0;
-}
-
-.slide-more-links {
-  grid-column: 1 / -1;
-  grid-row: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 2rem;
-  padding: 1.5rem 0 0.5rem;
-}
-
-.slide-more-links .header-back {
-  font-size: var(--fs-sm);
 }
 
 /* Shadow asset — 0.webp is already the shadow silhouette */
@@ -657,12 +701,12 @@ a {
    MOBILE LANDSCAPE — compact side-by-side
    ============================================================ */
 @media (max-height: 540px) and (orientation: landscape) {
-  .site-header {
-    padding: 0.75rem 1.5rem;
+  .site-header-inner {
+    padding: 0.5rem 1.5rem;
   }
 
   .slide {
-    padding: 0 1.5rem 1rem;
+    padding: calc(var(--header-h) + 0.25rem) 1.5rem 1rem;
   }
 
   .slide-inner {
@@ -715,15 +759,60 @@ a {
 /* ============================================================
    MOBILE PORTRAIT — image top third, text below
    ============================================================ */
-@media (max-width: 700px) and (orientation: portrait) {
-  .site-header {
+/* ============================================================
+   MOBILE — burger menu (any orientation)
+   ============================================================ */
+@media (max-width: 700px) {
+  .site-header-inner {
     width: 100%;
-    padding: 1.1rem 1.25rem;
-    background: transparent;
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
   }
 
+  .header-burger {
+    display: inline-flex;
+  }
+
+  .header-nav {
+    display: none;
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 0.5rem 1.25rem 1rem;
+    background: var(--white);
+    border-bottom: 1px solid var(--mist);
+    box-shadow: 0 8px 24px rgba(26, 29, 35, 0.06);
+  }
+
+  .site-header.nav-open .header-nav {
+    display: flex;
+  }
+
+  .header-nav .header-link {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--mist);
+  }
+
+  .header-nav .header-link:last-child {
+    border-bottom: none;
+  }
+
+  .header-actions {
+    gap: 0.75rem;
+  }
+}
+
+
+/* ============================================================
+   MOBILE PORTRAIT — image top third, text below
+   ============================================================ */
+@media (max-width: 700px) and (orientation: portrait) {
   .slide {
-    padding: 3.25rem 1.25rem 1rem; /* top: room under transparent header */
+    padding: calc(var(--header-h) + 0.5rem) 1.25rem 1rem; /* top: room under fixed header */
     align-items: stretch;
   }
 
@@ -795,7 +884,7 @@ a {
 
   #more .slide-inner--more {
     grid-template-columns: 1fr;
-    grid-template-rows: minmax(0, 28vh) minmax(0, 1fr) auto;
+    grid-template-rows: minmax(0, 33vh) minmax(0, 1fr);
   }
 
   #more .slide-image {
@@ -808,11 +897,6 @@ a {
     grid-row: 2;
     text-align: center;
     align-items: center;
-  }
-
-  #more .slide-more-links {
-    grid-column: 1;
-    grid-row: 3;
   }
 }
 
