@@ -6,7 +6,7 @@ image: cover.jpg
 summary: "Most extraction requests don't need a frontier model: a cheap one gets them right, and validators catch the rest. This article shows how to retry the same model with the error, then escalate to a stronger model that sees what went wrong, using a small Pydantic AI capability, pydantic-ai-escalation. It covers why the framework's built-in fallback doesn't fit, why counting failures correctly is harder than it looks, and two production traps the tests caught."
 ---
 
-![A small robot hands a document up a staircase to larger robots](cover.jpg)
+{{< theme-cover light="cover.jpg" dark="cover-dark.jpg" alt="A small robot hands a document up a staircase to larger robots" >}}
 
 Most requests in an extraction pipeline don't need a frontier model. A cheap model reads the invoice, pulls out the line items and the total, and gets it right. The interesting part is the rest: the answers where the lines don't add up to the total, the vendor isn't in the database, the date is in the future.
 

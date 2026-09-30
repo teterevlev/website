@@ -1,0 +1,15 @@
+{{- $lightName := .Get "light" | default "cover.jpg" -}}
+{{- $darkName := .Get "dark" | default "cover-dark.jpg" -}}
+{{- $alt := .Get "alt" | default "" -}}
+{{- $light := .Page.Resources.GetMatch $lightName -}}
+{{- $dark := .Page.Resources.GetMatch $darkName -}}
+{{- if or $light $dark -}}
+<figure class="theme-cover">
+  {{- with $light -}}
+  <img class="theme-cover-light{{ if $dark }} has-dark{{ end }}" src="{{ .RelPermalink }}" alt="{{ $alt }}" width="{{ .Width }}" height="{{ .Height }}" loading="eager" decoding="async">
+  {{- end -}}
+  {{- with $dark -}}
+  <img class="theme-cover-dark" src="{{ .RelPermalink }}" alt="{{ $alt }}" width="{{ .Width }}" height="{{ .Height }}" loading="eager" decoding="async">
+  {{- end -}}
+</figure>
+{{- end -}}

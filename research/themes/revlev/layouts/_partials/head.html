@@ -54,7 +54,10 @@
     {{- $ogRes = $.Resources.GetMatch . -}}
   {{- end -}}
   {{- if not $ogRes -}}
-    {{- $ogRes = .Resources.GetMatch "{cover*,Cover*,thumbnail*,Thumbnail*}" -}}
+    {{- $ogRes = .Resources.GetMatch "{cover.jpg,Cover.jpg,cover.png,Cover.png,cover.webp,Cover.webp}" -}}
+  {{- end -}}
+  {{- if not $ogRes -}}
+    {{- $ogRes = .Resources.GetMatch "{thumbnail*,Thumbnail*}" -}}
   {{- end -}}
 {{- end -}}
 {{- /* Social crawlers reject SVG — fall back to site default */ -}}

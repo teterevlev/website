@@ -1,17 +1,27 @@
-{{- $img := false -}}
+{{- $imgLight := false -}}
+{{- $imgDark := false -}}
 {{- with .Params.image -}}
-  {{- $img = $.Resources.GetMatch . -}}
-  {{- if not $img -}}
-    {{- $img = resources.Get . -}}
+  {{- $imgLight = $.Resources.GetMatch . -}}
+  {{- if not $imgLight -}}
+    {{- $imgLight = resources.Get . -}}
   {{- end -}}
 {{- end -}}
-{{- if not $img -}}
-  {{- $img = .Resources.GetMatch "{cover*,Cover*,thumbnail*,Thumbnail*}" -}}
+{{- if not $imgLight -}}
+  {{- $imgLight = .Resources.GetMatch "{cover.jpg,Cover.jpg,cover.png,Cover.png,cover.webp,Cover.webp}" -}}
 {{- end -}}
+{{- if not $imgLight -}}
+  {{- $imgLight = .Resources.GetMatch "{thumbnail*,Thumbnail*}" -}}
+{{- end -}}
+{{- $imgDark = .Resources.GetMatch "{cover-dark*,Cover-dark*}" -}}
 <article class="post-card">
-  {{- with $img }}
+  {{- if or $imgLight $imgDark }}
   <a class="post-card-media" href="{{ $.RelPermalink }}" tabindex="-1" aria-hidden="true">
-    <img src="{{ .RelPermalink }}" alt="" loading="lazy" decoding="async">
+    {{- with $imgLight -}}
+    <img class="theme-cover-light{{ if $imgDark }} has-dark{{ end }}" src="{{ .RelPermalink }}" alt="" loading="lazy" decoding="async" width="{{ .Width }}" height="{{ .Height }}">
+    {{- end -}}
+    {{- with $imgDark -}}
+    <img class="theme-cover-dark" src="{{ .RelPermalink }}" alt="" loading="lazy" decoding="async" width="{{ .Width }}" height="{{ .Height }}">
+    {{- end -}}
   </a>
   {{- end }}
   <div class="post-card-body">

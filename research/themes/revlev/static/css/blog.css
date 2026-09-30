@@ -286,21 +286,62 @@ a:hover {
 
 .post-card-media {
   display: block;
+  position: relative;
   width: 8.5rem;
   max-width: 100%;
   overflow: hidden;
   border-radius: 8px;
   background: var(--ash);
-  aspect-ratio: 3 / 2;
   flex-shrink: 0;
+  align-self: start;
 }
 
 .post-card-media img {
   display: block;
   width: 100%;
-  height: 100%;
+  height: auto;
   max-width: 100%;
-  object-fit: cover;
+}
+
+.post-card-media .theme-cover-light.has-dark,
+.post-card-media .theme-cover-dark {
+  position: static;
+}
+
+.theme-cover-dark {
+  display: none;
+}
+
+[data-theme="dark"] .theme-cover-light.has-dark {
+  display: none;
+}
+
+[data-theme="dark"] .theme-cover-dark {
+  display: block;
+}
+
+.theme-cover {
+  margin: 0 0 1.25em;
+}
+
+.theme-cover img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+.theme-cover .theme-cover-dark {
+  display: none;
+}
+
+[data-theme="dark"] .theme-cover .theme-cover-light.has-dark {
+  display: none;
+}
+
+[data-theme="dark"] .theme-cover .theme-cover-dark {
+  display: block;
 }
 
 .post-card-body {
