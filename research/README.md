@@ -32,19 +32,31 @@ Stop with `Ctrl+C`.
 
 ## Add a post from your existing `.md` file
 
-1. Copy your file into `content/posts/`. Name it with a short slug, e.g. `content/posts/my-topic.md`.
-2. Put this block **at the very top** of the file (front matter). Then leave a blank line and your Markdown:
+Prefer a **page bundle** (folder with `index.md` + assets):
+
+```
+content/posts/my-topic/
+  index.md
+  cover.jpg          ← light theme
+  cover-dark.jpg     ← dark theme (optional)
+  fig1.svg           ← optional figures
+  demo.mp4           ← optional video
+```
+
+1. Create the folder and put Markdown in `index.md`.
+2. Front matter at the **very top**, then a blank line, then content:
 
 ```yaml
 ---
 title: "My article title"
 date: 2026-09-27
 draft: false
+image: cover.jpg
 summary: "One sentence for the list on the home page."
 ---
 ```
 
-3. Under that — your normal Markdown (headings, lists, code, images).
+3. Under that — normal Markdown (headings, lists, code, images).
 
 ### Front matter cheat sheet
 
@@ -55,13 +67,109 @@ summary: "One sentence for the list on the home page."
 | `draft: true` | Hidden on production build; visible with `hugo server -D` |
 | `draft: false` | Published |
 | `summary` | Short blurb on the home page |
+| `image` | Cover file in the bundle (usually `cover.jpg`) — used for OG and cards |
 
-### Images in a post
+### Covers (light / dark)
 
-Put images next to the post in a folder, or under `static/`:
+Put both files in the page bundle:
 
-- File `static/img/photo.jpg` → in Markdown: `![alt](/img/photo.jpg)`
-- Or a “page bundle”: folder `content/posts/my-topic/index.md` + `photo.jpg` → `![alt](photo.jpg)`
+| File | Theme |
+|------|--------|
+| `cover.jpg` | Light |
+| `cover-dark.jpg` | Dark (optional; if missing, light cover is used) |
+
+At the top of the article body:
+
+````markdown
+{{< theme-cover light="cover.jpg" dark="cover-dark.jpg" alt="Short description" >}}
+````
+
+The home card and the article switch covers via `[data-theme]`. Do **not** crop covers to 1200×630 for display — keep the full frame. OG still uses `cover.jpg` (light).
+
+### External links → footnotes (not a “References” list)
+
+Do **not** use bare URLs or a numbered `## References` block with `<https://...>`.
+
+Use Hugo/Goldmark footnotes with a **named link**, same as the ROS safety post:
+
+In the text:
+
+```markdown
+I use Pydantic AI[^pydantic-ai], and the package is on PyPI[^pypi].
+```
+
+At the end of the file (after the last section):
+
+```markdown
+[^pydantic-ai]: [Pydantic AI](https://ai.pydantic.dev/) — documentation.
+[^pypi]: [`pydantic-ai-escalation`](https://pypi.org/project/pydantic-ai-escalation/) on PyPI.
+```
+
+Hugo renders superscript numbers in the body and a footnotes list at the bottom with titled links.
+
+External `http`/`https` links (including those inside footnotes) automatically get `target="_blank"` `rel="noopener noreferrer"` and a small external-link SVG icon (same as OPEN SOURCE on the home page). Relative/internal links stay normal. No extra markup needed — write a normal Markdown link:
+
+```markdown
+[Pydantic AI](https://ai.pydantic.dev/)
+[About](/about/)
+```
+
+### SVG figures (theme-aware)
+
+Inline SVG from the page bundle so fill/stroke pick up CSS variables (light/dark):
+
+````markdown
+{{< figure-svg src="fig1-safety-tree.svg" caption="Optional caption." >}}
+````
+
+### Video
+
+Page-bundle video with muted autoplay loop:
+
+````markdown
+{{< video src="demo.mp4" >}}
+````
+
+### Tables → cards
+
+Markdown tables are rendered as stacked cards (first column = title, other columns keep their headers as labels). Prefer a clear first column name (`Node`, `Trigger`, `` `on_configure` ``). Don’t rely on wide multi-column tables fitting the reading width.
+
+### Interactive demos (inline HTML, not iframe)
+
+Put a fragment in the page bundle as `*.html.txt` (Hugo’s security policy blocks `text/html` page resources). Embed with:
+
+````markdown
+{{< demo src="safe-stop-demo.html.txt" >}}
+````
+
+Used in *When cutting power isn't safe* for `safe-stop-demo.html.txt` and `graded-stop-demo.html.txt`. Demos follow `[data-theme]` from the site chrome (no iframe).
+
+**“try it” marker.** Every interactive demo root (`.ssd` inside `.article-demo`) should include the shared badge as the first child:
+
+```html
+<figure class="ssd" …>
+  <span class="ssd-tryit" aria-hidden="true">
+    <svg class="ssd-tryit-ico" …>…</svg>
+    <span class="ssd-tryit-txt">try it</span>
+  </span>
+  …
+</figure>
+```
+
+Styles live in `themes/revlev/static/css/blog.css` (not in the demo fragment):
+
+| State | Behaviour |
+| --- | --- |
+| Idle | Blue pill + soft pulse; demo has a blue border |
+| Hover / focus inside the demo | Border returns to the normal mist stroke; badge collapses to the hand icon only (label slides away, icon stays put) |
+| Hover the badge itself | Label expands again |
+| `.ssd-btn` present | Stronger pulse (choice / action moment) |
+
+Copy the badge markup from an existing demo; don’t re-style it per fragment.
+
+### Other images in a post
+
+Same bundle: `![alt](photo.jpg)`. Or under `static/`: `![alt](/img/photo.jpg)`.
 
 ## Publish
 
@@ -93,13 +201,17 @@ Output is in `research/public/` (gitignored).
 ```
 research/
   content/
-    _index.md          ← home page text
+    _index.md          ← home page
+    about.md           ← /about/
     posts/
-      hello.md         ← example post
-      your-post.md     ← your articles go here
-  themes/revlev/       ← look & feel (you rarely edit this)
-  static/              ← favicon, og.jpg, shared images
-  hugo.toml            ← site settings
+      my-topic/        ← page bundle (preferred)
+        index.md
+        cover.jpg
+        cover-dark.jpg
+  data/author.yaml     ← author bento / about / cards
+  themes/revlev/       ← look & feel
+  static/              ← favicon, default og.jpg
+  hugo.toml
   README.md            ← this guide
 ```
 

@@ -22,7 +22,7 @@ The policy I wanted is simple to state:
 
 Step 2 is cheap and fixes a surprising share of failures: a model told "the lines add up to 30, but the total is 99" usually corrects itself. Step 3 is what keeps the pipeline from failing on the inputs that are genuinely hard. Frontier pricing gets paid only for those.
 
-I use Pydantic AI [1], and it turned out that this policy, as obvious as it sounds, can't be assembled from what the framework ships. So I built it as a small package: `pydantic-ai-escalation` [2]. This article is about why the existing pieces don't fit, the decisions behind the package, and the things tests taught me along the way.
+I use Pydantic AI[^pydantic-ai], and it turned out that this policy, as obvious as it sounds, can't be assembled from what the framework ships. So I built it as a small package: `pydantic-ai-escalation`[^pypi]. This article is about why the existing pieces don't fit, the decisions behind the package, and the things tests taught me along the way.
 
 ## Two mechanisms that each do half
 
@@ -96,7 +96,7 @@ The whole capability rests on one number: how many times has output validation f
 
 **Output retries can look exactly like tool retries.** With structured output, Pydantic AI asks the model to return its answer through a special output tool. A failed validation is then recorded as a retry of that tool, and in the history it's indistinguishable from a retry of a regular tool. The capability records the output tools' names and uses them to tell the two apart.
 
-There was a fourth problem waiting in the future. An approved change in Pydantic AI [3] replaces the class that records retries with new ones. Code that looks for the old class would find nothing after that release: the failure count would stay at zero, and escalation would silently turn off. Every request would go to the cheapest model and the pipeline would look like it works. The package recognizes both formats, so it keeps working through the change.
+There was a fourth problem waiting in the future. An approved change in Pydantic AI[^pr8094] replaces the class that records retries with new ones. Code that looks for the old class would find nothing after that release: the failure count would stay at zero, and escalation would silently turn off. Every request would go to the cheapest model and the pipeline would look like it works. The package recognizes both formats, so it keeps working through the change.
 
 ## The budget the capability can't set
 
@@ -120,9 +120,9 @@ That number is also the honest test of the idea. If the cheap model resolves mos
 
 ## What's next
 
-The package is published and works today: `pip install pydantic-ai-escalation`. The source, tests, and a document explaining every design decision are on GitHub [4].
+The package is published and works today: `pip install pydantic-ai-escalation`. The source, tests, and a document explaining every design decision are on GitHub[^repo].
 
-I've also proposed it for Pydantic AI Harness [5], the official capability library, in issue #1139 [6]. Building it surfaced two gaps in the framework's API that are worth discussing regardless of where the capability ends up. The model selector can't see how many output retries a run has used, so it has to reconstruct that from the history. And a capability can't declare the retry budget it needs.
+I've also proposed it for Pydantic AI Harness[^harness], the official capability library, in issue #1139[^issue1139]. Building it surfaced two gaps in the framework's API that are worth discussing regardless of where the capability ends up. The model selector can't see how many output retries a run has used, so it has to reconstruct that from the history. And a capability can't declare the retry budget it needs.
 
 ## The broader point
 
@@ -130,16 +130,9 @@ In an earlier post I argued that most tasks don't need the smartest model: they 
 
 The next question is what happens when a model, or a whole provider, isn't there at all. That's about safety margins, and it's the subject of the next article.
 
-## References
-
-[1] Pydantic AI. <https://ai.pydantic.dev/>
-
-[2] pydantic-ai-escalation (PyPI). <https://pypi.org/project/pydantic-ai-escalation/>
-
-[3] pydantic-ai pull request #8094. <https://github.com/pydantic/pydantic-ai/pull/8094>
-
-[4] teterevlev/pydantic-ai-escalation. <https://github.com/teterevlev/pydantic-ai-escalation>
-
-[5] Pydantic AI Harness. <https://github.com/pydantic/pydantic-ai-harness>
-
-[6] pydantic-ai-harness issue #1139. <https://github.com/pydantic/pydantic-ai-harness/issues/1139>
+[^pydantic-ai]: [Pydantic AI](https://ai.pydantic.dev/) — documentation.
+[^pypi]: [`pydantic-ai-escalation`](https://pypi.org/project/pydantic-ai-escalation/) on PyPI.
+[^pr8094]: [pydantic-ai pull request #8094](https://github.com/pydantic/pydantic-ai/pull/8094).
+[^repo]: [teterevlev/pydantic-ai-escalation](https://github.com/teterevlev/pydantic-ai-escalation) — source, tests, and design notes.
+[^harness]: [Pydantic AI Harness](https://github.com/pydantic/pydantic-ai-harness) — the official capability library.
+[^issue1139]: [pydantic-ai-harness issue #1139](https://github.com/pydantic/pydantic-ai-harness/issues/1139).

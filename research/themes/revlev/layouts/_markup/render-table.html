@@ -1,0 +1,28 @@
+{{- /*
+  Render Markdown tables as stacked cards (readable in a narrow reading column).
+  Col 1 = title; remaining columns keep header labels.
+*/ -}}
+{{- $headers := slice -}}
+{{- with index .THead 0 -}}
+  {{- range . -}}
+    {{- $headers = $headers | append .Text -}}
+  {{- end -}}
+{{- end -}}
+<div class="spec-cards">
+  {{- range .TBody -}}
+  <article class="spec-card">
+    {{- range $i, $cell := . -}}
+      {{- if eq $i 0 -}}
+    <h4 class="spec-card-title">{{ $cell.Text | safeHTML }}</h4>
+      {{- else -}}
+    <div class="spec-card-field">
+        {{- with index $headers $i -}}
+      <div class="spec-card-label">{{ . | safeHTML }}</div>
+        {{- end -}}
+      <div class="spec-card-value">{{ $cell.Text | safeHTML }}</div>
+    </div>
+      {{- end -}}
+    {{- end -}}
+  </article>
+  {{- end -}}
+</div>

@@ -15,9 +15,11 @@
   --blue: #4A6CF7;
   --blue-deep: #2A4AD4;
   --blue-ink: #1B2F80;
+  --red: #E5484D;
 
   --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-display: "Russo One", var(--font);
+  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --fs-xs: 0.75rem;
   --fs-sm: 0.8125rem;
   --fs-base: 1rem;
@@ -49,6 +51,7 @@
   --blue: #7b93f8;
   --blue-deep: #a8b8fc;
   --blue-ink: #c5d0ff;
+  --red: #F07A7A;
 }
 
 *,
@@ -308,18 +311,6 @@ a:hover {
   position: static;
 }
 
-.theme-cover-dark {
-  display: none;
-}
-
-[data-theme="dark"] .theme-cover-light.has-dark {
-  display: none;
-}
-
-[data-theme="dark"] .theme-cover-dark {
-  display: block;
-}
-
 .theme-cover {
   margin: 0 0 1.25em;
 }
@@ -332,15 +323,16 @@ a:hover {
   object-fit: contain;
 }
 
-.theme-cover .theme-cover-dark {
+/* Beat .post-card-media img / .theme-cover img so only one cover shows */
+img.theme-cover-dark {
   display: none;
 }
 
-[data-theme="dark"] .theme-cover .theme-cover-light.has-dark {
+[data-theme="dark"] img.theme-cover-light.has-dark {
   display: none;
 }
 
-[data-theme="dark"] .theme-cover .theme-cover-dark {
+[data-theme="dark"] img.theme-cover-dark {
   display: block;
 }
 
@@ -497,6 +489,61 @@ a:hover {
   border: none;
   border-top: 1px solid var(--mist);
 }
+
+/* Markdown tables → stacked cards (narrow column) */
+.spec-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1.5em 0;
+}
+
+.spec-card {
+  padding: 0.9rem 1rem;
+  background: var(--snow);
+  border: 1px solid var(--mist);
+  border-radius: 10px;
+}
+
+.spec-card-title {
+  margin: 0 0 0.5rem;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+}
+
+.spec-card-title code {
+  font-size: 0.92em;
+}
+
+.spec-card-field + .spec-card-field {
+  margin-top: 0.55rem;
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--mist);
+}
+
+.spec-card-label {
+  margin: 0 0 0.2rem;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+
+.spec-card-value {
+  margin: 0;
+  font-size: var(--fs-sm);
+  line-height: 1.5;
+  color: var(--graphite);
+}
+
+.spec-card-value code {
+  font-size: 0.92em;
+  color: var(--blue-deep);
+}
+
 
 .empty {
   color: var(--slate);
@@ -1124,5 +1171,255 @@ a:hover .ext-icon {
   .about-stack-row {
     grid-template-columns: 1fr;
     gap: 0.25rem;
+  }
+}
+
+/* ============================================================
+   ARTICLE FIGURES (inline SVG via the figure-svg shortcode)
+   Append to blog.css, or load after it.
+   ============================================================ */
+:root,
+[data-theme="light"] {
+  /* Alert red — the one colour the site palette lacks; tuned to sit next to --blue */
+  --alert: #D64545;
+  --alert-deep: #A8302F;
+  --alert-ink: #7A1F1F;
+  --alert-light: #F2BDBD;
+  --alert-pale: #FDEEEE;
+}
+
+[data-theme="dark"] {
+  --alert: #F07A7A;
+  --alert-deep: #F5A3A3;
+  --alert-ink: #FBCACA;
+  --alert-light: #5E2C30;
+  --alert-pale: #24151A;
+}
+
+.fig {
+  margin: 1.75em 0;
+  cursor: default;
+}
+
+.fig-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  cursor: default;
+}
+
+.fig-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  cursor: default;
+}
+
+.fig-svg *,
+.prose svg,
+.prose svg * {
+  cursor: default;
+}
+
+.fig figcaption {
+  margin-top: 0.6rem;
+  font-size: var(--fs-sm);
+  line-height: 1.45;
+  color: var(--slate);
+  text-align: center;
+}
+
+.article-demo {
+  margin: 1.75em 0;
+  display: flex;
+  justify-content: center;
+}
+
+.article-demo .ssd {
+  --ssd-w: min(100%, 50rem);
+  width: var(--ssd-w);
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  cursor: default;
+  border-color: var(--blue);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--blue) 28%, transparent);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.article-demo .ssd:hover,
+.article-demo .ssd:focus-within {
+  border-color: var(--mist);
+  box-shadow: none;
+}
+
+/* Shared “try it” hint for interactive demos (top-left of .ssd) */
+.ssd-tryit {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  height: 2.75rem;
+  padding: 0 1.15rem 0 0.72rem;
+  border-radius: 999px;
+  background: var(--blue);
+  color: #fff;
+  font: 600 1.05rem / 1 var(--font);
+  letter-spacing: 0.03em;
+  text-transform: lowercase;
+  white-space: nowrap;
+  pointer-events: auto;
+  cursor: pointer;
+  overflow: hidden;
+  transition: padding 0.55s ease;
+}
+
+/* Pulse ring on a layer so collapse never fights transform/shadow */
+.ssd-tryit::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--blue) 40%, transparent);
+  animation: ssd-tryit-pulse 2.4s ease-in-out infinite;
+}
+
+.ssd-tryit-ico {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  display: block;
+}
+
+.ssd-tryit-txt {
+  position: relative;
+  z-index: 1;
+  display: block;
+  max-width: 5.5rem;
+  margin-left: 0.5rem;
+  overflow: hidden;
+  opacity: 1;
+  white-space: nowrap;
+  transition:
+    max-width 0.55s ease,
+    margin-left 0.55s ease,
+    opacity 0.4s ease;
+}
+
+/* Collapse: only the label slides away — icon stays put */
+@media (hover: hover) and (pointer: fine) {
+  .ssd:hover .ssd-tryit:not(:hover),
+  .ssd:focus-within .ssd-tryit:not(:hover) {
+    padding-right: 0.72rem;
+  }
+
+  .ssd:hover .ssd-tryit:not(:hover) .ssd-tryit-txt,
+  .ssd:focus-within .ssd-tryit:not(:hover) .ssd-tryit-txt {
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+  }
+}
+
+/* Stronger pulse while choice / action buttons are on stage */
+.ssd:has(.ssd-btn) .ssd-tryit::before {
+  animation-name: ssd-tryit-pulse-hot;
+  animation-duration: 0.9s;
+}
+
+@keyframes ssd-tryit-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--blue) 40%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--blue) 0%, transparent);
+  }
+}
+
+@keyframes ssd-tryit-pulse-hot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--blue) 55%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 14px color-mix(in srgb, var(--blue) 0%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ssd-tryit::before {
+    animation: none;
+  }
+}
+
+.article-demo .ssd *,
+.article-demo .ssd svg,
+.article-demo .ssd svg * {
+  cursor: default;
+}
+
+.article-demo .ssd-btn,
+.article-demo .ssd-btn *,
+.article-demo .ssd-replay,
+.article-demo .ssd-replay *,
+.article-demo .ssd-tryit,
+.article-demo .ssd-tryit * {
+  cursor: pointer;
+}
+
+.article-demo .ssd-btn {
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.22s cubic-bezier(0.33, 1, 0.68, 1);
+}
+
+.article-demo .ssd-btn:hover {
+  border-color: rgb(123, 147, 248);
+  color: #fff;
+  background: rgb(123, 147, 248);
+  box-shadow: 0 4px 16px color-mix(in srgb, rgb(123, 147, 248) 40%, transparent);
+  /* keep at/above .choice peak (1 + 0.035) so hover never shrinks the pulse */
+  transform: translateY(-1px) scale(1.04);
+}
+
+.article-demo .ssd-btn:hover b,
+.article-demo .ssd-btn:hover small {
+  color: #fff;
+}
+
+.article-demo .ssd-btn:active {
+  transform: translateY(0) scale(1.03);
+  box-shadow: 0 2px 10px color-mix(in srgb, rgb(123, 147, 248) 35%, transparent);
+  background: rgb(123, 147, 248);
+  border-color: rgb(123, 147, 248);
+  color: #fff;
+}
+
+.article-demo .ssd-btn:focus-visible {
+  outline: 2px solid rgb(123, 147, 248);
+  outline-offset: 2px;
+}
+
+
+/* Below ~560px the diagram text gets too small: keep a readable width and scroll */
+@media (max-width: 640px) {
+  .fig-svg {
+    width: 34rem;
+    max-width: none;
+  }
+
+  .fig-scroll {
+    margin: 0 calc(-1 * var(--content-pad-x));
+    padding: 0 var(--content-pad-x);
   }
 }

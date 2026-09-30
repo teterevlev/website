@@ -1,0 +1,8 @@
+{{- $u := urls.Parse .Destination -}}
+{{- $ext := or (eq $u.Scheme "http") (eq $u.Scheme "https") -}}
+{{- $icon := `<svg class="ext-icon" width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6.5 3.5H3.5v9h9v-3"/><path d="M9.5 2.5h4v4M13.5 2.5 7 9"/></svg>` -}}
+<a href="{{ .Destination | safeURL }}"
+  {{- with .Title }} title="{{ . }}"{{ end -}}
+  {{- if $ext }} target="_blank" rel="noopener noreferrer"{{ end -}}
+>{{ .Text | safeHTML }}{{- if $ext }}{{ $icon | safeHTML }}{{- end -}}</a>
+{{- /* External http(s) links open in a new tab and show a small “external” icon. */ -}}

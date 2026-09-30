@@ -1,0 +1,15 @@
+{{- /*
+  Inline an SVG from the page bundle so it picks up site CSS variables (light/dark).
+  {{< figure-svg src="fig1-safety-tree.svg" caption="..." >}}
+*/ -}}
+{{- $src := .Get "src" -}}
+{{- with .Page.Resources.Get $src -}}
+<figure class="fig">
+  <div class="fig-scroll">{{ .Content | safeHTML }}</div>
+  {{- with $.Get "caption" }}
+  <figcaption>{{ . | markdownify }}</figcaption>
+  {{- end }}
+</figure>
+{{- else -}}
+{{- errorf "figure-svg: %q not found in page bundle %s" $src $.Page.File.Path -}}
+{{- end -}}

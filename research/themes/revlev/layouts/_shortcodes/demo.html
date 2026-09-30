@@ -1,0 +1,13 @@
+{{- /*
+  Inline an interactive demo fragment from the page bundle (not an iframe).
+  Store as *.html.txt (Hugo blocks text/html page resources by default).
+  {{< demo src="safe-stop-demo.html.txt" >}}
+*/ -}}
+{{- $src := .Get "src" -}}
+{{- with .Page.Resources.GetMatch $src -}}
+<aside class="article-demo" data-demo="{{ $src }}">
+{{ .Content | safeHTML }}
+</aside>
+{{- else -}}
+{{- errorf "demo: %q not found in page bundle %s" $src $.Page.File.Path -}}
+{{- end -}}

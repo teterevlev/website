@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Safe Stop Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ---- site tokens (blog.css) ---------------------------------------- */
+:root, [data-theme="light"] {
+  --white:#FFFFFF; --snow:#FAFBFC; --ash:#F2F3F5; --mist:#E8EAED; --smoke:#C4C8CF;
+  --slate:#8A8F98; --graphite:#5C6370; --ink:#1A1D23;
+  --blue-pale:#EDF2FF; --blue-light:#B4C6FC; --blue:#4A6CF7; --blue-deep:#2A4AD4; --blue-ink:#1B2F80;
+  --red:#E5484D;
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --white:#14171c; --snow:#1a1d23; --ash:#242830; --mist:#2e333c; --smoke:#5c6370;
+    --slate:#9aa0a8; --graphite:#c4c8cf; --ink:#f2f3f5;
+    --blue-pale:#0f1218; --blue-light:#3d4f8c; --blue:#7b93f8; --blue-deep:#a8b8fc; --blue-ink:#c5d0ff;
+  }
+}
+[data-theme="dark"] {
+  --white:#14171c; --snow:#1a1d23; --ash:#242830; --mist:#2e333c; --smoke:#5c6370;
+  --slate:#9aa0a8; --graphite:#c4c8cf; --ink:#f2f3f5;
+  --blue-pale:#0f1218; --blue-light:#3d4f8c; --blue:#7b93f8; --blue-deep:#a8b8fc; --blue-ink:#c5d0ff;
+}
+
+/* ---- preview page only (not part of the component) ----------------- */
+body { margin:0; background:var(--blue-pale); color:var(--ink); font-family:var(--font); }
+.preview { max-width:40rem; margin:2rem auto; padding:2rem clamp(1rem,4vw,2rem); background:var(--white);
+  border:1px solid var(--mist); border-radius:12px; }
+.preview-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+.preview-bar button { font:500 .8125rem var(--font); color:var(--graphite); background:var(--snow);
+  border:1px solid var(--mist); border-radius:8px; padding:.35rem .7rem; cursor:pointer; }
+
+/* ---- component ------------------------------------------------------ */
+.ssd { --ssd-w:min(calc(100vw - 2rem), 50rem); width:var(--ssd-w); box-sizing:border-box;
+  margin-left:calc(50% - var(--ssd-w) / 2); position:relative; margin-top:1.5rem; margin-bottom:1.5rem; padding:1rem 1rem 1.1rem; background:var(--snow); border:1px solid var(--mist);
+  border-radius:12px; font-family:var(--font); }
+.ssd-cap { min-height:2.7em; margin:0 0 .25rem; padding:0 2.4rem; font-weight:600; font-size:1.02rem; line-height:1.35;
+  color:var(--ink); text-align:center; white-space:pre-line;
+  transition:opacity .3s cubic-bezier(.33,1,.68,1), transform .3s cubic-bezier(.33,1,.68,1); }
+.ssd-cap.out { opacity:0; transform:translateY(-4px); }
+.ssd-cap.pre { opacity:0; transform:translateY(-6px); transition:none; }
+.ssd .ssd-stage { display:block; width:100%; height:auto; overflow:visible; }
+.ssd svg text { font-family:var(--mono); }
+.ssd .ground { stroke:var(--smoke); stroke-width:2.5; }
+
+.ssd-replay { position:absolute; top:.6rem; right:.6rem; width:2rem; height:2rem; display:inline-flex;
+  align-items:center; justify-content:center; padding:0; border:1px solid var(--mist); border-radius:8px;
+  background:var(--white); color:var(--graphite); cursor:pointer; transition:color .15s, border-color .15s, opacity .3s; }
+.ssd-replay:hover { color:var(--ink); border-color:var(--smoke); }
+.ssd-replay:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+.ssd-replay[disabled] { opacity:0; pointer-events:none; }
+
+/* supervisors: one under each robot, painted like the robot they watch.
+   The yaml file is dipped into the supervisor: its lower part hides behind the block. */
+.ssd-sups { position:relative; margin-top:.2rem; --sup-w:12rem; --file-x:.75rem; --file-w:5.6rem; }
+.ssd-sup { position:absolute; top:0; width:var(--sup-w); transition:opacity .5s; }
+.ssd-sup.pre { opacity:0; }
+.sup-file { position:absolute; top:0; left:var(--file-x); z-index:0; }
+.yf-name { display:block; font:400 .7rem var(--mono); color:var(--slate); white-space:nowrap; margin-bottom:.2rem; transition:color .5s; }
+.yf { position:relative; width:var(--file-w); height:5.2rem; box-sizing:border-box;
+  background:var(--white); color:var(--ink); border:1.5px solid var(--smoke); border-radius:3px;
+  padding:.35rem .5rem; clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  transition:background .5s, border-color .5s; }
+.yf::after { content:""; position:absolute; top:-1.5px; right:-1.5px; width:12px; height:12px; background:var(--mist);
+  border-left:1.5px solid var(--smoke); border-bottom:1.5px solid var(--smoke); box-sizing:border-box; transition:background .5s, border-color .5s; }
+.yf-k { display:block; font:400 .64rem var(--mono); color:var(--slate); transition:color .5s; }
+.yf-v { display:inline-block; font:600 1.15rem/1.3 var(--mono); color:var(--ink); transition:color .3s; }
+.yf-v.set { color:var(--blue-deep); }
+.yf-v.q { min-width:2.1rem; text-align:center; color:#fff; background:var(--blue); border-radius:6px; margin-top:.2rem;
+  transform:scale(calc(1 + .1 * var(--p, 0)));
+  box-shadow:0 0 0 calc(2px + 6px * var(--p, 0)) color-mix(in srgb, var(--blue) calc(55% - 55% * var(--p, 0)), transparent); }
+.sup-tub { position:relative; z-index:1; margin-top:5.3rem; box-sizing:border-box; height:7.3rem;
+  padding:.7rem var(--file-x) .75rem; border-radius:0 12px 12px 12px; color:var(--white); border:1.5px solid transparent;
+  display:flex; flex-direction:column; gap:.6rem;
+  transition:background .5s, border-color .3s, box-shadow .3s, color .5s; }
+.ssd-sup.g .sup-tub { background:var(--graphite); }
+.ssd-sup.d .sup-tub { background:var(--ink); }
+.sup-head { display:flex; align-items:center; gap:.4rem; font:500 .72rem var(--mono);
+  opacity:.9; white-space:nowrap; }
+.sup-head i { width:7px; height:7px; border-radius:50%; background:var(--blue-light); transition:background .3s; }
+.ssd-sup.alert .sup-tub { border-color:var(--red); }
+.ssd-sup.alert .sup-head i { background:var(--red); }
+.ssd-sup.send .sup-tub { border-color:var(--blue); box-shadow:0 0 0 4px color-mix(in srgb, var(--blue) 22%, transparent); }
+.ssd-sup.send .sup-head i { background:var(--blue); }
+/* blueprint for the html blocks: blue outline first, then fill */
+.ssd-sup.bp .sup-tub { background:transparent; border-color:var(--blue); color:var(--blue); }
+.ssd-sup.bp .yf { background:transparent; border-color:var(--blue); }
+.ssd-sup.bp .yf::after { background:transparent; border-color:var(--blue); }
+.ssd-sup.bp .yf-k, .ssd-sup.bp .yf-name, .ssd-sup.bp .yf-v { color:var(--blue); }
+
+/* buttons inside the drone's supervisor */
+.sup-ctl { display:flex; flex-direction:column; gap:.35rem; }
+.ssd-btn { font:500 .8rem var(--font); color:var(--ink); background:var(--white); border:1.5px solid var(--white);
+  border-radius:999px; padding:.38rem .7rem; cursor:pointer; white-space:nowrap; text-align:left; width:100%;
+  transition:border-color .15s, color .15s, background .15s, opacity .3s, transform .3s cubic-bezier(.33,1,.68,1); }
+.ssd-btn:hover { border-color:var(--blue); color:var(--blue-deep); }
+.ssd-btn:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+.ssd-btn b { font-family:var(--mono); font-weight:600; color:var(--blue-deep); margin-right:.35rem; }
+.ssd-btn.choice { border-color:var(--blue); transform:scale(calc(1 + .035 * var(--p, 0)));
+  box-shadow:0 0 0 calc(2px + 6px * var(--p, 0)) color-mix(in srgb, var(--blue) calc(55% - 55% * var(--p, 0)), transparent); }
+.ssd-btn.enter { opacity:0; transform:translateY(6px); }
+.ssd.narrow { padding:.9rem .6rem 1rem; }
+.ssd.narrow .ssd-sups { --sup-w:9.4rem; --file-x:.55rem; --file-w:5rem; }
+.ssd.narrow .sup-tub { height:6.9rem; padding:.6rem var(--file-x) .6rem; gap:.5rem; }
+.ssd.narrow .sup-head { font-size:.62rem; gap:.3rem; }
+.ssd.narrow .ssd-btn { font-size:.7rem; padding:.32rem .5rem; }
+</style>
+</head>
+<body>
+<div class="preview">
+  <div class="preview-bar"><button id="theme">Toggle theme</button></div>
+
+  <!-- ============ component: copy from here ============ -->
+  <figure class="ssd" id="ssd" aria-label="Interactive: the same failure on a ground robot and a drone">
+    <p class="ssd-cap" id="ssd-cap" aria-live="polite">&nbsp;</p>
+    <svg id="ssd-svg" class="ssd-stage" viewBox="0 0 700 262" role="img"
+         aria-label="Two robots run the same bridge binary. Each has a safety supervisor holding its config. When the bridge goes silent, the ground robot's supervisor sends 0.0 and it stops; the drone falls at 0.0 but descends safely at 0.42.">
+      <g id="ssd-scene"></g>
+    </svg>
+    <div class="ssd-sups" id="ssd-sups">
+      <div class="ssd-sup g pre" id="sup-g">
+        <div class="sup-file"><span class="yf-name">drive.yaml</span><div class="yf" id="file-g"><span class="yf-k">safe_cmd</span><span class="yf-v" id="val-g">0.0</span></div></div>
+        <div class="sup-tub"><div class="sup-head"><i></i>safety supervisor</div></div>
+      </div>
+      <div class="ssd-sup d pre" id="sup-d">
+        <div class="sup-file"><span class="yf-name">propulsion.yaml</span><div class="yf" id="file-d"><span class="yf-k">safe_cmd</span><span class="yf-v" id="val-d">&nbsp;</span></div></div>
+        <div class="sup-tub"><div class="sup-head"><i></i>safety supervisor</div><div class="sup-ctl" id="ssd-ctl"></div></div>
+      </div>
+    </div>
+    <button type="button" class="ssd-replay" id="ssd-replay" aria-label="Replay" title="Replay" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+    </button>
+    <noscript><p class="ssd-cap">On the ground, safe_cmd 0.0 stops the robot. In the air, 0.0 is a free fall — the drone needs 0.42, just below hover.</p></noscript>
+  </figure>
+  <!-- ============ component: to here (+ script) ============ -->
+</div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const root = $('ssd'), svg = $('ssd-svg'), scene = $('ssd-scene'), capEl = $('ssd-cap');
+  const sups = $('ssd-sups'), supG = $('sup-g'), supD = $('sup-d'), valG = $('val-g'), valD = $('val-d');
+  const fileG = supG.querySelector('.sup-file'), fileD = supD.querySelector('.sup-file');
+  const ctl = $('ssd-ctl'), replay = $('ssd-replay');
+  const NS = 'http://www.w3.org/2000/svg';
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- motion tokens --------------------------------------------------
+  const T_S = 300, T_M = 500, T_L = 800;
+  const EASE_IN = t => 1 - Math.pow(1 - t, 3);   // ease_out_cubic: appearances
+  const EASE_MOVE = t => t * t * (3 - 2 * t);    // smooth: moves
+  const RUSH = t => t * t * t;                   // free fall
+
+  function el(tag, attrs = {}, parent, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function staleBadge(parent) {
+    const g = el('g', { opacity: 0 }, parent);
+    el('rect', { x: -29, y: -10, width: 58, height: 20, rx: 5, style: 'fill:var(--red)' }, g);
+    el('text', { x: 0, y: 4, 'text-anchor': 'middle', 'font-size': 11.5, 'font-weight': 600, fill: '#fff' }, g, 'STALE');
+    return g;
+  }
+  function icon(good, parent) {
+    const g = el('g', { opacity: 0 }, parent);
+    el('circle', { r: 13, style: `fill:var(${good ? '--blue' : '--red'})` }, g);
+    el('path', { d: good ? 'M-6,0 L-2,4.5 L6,-4.5' : 'M-5,-5 L5,5 M-5,5 L5,-5', fill: 'none', stroke: '#fff',
+                 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+    return g;
+  }
+
+  // ---- ground robot: origin = centre of ground contact ---------------------------
+  function groundRobot(parent) {
+    const g = el('g', {}, parent);
+    const lines = [];
+    el('rect', { x: -80, y: -84, width: 160, height: 52, rx: 12, style: 'fill:var(--graphite)' }, g);
+    const wheels = [-46, 46].map(cx => {
+      el('circle', { cx, cy: -22, r: 22, style: 'fill:var(--ink)' }, g);
+      const hub = el('g', {}, g);
+      [0, 120, 240].forEach(a => el('line', { x1: cx, y1: -22, x2: cx, y2: -38, transform: `rotate(${a} ${cx} -22)`,
+        style: 'stroke:var(--slate)', 'stroke-width': 4, 'stroke-linecap': 'round' }, hub));
+      el('circle', { cx, cy: -22, r: 5, style: 'fill:var(--slate)' }, hub);
+      return { cx, hub };
+    });
+    const led = el('circle', { cx: 62, cy: -70, r: 5, style: 'fill:var(--blue)' }, g);
+    const ring = el('circle', { cx: 62, cy: -70, r: 5, fill: 'none', style: 'stroke:var(--blue)', 'stroke-width': 1.5 }, g);
+    const stale = staleBadge(g);
+    const ok = icon(true, parent);
+    return { g, lines, wheels, led, ring, stale, staleAt: 'translate(0,-58)', ok };
+  }
+
+  // ---- drone: origin = body centre -------------------------------------------------------
+  const ARM = 108;
+  function drone(parent) {
+    const g = el('g', {}, parent);
+    const craft = el('g', {}, g);
+    el('path', { d: 'M-24,14 L-38,38 M24,14 L38,38', fill: 'none', style: 'stroke:var(--graphite)', 'stroke-width': 3.5, 'stroke-linecap': 'round' }, craft);
+    const arm = el('line', { x1: -ARM, y1: 0, x2: ARM, y2: 0, style: 'stroke:var(--graphite)', 'stroke-width': 6, 'stroke-linecap': 'round' }, craft);
+    [-ARM, ARM].forEach(x => el('rect', { x: x - 7, y: -16, width: 14, height: 16, rx: 3, style: 'fill:var(--graphite)' }, craft));
+    const body = el('rect', { x: -40, y: -15, width: 80, height: 30, rx: 9, style: 'fill:var(--ink)' }, craft);
+    const rotors = [-ARM, ARM].map(x => ({ x, l: el('line', { y1: -20, y2: -20, style: 'stroke:var(--blue-deep)', 'stroke-width': 4.5, 'stroke-linecap': 'round' }, craft) }));
+    const led = el('circle', { cx: 30, cy: 0, r: 4.5, style: 'fill:var(--blue)' }, craft);
+    const ring = el('circle', { cx: 30, cy: 0, r: 4.5, fill: 'none', style: 'stroke:var(--blue)', 'stroke-width': 1.5 }, craft);
+    const stale = staleBadge(craft);
+    const ok = icon(true, g), bad = icon(false, g);
+    return { g, craft, arm, body, rotors, led, ring, stale, staleAt: 'translate(-9,0)', ok, bad };
+  }
+
+  // ---- scene ------------------------------------------------------------------------------
+  const H = 262, GROUND_Y = 236;
+  const ground = el('line', { class: 'ground', x1: 10, y1: GROUND_Y, y2: GROUND_Y, pathLength: 1, 'stroke-dasharray': 1, 'stroke-dashoffset': 1 }, scene);
+  const dash = { 'stroke-width': 1.6, 'stroke-dasharray': '4 5', 'stroke-linecap': 'round', opacity: 0 };
+  const R = groundRobot(scene);
+  const D = drone(scene);
+  const packet = el('g', { opacity: 0 }, scene);
+  el('rect', { x: -26, y: -12, width: 52, height: 24, rx: 7, style: 'fill:var(--blue)' }, packet);
+  const packetT = el('text', { x: 0, y: 5, 'text-anchor': 'middle', 'font-size': 14, 'font-weight': 600, fill: '#fff' }, packet, '0.0');
+
+  let L;
+  function layout() {
+    const narrow = root.clientWidth < 520;
+    root.classList.toggle('narrow', narrow);
+    L = narrow ? { w: 520, gx: 112, dx: 382 } : { w: 700, gx: 196, dx: 500 };
+    svg.setAttribute('viewBox', `0 0 ${L.w} ${H}`);
+    ground.setAttribute('x2', L.w - 10);
+  }
+  layout();
+  new ResizeObserver(layout).observe(root);
+
+  // supervisors sit under their robots; clamped inside the figure and never overlapping
+  function placeSups() {
+    const W = sups.clientWidth, sw = svg.clientWidth;
+    const off = svg.getBoundingClientRect().left - sups.getBoundingClientRect().left;
+    const gw = supG.offsetWidth, dw = supD.offsetWidth, gap = 14;
+    const fc = fileG.offsetLeft + fileG.offsetWidth / 2;   // file centre inside a block
+    let gl = Math.max(0, Math.min(W - gw, (gxNow() / L.w) * sw + off - fc));
+    let dl = Math.max(0, Math.min(W - dw, (L.dx / L.w) * sw + off - fc));
+    if (S.actD > 0 && gl + gw + gap > dl) { dl = Math.min(W - dw, gl + gw + gap); gl = Math.max(0, Math.min(gl, dl - gap - gw)); }
+    supG.style.left = `${gl}px`; supD.style.left = `${dl}px`;
+    sups.style.height = `${Math.max(supG.offsetHeight, supD.offsetHeight)}px`;
+  }
+
+  // ---- state + tweens -------------------------------------------------------------------
+  const HOVER_Y = 104, LAND_Y = GROUND_Y - 38, CRASH_Y = GROUND_Y - 34, CRASH_ROT = 16;
+  const init = () => ({ shift: 0, actD: 0, wheel: 13, rotor: 34, aliveG: true, aliveD: true, staleG: 0, staleD: 0, dy: HOVER_Y, rot: 0, red: 0,
+    okG: 0, okD: 0, badD: 0, actors: 0, ask: 0, links: 0, gOn: 0, dOn: 0, pt: 0, pop: 0, ground: 0 });
+  const gxNow = () => L.w / 2 + (L.gx - L.w / 2) * S.shift;
+  let S = init(), tweens = [], run = 0, packet0 = [0, 0], packet1 = [0, 0];
+
+  function tween(key, to, dur, ease = EASE_MOVE) {
+    if (reduced || dur === 0) { S[key] = to; return Promise.resolve(); }
+    return new Promise(res => tweens.push({ key, from: S[key], to, t0: performance.now(), dur, ease, res, run }));
+  }
+  const all = (...p) => Promise.all(p);
+  const sleep = ms => new Promise(res => tweens.push({ sleep: true, t0: performance.now(), dur: reduced ? Math.min(ms, 400) : ms, res, run }));
+  const guard = id => { if (id !== run) throw 'cancel'; };
+
+  // ---- captions + buttons -----------------------------------------------------------------
+  let capTimer;
+  const readTime = s => Math.min(2000, 1000 + s.length * 14);
+  async function say(s, id) { caption(s); await sleep(readTime(s) + T_S); guard(id); }
+  function caption(s) {
+    clearTimeout(capTimer);
+    if (reduced) { capEl.textContent = s; return; }
+    capEl.classList.add('out');
+    capTimer = setTimeout(() => {
+      capEl.textContent = s;
+      capEl.classList.remove('out'); capEl.classList.add('pre');
+      void capEl.offsetWidth;
+      capEl.classList.remove('pre');
+    }, T_S);
+  }
+  function buttons(list) {
+    ctl.innerHTML = '';
+    list.forEach(([html, fn, cls = ''], i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = `ssd-btn ${cls} enter`; b.innerHTML = html;
+      b.addEventListener('click', fn);
+      ctl.appendChild(b);
+      setTimeout(() => b.classList.remove('enter'), 60 + i * 90);
+    });
+  }
+  function setVal(elm, v, cls) { elm.textContent = v; elm.className = `yf-v ${cls || ''}`; }
+  const supState = (sup, st) => { sup.classList.remove('alert', 'send'); if (st) sup.classList.add(st); };
+  replay.addEventListener('click', () => start(false));
+
+  // ---- render loop ------------------------------------------------------------------------------
+  let last = performance.now(), phase = 0, wheelA = 0, hb = 0, clock = 0;
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    tweens = tweens.filter(tw => {
+      if (tw.run !== run) return false;
+      const p = Math.min(1, (now - tw.t0) / tw.dur);
+      if (!tw.sleep) S[tw.key] = tw.from + (tw.to - tw.from) * tw.ease(p);
+      if (p >= 1) { tw.res(); return false; }
+      return true;
+    });
+    const m = reduced ? 0 : 1;
+    phase += S.rotor * dt * m; wheelA += S.wheel * dt * m; hb = (hb + dt) % .9; clock += dt;
+    const lift = (1 - S.actors) * 8;
+
+    ground.setAttribute('stroke-dashoffset', 1 - S.ground);
+
+    // heartbeat LEDs; STALE blinks on both robots while stale
+    const hp = hb / .9, blink = reduced ? 1 : (Math.sin(clock * 7) > -.2 ? 1 : .25);
+    [[R, S.aliveG, S.staleG], [D, S.aliveD, S.staleD]].forEach(([r, alive, stale]) => {
+      r.led.style.fill = alive ? 'var(--blue)' : 'var(--smoke)';
+      r.ring.setAttribute('r', 4.5 + 10 * hp);
+      r.ring.setAttribute('opacity', alive && !reduced ? (1 - hp) * (r === R ? S.actors : S.actD) : 0);
+      r.stale.setAttribute('opacity', stale < 1 ? .15 + .85 * stale : blink);
+      r.stale.setAttribute('transform', `${r.staleAt} scale(${1 + 1.6 * (1 - stale)})`);
+      if (stale === 0) r.stale.setAttribute('opacity', 0);
+    });
+
+    // one shared pulse for the "?" and the choice buttons (both live inside the drone's supervisor)
+    const pulse = reduced ? 0 : .5 - .5 * Math.cos(clock * 2 * Math.PI / 1.4);
+    supD.style.setProperty('--p', (pulse * S.ask).toFixed(3));
+
+    // ground robot
+    R.g.setAttribute('transform', `translate(${gxNow()},${GROUND_Y + lift})`);
+    R.g.setAttribute('opacity', S.actors);
+    R.wheels.forEach(w => w.hub.setAttribute('transform', `rotate(${wheelA * 57.3} ${w.cx} -22)`));
+    R.lines.forEach((l, i) => l.setAttribute('opacity', (S.wheel / 13) * (.55 + .45 * Math.sin(clock * 9 + i * 1.7))));
+    const ic = (g, v, x, y) => { g.setAttribute('transform', `translate(${x},${y}) scale(${.6 + .4 * v})`); g.setAttribute('opacity', v); };
+    ic(R.ok, S.okG, gxNow() + 72, GROUND_Y - 106);
+
+    // drone
+    const liftD = (1 - S.actD) * 8;
+    D.g.setAttribute('transform', `translate(${L.dx},${S.dy + liftD})`);
+    D.g.setAttribute('opacity', S.actD);
+    supD.style.opacity = S.actD;
+    D.craft.setAttribute('transform', `rotate(${S.rot})`);
+    const half = 40 * Math.max(.08, Math.abs(Math.cos(phase)));
+    D.rotors.forEach(r => { r.l.setAttribute('x1', r.x - half); r.l.setAttribute('x2', r.x + half); });
+    const red = S.red > .5;
+    D.body.style.fill = red ? 'var(--red)' : 'var(--ink)';
+    D.arm.style.stroke = red ? 'var(--red)' : 'var(--graphite)';
+    ic(D.ok, S.okD, 62, -40); ic(D.bad, S.badD, 62, -40);
+
+    const px = packet0[0] + (packet1[0] - packet0[0]) * S.pt, py = packet0[1] + (packet1[1] - packet0[1]) * S.pt;
+    packet.setAttribute('transform', `translate(${px},${py})`);
+    packet.setAttribute('opacity', S.pop);
+
+    placeSups();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  async function send(valEl, value, toX, toY, onKey, id) {
+    const ppu = svg.clientWidth / L.w, sr = svg.getBoundingClientRect(), r = valEl.getBoundingClientRect();
+    packet0 = [(r.left + r.width / 2 - sr.left) / ppu, (r.top + r.height / 2 - sr.top) / ppu];
+    packet1 = [toX, toY];
+    packetT.textContent = value; S.pt = 0; S[onKey] = 1;
+    await all(tween('pop', 1, T_S, EASE_IN), tween('pt', 1, T_L + T_S, EASE_MOVE)); guard(id);
+    await tween('pop', 0, T_S, EASE_IN); guard(id);
+    S[onKey] = 0;
+  }
+
+  // ---- story --------------------------------------------------------------------------------------
+  async function start(first) {
+    const id = ++run; tweens = [];
+    S = init();
+    setVal(valG, '0.0'); setVal(valD, ' ');
+    supState(supG); supState(supD);
+    supD.classList.remove('bp');
+    buttons([]);
+    replay.disabled = first;
+    try {
+      const intro = 'A ground robot and its safety supervisor.\nThe supervisor holds the robot\u2019s config.';
+      caption(intro);
+      await sleep(readTime(intro) - 300); guard(id);
+      supD.classList.remove('pre');
+      if (first && !reduced) {
+        // blueprint: ground line and the supervisor in blue, then fill
+        supG.classList.remove('pre'); supG.classList.add('bp');
+        await tween('ground', 1, T_L, EASE_IN); guard(id);
+        await sleep(T_S); guard(id);
+        supG.classList.remove('bp');
+        await sleep(T_M); guard(id);
+      } else {
+        supG.classList.remove('pre', 'bp');
+        S.ground = 1;
+      }
+      await tween('actors', 1, T_M, EASE_IN); guard(id);
+      replay.disabled = false;
+      await sleep(1200); guard(id);
+
+      await say("The ground robot's motor bridge goes silent.", id);
+      S.aliveG = false;
+      await sleep(T_M); guard(id);
+      await tween('staleG', 1, T_L, EASE_IN); guard(id);
+      supState(supG, 'alert');
+      await sleep(900); guard(id);
+
+      await say('Its supervisor sends safe_cmd: 0.0.', id);
+      supState(supG, 'send'); setVal(valG, '0.0', 'set');
+      await send(valG, '0.0', gxNow(), GROUND_Y - 22, 'gOn', id);
+      supState(supG);
+      await tween('wheel', 0, T_L, EASE_IN); guard(id);
+      await tween('okG', 1, T_S, EASE_IN); guard(id);
+      await sleep(T_M); guard(id);
+
+      await say('Now a drone: same bridge binary,\nits own supervisor and config.', id);
+      await tween('shift', 1, T_L, EASE_MOVE); guard(id);
+      supD.classList.add('bp');
+      await tween('actD', 1, T_M, EASE_IN); guard(id);
+      await sleep(T_S); guard(id);
+      supD.classList.remove('bp');
+      await sleep(1400); guard(id);
+
+      await say("The drone's motor bridge goes silent.", id);
+      S.aliveD = false;
+      await sleep(T_M); guard(id);
+      await tween('staleD', 1, T_L, EASE_IN); guard(id);
+      supState(supD, 'alert');
+      await sleep(900); guard(id);
+
+      caption("You're the drone's safety supervisor.\nWhat do you send?");
+      setVal(valD, '?', 'q');
+      await tween('ask', 1, T_M, EASE_IN); guard(id);
+      buttons([
+        ['<b>0.0</b>cut power', () => choose(0), 'choice'],
+        ['<b>0.42</b>just below hover', () => choose(.42), 'choice'],
+      ]);
+    } catch (e) { if (e !== 'cancel') throw e; }
+  }
+
+  async function resetDrone(id) {
+    await all(tween('badD', 0, T_S), tween('okD', 0, T_S)); guard(id);
+    S.red = 0;
+    supState(supD, 'alert'); setVal(valD, '?', 'q');
+    await all(tween('dy', HOVER_Y, T_L), tween('rot', 0, T_L), tween('rotor', 34, T_L)); guard(id);
+    await sleep(T_S); guard(id);
+  }
+
+  async function choose(v, retry) {
+    const id = ++run; tweens = [];
+    buttons([]);
+    try {
+      S.ask = 0;
+      if (retry) await resetDrone(id);
+      const val = v === 0 ? '0.0' : '0.42';
+      await say(`You send ${val}.`, id);
+      supState(supD, 'send'); setVal(valD, val, 'set');
+      await send(valD, val, L.dx, S.dy, 'dOn', id);
+      supState(supD);
+      if (v === 0) {
+        await tween('rotor', 0, T_M, EASE_IN); guard(id);
+        await all(tween('dy', CRASH_Y, T_L, RUSH), tween('rot', CRASH_ROT, T_L, RUSH)); guard(id);
+        S.red = 1;
+        await tween('rot', CRASH_ROT + 4, 90); await tween('rot', CRASH_ROT - 3, 90); await tween('rot', CRASH_ROT, 120); guard(id);
+        await tween('badD', 1, T_S, EASE_IN); guard(id);
+        caption('In the air, 0.0 is a free fall.\nA bridge copied from the ground robot does exactly this.');
+        await sleep(T_L); guard(id);
+        buttons([['Try <b>0.42</b>', () => choose(.42, true)]]);
+      } else {
+        await tween('rotor', 16, T_M); guard(id);
+        await tween('dy', LAND_Y, T_L * 3, EASE_MOVE); guard(id);
+        await tween('rotor', 0, T_M, EASE_IN); guard(id);
+        await tween('okD', 1, T_S, EASE_IN); guard(id);
+        caption('A controlled descent instead of a fall.');
+        await sleep(1600); guard(id);
+        caption('Criticality says who must stop.\nConfig says what “safe” means.');
+        await sleep(T_L); guard(id);
+        buttons([['Try <b>0.0</b>', () => choose(0, true)]]);
+      }
+    } catch (e) { if (e !== 'cancel') throw e; }
+  }
+
+  const io = new IntersectionObserver(es => {
+    if (es.some(e => e.isIntersecting)) { io.disconnect(); start(true); }
+  }, { threshold: .35 });
+  io.observe(root);
+})();
+
+// preview-only theme toggle
+document.getElementById('theme').onclick = () => {
+  const h = document.documentElement;
+  const dark = h.dataset.theme ? h.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  h.dataset.theme = dark ? 'light' : 'dark';
+};
+</script>
+</body>
+</html>
