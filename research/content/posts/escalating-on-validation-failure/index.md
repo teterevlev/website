@@ -37,8 +37,6 @@ Pydantic AI has two relevant tools.
 
 Neither of these is a bug. `FallbackModel` is built for availability: the provider is down, try another one. What I needed is escalation for quality, and that's a different job.
 
-![Fallback for availability versus escalation for quality](2.jpg)
-
 ## A capability, not a model wrapper
 
 Pydantic AI has an extension mechanism called capabilities: small objects that plug into the agent's lifecycle. One of the things a capability can do is choose the model for each request step. The framework calls this selector before every request, before anything is prepared for a specific model, and gives it the message history.
