@@ -1,9 +1,12 @@
+{{- $isAbout := eq .Layout "about" -}}
 <footer class="site-footer">
   <div class="shell site-footer-inner">
     <a href="{{ site.Params.mainSite }}">{{ site.Params.author }}</a>
     <span class="footer-sep" aria-hidden="true">·</span>
     <a href="https://pcb.revlev.org/">PCB</a>
     <span class="footer-sep" aria-hidden="true">·</span>
-    <span>{{ site.Title }}</span>
+    <a href="{{ "/" | relURL }}"{{ if .IsHome }} class="is-active"{{ end }}>{{ site.Title }}</a>
+    <span class="footer-sep" aria-hidden="true">·</span>
+    <a href="{{ "about/" | relURL }}"{{ if $isAbout }} class="is-active"{{ end }}>About</a>
   </div>
 </footer>

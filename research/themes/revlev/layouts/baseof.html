@@ -5,9 +5,10 @@
 </head>
 <body>
   {{ partial "header.html" . }}
-  <main class="site-main">
+  <main class="site-main{{ if or .IsHome (eq .Layout "about") }} site-main--wide{{ end }}">
     {{ block "main" . }}{{ end }}
   </main>
+  {{ block "secondary" . }}{{ end }}
   {{ partial "footer.html" . }}
   <script src="{{ "js/theme.js" | relURL }}"></script>
 </body>

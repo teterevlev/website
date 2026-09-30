@@ -1,5 +1,5 @@
 baseURL = "https://research.revlev.org/"
-languageCode = "en-us"
+locale = "en-US"
 title = "Research"
 theme = "revlev"
 
@@ -13,7 +13,7 @@ disableKinds = ["taxonomy", "term"]
 
 [params]
   author = "Oleg Teterevlev"
-  description = "Notes on electronics, embedded systems, and software."
+  description = "Notes on Robotics and AI"
   mainSite = "https://revlev.org/"
 
 [outputs]

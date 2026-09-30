@@ -1,0 +1,58 @@
+{{ define "main" }}
+{{- $a := hugo.Data.author -}}
+{{- $face := resources.Get "img/author-face.jpg" -}}
+{{- $photo := false -}}
+{{- with $face -}}
+  {{- $photo = (.Fill "480x480 Center jpg q85") -}}
+{{- end -}}
+<article class="about-page">
+  <header class="about-hero">
+    <div class="about-hero-copy">
+      <h1 class="page-title">{{ $a.name }}</h1>
+      <p class="about-hero-role">{{ $a.role }}</p>
+      {{- with $a.degrees -}}
+      <ul class="about-hero-degrees">
+        {{- range . -}}
+        <li>{{ . }}</li>
+        {{- end -}}
+      </ul>
+      {{- end -}}
+      <p class="about-hero-intro">{{ $a.about_intro }}</p>
+    </div>
+    {{- with $photo -}}
+    <img class="about-hero-photo" src="{{ .RelPermalink }}" width="240" height="240" alt="{{ $a.name }}" loading="eager" fetchpriority="high" decoding="async">
+    {{- end -}}
+  </header>
+
+  <section class="about-section" aria-labelledby="about-numbers">
+    <h2 id="about-numbers" class="about-section-title">By the numbers</h2>
+    {{ partial "author-stats.html" . }}
+  </section>
+
+  <section class="about-section" aria-labelledby="about-stack">
+    <h2 id="about-stack" class="about-section-title">Stack</h2>
+    <dl class="about-stack">
+      {{- range $a.stack -}}
+      <div class="about-stack-row">
+        <dt>{{ .label }}</dt>
+        <dd>{{ .values }}</dd>
+      </div>
+      {{- end -}}
+    </dl>
+  </section>
+
+  <section class="about-section" aria-labelledby="about-oss">
+    <h2 id="about-oss" class="about-section-title visually-hidden">Open source</h2>
+    {{ partial "author-oss.html" . }}
+  </section>
+
+  <section class="about-section" aria-labelledby="about-elsewhere">
+    <h2 id="about-elsewhere" class="about-section-title">Elsewhere</h2>
+    <ul class="about-elsewhere">
+      <li><a href="{{ $a.links.linkedin }}" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
+      <li><a href="{{ $a.links.github }}" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      <li><a href="{{ $a.links.telegram }}" target="_blank" rel="noopener noreferrer">Telegram</a></li>
+    </ul>
+  </section>
+</article>
+{{ end }}

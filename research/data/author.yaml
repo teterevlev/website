@@ -1,0 +1,67 @@
+name: Oleg Teterevlev
+role: Robotics/AI Engineer
+reliability: >-
+  15 years of systems where failure is expensive — power plants, drones, warehouse robots —
+  taught me to care about correctness, edge cases and observability. Here I write about bringing that to AI.
+about_intro: >-
+  I'm a Senior Software Engineer focused on LLM-based and agentic systems that have to be reliable
+  and cost-efficient in production: model routing, validation, evals, observability. Before that I spent
+  years on systems where failure is expensive — power plants, drones, warehouse robots — and that's the
+  lens I bring to AI. This site is where I write up what works.
+job_title: Robotics/AI Engineer
+knows_about:
+  - LLM agents
+  - Agentic workflows
+  - Model routing
+  - LLM evaluation
+  - Robotics software
+  - ROS 2
+degrees:
+  - Robotic systems master's degree
+  - Control in technical systems master's degree
+stats:
+  - value: "15"
+    suffix: "+"
+    label: years shipping production systems
+  - value: "24"
+    suffix: "k"
+    label: requests per second at peak on a backend I maintained
+  - value: "5"
+    suffix: "M"
+    label: daily active users on a backend I maintained
+  - value: "2"
+    suffix: "×"
+    label: fewer search queries after an Elasticsearch rework
+focus_eyebrow: Expertise
+focus:
+  - Agentic workflows
+  - MCP
+  - Evals
+  - Model routing
+  - ROS 2
+  - MAVLink
+  - Kubernetes
+open_source:
+  eyebrow: OPEN SOURCE
+  title: pydantic-ai-escalation
+  description: >-
+    Retry the cheap model with the validation error; escalate to a stronger one only when that fails.
+  pypi: https://pypi.org/project/pydantic-ai-escalation/
+  github: https://github.com/teterevlev/pydantic-ai-escalation
+  article: /posts/escalating-on-validation-failure/
+education: MSc × 2 — Robotic systems · Control in technical systems
+stack:
+  - label: Languages
+    values: Python, Go, TypeScript, C++
+  - label: AI engineering
+    values: >-
+      Claude Code, Codex, Pydantic AI, MCP, LLM APIs (structured outputs, tool calling, streaming),
+      evals (regression tests, golden datasets), model routing & escalation, prompt & context engineering,
+      agentic workflows
+  - label: Infrastructure & robotics
+    values: >-
+      PostgreSQL, Kafka, Elasticsearch, Redis, Docker, Kubernetes, gRPC, GitHub Actions, ROS 2, MAVLink
+links:
+  linkedin: https://www.linkedin.com/in/teterevlev/
+  github: https://github.com/teterevlev
+  telegram: https://t.me/oleg_teterevlev

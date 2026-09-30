@@ -1,0 +1,16 @@
+{{- $a := hugo.Data.author -}}
+{{- $face := resources.Get "img/author-face.jpg" -}}
+{{- $avatar := false -}}
+{{- with $face -}}
+  {{- $avatar = (.Fill "112x112 Center jpg q82") -}}
+{{- end -}}
+<aside class="author-card">
+  {{- with $avatar -}}
+  <img class="author-card-photo" src="{{ .RelPermalink }}" width="56" height="56" alt="{{ $a.name }}" loading="lazy" decoding="async">
+  {{- end -}}
+  <div class="author-card-body">
+    <p class="author-card-name">{{ $a.name }}</p>
+    <p class="author-card-role">{{ $a.role }}</p>
+    <a class="author-card-link" href="{{ "about/" | relURL }}">About the author →</a>
+  </div>
+</aside>

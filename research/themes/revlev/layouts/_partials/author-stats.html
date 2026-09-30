@@ -1,0 +1,11 @@
+{{- $a := hugo.Data.author -}}
+<div class="author-tile author-tile-b" aria-label="By the numbers">
+  <dl class="author-stats">
+    {{- range $a.stats -}}
+    <div class="author-stat">
+      <dd class="author-stat-value">{{ .value }}<span class="author-stat-suffix">{{ .suffix }}</span></dd>
+      <dt class="author-stat-label">{{ .label }}</dt>
+    </div>
+    {{- end -}}
+  </dl>
+</div>

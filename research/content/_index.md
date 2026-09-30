@@ -1,6 +1,4 @@
 ---
-title: "Research"
+title: "Notes on Robotics and AI"
 description: "Notes on Robotics and AI"
 ---
-
-Notes on Robotics and AI by Oleg Teterevlev.

@@ -1,16 +1,22 @@
 {{ define "main" }}
 <section class="page-intro">
   <h1 class="page-title">{{ .Title }}</h1>
-  {{ with .Content }}
-  <div class="page-lead prose">{{ . }}</div>
-  {{ end }}
 </section>
 
-<section class="post-list" aria-label="Posts">
-  {{ range where site.RegularPages "Section" "posts" }}
-  {{ partial "post-card.html" . }}
-  {{ else }}
-  <p class="empty">No posts yet.</p>
-  {{ end }}
-</section>
+{{ partial "author-bento.html" . }}
+{{ end }}
+
+{{ define "secondary" }}
+<main class="site-main site-main--wide">
+  <section class="publications" aria-labelledby="publications-heading">
+    <h2 id="publications-heading" class="publications-title">Publications</h2>
+    <div class="post-list" aria-label="Posts">
+      {{ range where site.RegularPages "Section" "posts" }}
+      {{ partial "post-card.html" . }}
+      {{ else }}
+      <p class="empty">No posts yet.</p>
+      {{ end }}
+    </div>
+  </section>
+</main>
 {{ end }}

@@ -1,0 +1,53 @@
+{{- $a := hugo.Data.author -}}
+{{- $face := resources.Get "img/author-face.jpg" -}}
+{{- $hero := resources.Get "img/author-hero.jpg" -}}
+{{- $band := resources.Get "img/author-band.jpg" -}}
+{{- with $face -}}{{- $face = .Resize "440x jpg q82" -}}{{- end -}}
+{{- with $hero -}}{{- $hero = .Resize "640x jpg q82" -}}{{- end -}}
+{{- with $band -}}{{- $band = .Resize "720x jpg q82" -}}{{- end -}}
+<style>
+  :root,
+  [data-theme="light"] {
+    --author-a-photo: url("{{ $face.RelPermalink }}");
+    --author-a-photo-mobile: url("{{ $face.RelPermalink }}");
+  }
+  [data-theme="dark"] {
+    --author-a-photo: url("{{ $hero.RelPermalink }}");
+    --author-a-photo-mobile: url("{{ $band.RelPermalink }}");
+  }
+</style>
+<section class="author-bento" aria-label="About the author">
+  <a class="author-tile author-tile-a" href="{{ "about/" | relURL }}">
+    <div class="author-tile-a-copy">
+      <p class="author-tile-a-name">{{ $a.name }}</p>
+      <p class="author-tile-a-role">{{ $a.role }}</p>
+      {{- with $a.degrees -}}
+      <ul class="author-tile-a-degrees">
+        {{- range . -}}
+        <li>{{ . }}</li>
+        {{- end -}}
+      </ul>
+      {{- end -}}
+      <p class="author-tile-a-line">{{ $a.reliability }}</p>
+    </div>
+    <div class="author-tile-a-photo" role="img" aria-label="{{ $a.name }}"></div>
+  </a>
+
+  {{ partial "author-stats.html" . }}
+
+  <div class="author-bento-row">
+    {{ partial "author-oss.html" . }}
+    <div class="author-tile author-tile-d">
+      <p class="author-eyebrow">{{ or $a.focus_eyebrow "Expertise" }}</p>
+      <ul class="author-chips">
+        {{- range $a.focus -}}
+        <li class="author-chip">{{ . }}</li>
+        {{- end -}}
+        <li class="author-chip author-chip--more">
+          <a href="{{ "about/" | relURL }}" aria-label="More about the author">…</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</section>
+<script src="{{ "js/author-parallax.js" | relURL }}" defer></script>
