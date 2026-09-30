@@ -36,7 +36,7 @@ Build settings (уже в проекте):
 | Build command | `hugo --minify -b https://research.revlev.org/` |
 | Build output directory | `public` |
 | Production branch | `main` |
-| Env `HUGO_VERSION` | `0.148.2` (Production + Preview) |
+| Env `HUGO_VERSION` | `0.166.0` (Production + Preview; нужен ≥0.156 из‑за `hugo.Data`) |
 
 Осталось один раз: Dashboard → project `research` → **Connect to Git** → `teterevlev/website`, затем push папки `research/` в `main` (или Upload assets из `research/public/`).
 
