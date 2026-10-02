@@ -1,13 +1,49 @@
 (function () {
   'use strict';
 
+  var root = document.documentElement;
   var header = document.getElementById('site-header');
   var burger = document.getElementById('header-burger');
+  var themeBtn = document.getElementById('theme-toggle');
+  var themeMeta = document.getElementById('theme-color-meta');
   var overlay = document.getElementById('demo-overlay');
   var frame = document.getElementById('demo-frame');
   var overlayTitle = document.getElementById('demo-overlay-title');
   var closeBtn = document.getElementById('demo-overlay-close');
   var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function currentTheme() {
+    return root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  }
+
+  function applyTheme(theme) {
+    root.setAttribute('data-theme', theme);
+    try { localStorage.setItem('theme', theme); } catch (e) {}
+    if (themeMeta) themeMeta.content = theme === 'dark' ? '#14171c' : '#FFFFFF';
+    if (themeBtn) {
+      themeBtn.setAttribute('aria-label', theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme');
+      themeBtn.setAttribute('title', theme === 'dark' ? 'Light theme' : 'Dark theme');
+    }
+  }
+
+  if (themeBtn) {
+    themeBtn.addEventListener('click', function () {
+      applyTheme(currentTheme() === 'dark' ? 'light' : 'dark');
+    });
+    applyTheme(currentTheme());
+  }
+
+  try {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    var onChange = function (e) {
+      try {
+        if (localStorage.getItem('theme')) return;
+      } catch (err) { return; }
+      applyTheme(e.matches ? 'dark' : 'light');
+    };
+    if (mq.addEventListener) mq.addEventListener('change', onChange);
+    else if (mq.addListener) mq.addListener(onChange);
+  } catch (e) {}
 
   function headerOffset() {
     return header ? header.offsetHeight : 0;
@@ -34,14 +70,12 @@
   function scrollToId(id, instant) {
     var el = document.getElementById(id);
     if (!el) return;
-    var top = el.getBoundingClientRect().top + window.pageYOffset - headerOffset();
+    var top = el.getBoundingClientRect().top + window.pageYOffset - headerOffset() - 8;
     window.scrollTo({
       top: Math.max(0, top),
       behavior: instant || reduced ? 'auto' : 'smooth'
     });
-    if (history.replaceState) {
-      history.replaceState(null, '', '#' + id);
-    }
+    if (history.replaceState) history.replaceState(null, '', '#' + id);
   }
 
   document.querySelectorAll('[data-scroll-to]').forEach(function (btn) {
@@ -54,9 +88,7 @@
   document.querySelectorAll('a[href^="#"]').forEach(function (link) {
     link.addEventListener('click', function (e) {
       var id = link.getAttribute('href').slice(1);
-      if (!id) return;
-      var target = document.getElementById(id);
-      if (!target) return;
+      if (!id || !document.getElementById(id)) return;
       e.preventDefault();
       closeNav();
       scrollToId(id);
@@ -94,20 +126,14 @@
   if (closeBtn) closeBtn.addEventListener('click', closeDemo);
 
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && overlay && overlay.classList.contains('is-open')) {
-      closeDemo();
-    }
+    if (e.key === 'Escape' && overlay && overlay.classList.contains('is-open')) closeDemo();
   });
 
-  if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-  }
+  if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
   var hash = location.hash.replace(/^#/, '');
   if (hash && document.getElementById(hash)) {
-    window.requestAnimationFrame(function () {
-      scrollToId(hash, true);
-    });
+    window.requestAnimationFrame(function () { scrollToId(hash, true); });
   }
 
   window.addEventListener('hashchange', function () {

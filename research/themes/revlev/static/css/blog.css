@@ -910,32 +910,22 @@ a:hover .ext-icon {
 }
 
 .author-chip--more {
-  padding: 0;
-  background: transparent;
-  border-color: var(--blue-light);
-  border-style: dashed;
-}
-
-.author-chip--more a {
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
   min-width: 2rem;
-  padding: 0.3rem 0.75rem;
   color: var(--blue-deep);
   text-decoration: none;
   letter-spacing: 0.08em;
   line-height: 1;
-  transition: color 0.2s ease, background 0.2s ease;
+  background: transparent;
+  border-color: var(--blue-light);
+  border-style: dashed;
+  cursor: pointer;
 }
 
 .author-chip--more:hover {
+  color: var(--blue);
   background: color-mix(in srgb, var(--blue) 10%, var(--white));
   transform: translateY(-1px);
-}
-
-.author-chip--more a:hover {
-  color: var(--blue);
 }
 
 /* ---- Author card (end of post) ---- */

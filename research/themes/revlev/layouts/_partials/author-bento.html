@@ -43,8 +43,8 @@
         {{- range $a.focus -}}
         <li class="author-chip">{{ . }}</li>
         {{- end -}}
-        <li class="author-chip author-chip--more">
-          <a href="{{ "about/" | relURL }}" aria-label="More about the author">…</a>
+        <li>
+          <a class="author-chip author-chip--more" href="{{ "about/" | relURL }}" aria-label="More about the author">…</a>
         </li>
       </ul>
     </div>
