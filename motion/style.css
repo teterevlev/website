@@ -317,8 +317,8 @@ video {
   align-items: center;
   justify-content: center;
   width: 100%;
-  min-height: 11.5rem;
-  padding: 2.75rem var(--sp-sm) 1.25rem;
+  min-height: 13rem;
+  padding: 3.5rem var(--sp-sm) 1.25rem;
   text-align: center;
   border-right: 1px solid var(--mist);
   background: none;
@@ -335,7 +335,12 @@ video {
 }
 
 .hero-stat-value {
-  display: block;
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.3em;
   margin: 0 0 0.35rem;
   font-family: var(--font-display);
   font-size: clamp(1.35rem, 3.5vw, 1.85rem);
@@ -343,6 +348,7 @@ video {
   line-height: 1.15;
   letter-spacing: -0.02em;
   color: #fff;
+  white-space: nowrap;
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
@@ -375,10 +381,43 @@ video {
   display: block;
   margin: 0;
   max-width: 16rem;
+  height: calc(var(--fs-sm) * 1.45 * 3);
   font-size: var(--fs-sm);
   font-weight: 400;
   line-height: 1.45;
   color: var(--slate);
+  overflow: hidden;
+}
+
+@media (max-width: 600px) {
+  .hero-stat-value {
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    white-space: normal;
+  }
+}
+
+/* Stack on very narrow: full width keeps desc within ~3 lines */
+@media (max-width: 480px) {
+  .hero-gates {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-stat {
+    border-right: none;
+    border-bottom: 1px solid var(--mist);
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .hero-stat:last-child {
+    border-bottom: none;
+  }
+
+  .hero-stat-desc {
+    max-width: none;
+  }
 }
 
 .hero-stat-arrow {
@@ -399,6 +438,18 @@ video {
   top: 0.35rem;
   left: 0.35rem;
   transform: none;
+}
+
+@media (max-width: 720px) {
+  .hero-stat-interactive .ssd-tryit {
+    display: none;
+  }
+
+  .hero-stat {
+    min-height: 0;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
 }
 
 @media (hover: hover) and (pointer: fine) {
