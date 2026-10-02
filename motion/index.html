@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Motion portfolio — video and interactive animations by Oleg Teterevlev.">
+  <meta name="author" content="Oleg Teterevlev">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#FFFFFF">
+  <title>Motion — Oleg Teterevlev</title>
+
+  <link rel="canonical" href="https://motion.revlev.org/">
+  <link rel="icon" type="image/png" href="favicon.png">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="favicon.png">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Motion">
+  <meta property="og:url" content="https://motion.revlev.org/">
+  <meta property="og:title" content="Motion — Oleg Teterevlev">
+  <meta property="og:description" content="Motion portfolio — video and interactive animations by Oleg Teterevlev.">
+  <meta property="og:image" content="https://motion.revlev.org/img/teaser-sheet-en.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_US">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Motion — Oleg Teterevlev">
+  <meta name="twitter:description" content="Motion portfolio — video and interactive animations by Oleg Teterevlev.">
+  <meta name="twitter:image" content="https://motion.revlev.org/img/teaser-sheet-en.jpg">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "CollectionPage",
+        "name": "Motion",
+        "url": "https://motion.revlev.org/",
+        "description": "Motion portfolio — video and interactive animations by Oleg Teterevlev.",
+        "inLanguage": "en",
+        "author": { "@id": "https://revlev.org/#person" },
+        "isPartOf": {
+          "@type": "WebSite",
+          "name": "Oleg Teterevlev",
+          "url": "https://revlev.org/"
+        }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://revlev.org/#person",
+        "name": "Oleg Teterevlev",
+        "url": "https://revlev.org/",
+        "sameAs": [
+          "https://www.linkedin.com/in/teterevlev/",
+          "https://github.com/teterevlev",
+          "https://t.me/oleg_teterevlev"
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600&family=Russo+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header" id="site-header">
+    <div class="shell site-header-inner">
+      <a class="header-back" href="https://revlev.org/">Oleg Teterevlev</a>
+      <div class="header-brand">
+        <a class="header-title" href="#top">Motion</a>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="header-burger" id="header-burger" aria-label="Open menu" aria-expanded="false" aria-controls="header-nav">
+          <span class="burger-line" aria-hidden="true"></span>
+          <span class="burger-line" aria-hidden="true"></span>
+          <span class="burger-line" aria-hidden="true"></span>
+        </button>
+        <nav class="header-nav" id="header-nav" aria-label="Social">
+          <a class="header-link" href="https://www.linkedin.com/in/teterevlev/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <a class="header-link" href="https://github.com/teterevlev" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a class="header-link" href="https://t.me/oleg_teterevlev" target="_blank" rel="noopener noreferrer">Telegram</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="screen hero" id="hero" aria-label="Motion">
+      <div class="shell screen-inner">
+        <h1 class="hero-brand">Motion</h1>
+        <p class="hero-lead">Video and interactive animations for product stories, research explainers, and spatial interfaces.</p>
+        <div class="hero-gates">
+          <button type="button" class="gate" data-scroll-to="videos">
+            <span class="gate-index">01</span>
+            <span class="gate-title">Video animations</span>
+            <span class="gate-desc">Two teasers — paper and sheet motion for research storytelling.</span>
+            <span class="gate-arrow">Scroll to videos →</span>
+          </button>
+          <button type="button" class="gate" data-scroll-to="interactive">
+            <span class="gate-index">02</span>
+            <span class="gate-title">Interactive animations</span>
+            <span class="gate-desc">Live demos — building lights, safe-stop and graded-stop systems.</span>
+            <span class="gate-arrow">Scroll to demos →</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen-videos" id="videos" aria-labelledby="videos-title">
+      <div class="shell screen-inner">
+        <p class="section-kicker">Video</p>
+        <h2 class="section-title" id="videos-title">Video animations</h2>
+        <p class="section-lead">Short motion pieces used as research teasers and narrative covers.</p>
+        <div class="video-grid">
+          <article class="video-card">
+            <div class="video-frame">
+              <video
+                controls
+                playsinline
+                preload="metadata"
+                poster="img/teaser-paper-ru.jpg"
+                src="video/teaser-paper-ru.mp4">
+              </video>
+            </div>
+            <div class="video-meta">
+              <h3>Paper teaser</h3>
+              <p>Russian-language research paper motion.</p>
+            </div>
+          </article>
+          <article class="video-card">
+            <div class="video-frame">
+              <video
+                controls
+                playsinline
+                preload="metadata"
+                poster="img/teaser-sheet-en.jpg"
+                src="video/teaser-sheet-en.mp4">
+              </video>
+            </div>
+            <div class="video-meta">
+              <h3>Sheet teaser</h3>
+              <p>English sheet animation for the research series.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen screen-interactive" id="interactive" aria-labelledby="interactive-title">
+      <div class="shell screen-inner">
+        <p class="section-kicker">Interactive</p>
+        <h2 class="section-title" id="interactive-title">Interactive animations</h2>
+        <p class="section-lead">Open a demo fullscreen. Esc or the close button returns here.</p>
+        <div class="demo-grid">
+          <button
+            type="button"
+            class="demo-card"
+            data-demo-src="demos/window-light/"
+            data-demo-title="Window lighting">
+            <span class="demo-card-tag">Spatial UI</span>
+            <h3>Window lighting</h3>
+            <p>Interactive building facade — toggle zones and watch the lights respond.</p>
+            <span class="demo-card-cta">Open demo →</span>
+          </button>
+          <button
+            type="button"
+            class="demo-card"
+            data-demo-src="demos/safe-stop.html"
+            data-demo-title="Safe stop">
+            <span class="demo-card-tag">Robotics</span>
+            <h3>Safe stop</h3>
+            <p>Animated explainer of a layered software/hardware stop path.</p>
+            <span class="demo-card-cta">Open demo →</span>
+          </button>
+          <button
+            type="button"
+            class="demo-card"
+            data-demo-src="demos/graded-stop.html"
+            data-demo-title="Graded stop">
+            <span class="demo-card-tag">Robotics</span>
+            <h3>Graded stop</h3>
+            <p>Escalation from soft response to a hard system stop.</p>
+            <span class="demo-card-cta">Open demo →</span>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="shell site-footer-inner">
+      <a href="https://revlev.org/">Oleg Teterevlev</a>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <a href="https://pcb.revlev.org/">PCB</a>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <a href="https://research.revlev.org/">Research</a>
+      <span class="footer-sep" aria-hidden="true">·</span>
+      <a class="is-active" href="https://motion.revlev.org/">Motion</a>
+    </div>
+  </footer>
+
+  <div class="demo-overlay" id="demo-overlay" hidden aria-hidden="true">
+    <div class="demo-overlay-bar">
+      <div class="demo-overlay-title" id="demo-overlay-title">Demo</div>
+      <button type="button" class="demo-overlay-close" id="demo-overlay-close" aria-label="Close demo">×</button>
+    </div>
+    <iframe id="demo-frame" title="Interactive demo" loading="lazy"></iframe>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>

@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Graded Stop Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ---- site tokens (blog.css) ---------------------------------------- */
+:root, [data-theme="light"] {
+  --white:#FFFFFF; --snow:#FAFBFC; --ash:#F2F3F5; --mist:#E8EAED; --smoke:#C4C8CF;
+  --slate:#8A8F98; --graphite:#5C6370; --ink:#1A1D23;
+  --blue-pale:#EDF2FF; --blue-light:#B4C6FC; --blue:#4A6CF7; --blue-deep:#2A4AD4; --blue-ink:#1B2F80;
+  --red:#E5484D;
+  --font:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --white:#14171c; --snow:#1a1d23; --ash:#242830; --mist:#2e333c; --smoke:#5c6370;
+    --slate:#9aa0a8; --graphite:#c4c8cf; --ink:#f2f3f5;
+    --blue-pale:#0f1218; --blue-light:#3d4f8c; --blue:#7b93f8; --blue-deep:#a8b8fc; --blue-ink:#c5d0ff;
+  }
+}
+[data-theme="dark"] {
+  --white:#14171c; --snow:#1a1d23; --ash:#242830; --mist:#2e333c; --smoke:#5c6370;
+  --slate:#9aa0a8; --graphite:#c4c8cf; --ink:#f2f3f5;
+  --blue-pale:#0f1218; --blue-light:#3d4f8c; --blue:#7b93f8; --blue-deep:#a8b8fc; --blue-ink:#c5d0ff;
+}
+
+/* ---- preview page only (not part of the component) ----------------- */
+body { margin:0; background:var(--blue-pale); color:var(--ink); font-family:var(--font); }
+.preview { max-width:40rem; margin:2rem auto; padding:2rem clamp(1rem,4vw,2rem); background:var(--white);
+  border:1px solid var(--mist); border-radius:12px; }
+.preview-bar { display:flex; justify-content:flex-end; margin-bottom:1rem; }
+.preview-bar button { font:500 .8125rem var(--font); color:var(--graphite); background:var(--snow);
+  border:1px solid var(--mist); border-radius:8px; padding:.35rem .7rem; cursor:pointer; }
+
+/* ---- component ------------------------------------------------------ */
+.ssd { --ssd-w:min(calc(100vw - 2rem), 50rem); width:var(--ssd-w); box-sizing:border-box;
+  margin-left:calc(50% - var(--ssd-w) / 2); position:relative; margin-top:1.5rem; margin-bottom:1.5rem; padding:1rem 1rem 1.1rem; background:var(--snow); border:1px solid var(--mist);
+  border-radius:12px; font-family:var(--font); }
+.ssd-cap { min-height:2.7em; margin:0 0 .25rem; padding:0 2.4rem; font-weight:600; font-size:1.02rem; line-height:1.35;
+  color:var(--ink); text-align:center; white-space:pre-line;
+  transition:opacity .3s cubic-bezier(.33,1,.68,1), transform .3s cubic-bezier(.33,1,.68,1); }
+.ssd-cap.out { opacity:0; transform:translateY(-4px); }
+.ssd-cap.pre { opacity:0; transform:translateY(-6px); transition:none; }
+.ssd .ssd-stage { display:block; width:100%; height:auto; overflow:visible; }
+.ssd svg text { font-family:var(--mono); }
+.ssd .ground { stroke:var(--smoke); stroke-width:2.5; }
+
+.ssd-replay { position:absolute; top:.6rem; right:.6rem; width:2rem; height:2rem; display:inline-flex;
+  align-items:center; justify-content:center; padding:0; border:1px solid var(--mist); border-radius:8px;
+  background:var(--white); color:var(--graphite); cursor:pointer; transition:color .15s, border-color .15s, opacity .3s; }
+.ssd-replay:hover { color:var(--ink); border-color:var(--smoke); }
+.ssd-replay:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+.ssd-replay[disabled] { opacity:0; pointer-events:none; }
+
+/* supervisors: one under each robot, painted like the robot they watch.
+   The yaml file is dipped into the supervisor: its lower part hides behind the block. */
+.ssd-sups { position:relative; margin-top:.2rem; --sup-w:12rem; --file-x:.75rem; --file-w:5.6rem; }
+.ssd-sup { position:absolute; top:0; width:var(--sup-w); transition:opacity .5s; }
+.ssd-sup.pre { opacity:0; }
+.sup-file { position:absolute; top:0; left:var(--file-x); z-index:0; }
+.yf-name { display:block; font:400 .7rem var(--mono); color:var(--slate); white-space:nowrap; margin-bottom:.2rem; transition:color .5s; }
+.yf { position:relative; width:var(--file-w); height:5.2rem; box-sizing:border-box;
+  background:var(--white); color:var(--ink); border:1.5px solid var(--smoke); border-radius:3px;
+  padding:.35rem .5rem; clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  transition:background .5s, border-color .5s; }
+.yf::after { content:""; position:absolute; top:-1.5px; right:-1.5px; width:12px; height:12px; background:var(--mist);
+  border-left:1.5px solid var(--smoke); border-bottom:1.5px solid var(--smoke); box-sizing:border-box; transition:background .5s, border-color .5s; }
+.yf-k { display:block; font:400 .64rem var(--mono); color:var(--slate); transition:color .5s; }
+.yf-v { display:inline-block; font:600 1.15rem/1.3 var(--mono); color:var(--ink); transition:color .3s; }
+.yf-v.set { color:var(--blue-deep); }
+.yf-v.q { min-width:2.1rem; text-align:center; color:#fff; background:var(--blue); border-radius:6px; margin-top:.2rem;
+  transform:scale(calc(1 + .1 * var(--p, 0)));
+  box-shadow:0 0 0 calc(2px + 6px * var(--p, 0)) color-mix(in srgb, var(--blue) calc(55% - 55% * var(--p, 0)), transparent); }
+.sup-tub { position:relative; z-index:1; margin-top:5.3rem; box-sizing:border-box; height:7.3rem;
+  padding:.7rem var(--file-x) .75rem; border-radius:0 12px 12px 12px; color:var(--white); border:1.5px solid transparent;
+  display:flex; flex-direction:column; gap:.6rem;
+  transition:background .5s, border-color .3s, box-shadow .3s, color .5s; }
+.ssd-sup.g .sup-tub { background:var(--graphite); }
+.ssd-sup.d .sup-tub { background:var(--ink); }
+.sup-head { display:flex; align-items:center; gap:.4rem; font:500 .72rem var(--mono);
+  opacity:.9; white-space:nowrap; }
+.sup-head i { width:7px; height:7px; border-radius:50%; background:var(--blue-light); transition:background .3s; }
+.ssd-sup.alert .sup-tub { border-color:var(--red); }
+.ssd-sup.alert .sup-head i { background:var(--red); }
+.ssd-sup.send .sup-tub { border-color:var(--blue); box-shadow:0 0 0 4px color-mix(in srgb, var(--blue) 22%, transparent); }
+.ssd-sup.send .sup-head i { background:var(--blue); }
+/* blueprint for the html blocks: blue outline first, then fill */
+.ssd-sup.bp .sup-tub { background:transparent; border-color:var(--blue); color:var(--blue); }
+.ssd-sup.bp .yf { background:transparent; border-color:var(--blue); }
+.ssd-sup.bp .yf::after { background:transparent; border-color:var(--blue); }
+.ssd-sup.bp .yf-k, .ssd-sup.bp .yf-name, .ssd-sup.bp .yf-v { color:var(--blue); }
+
+/* buttons inside the drone's supervisor */
+.sup-ctl { display:flex; flex-direction:column; gap:.35rem; }
+.ssd-btn { font:500 .8rem var(--font); color:var(--ink); background:var(--white); border:1.5px solid var(--white);
+  border-radius:999px; padding:.38rem .7rem; cursor:pointer; white-space:nowrap; text-align:left; width:100%;
+  transition:border-color .15s, color .15s, background .15s, opacity .3s, transform .3s cubic-bezier(.33,1,.68,1); }
+.ssd-btn:hover { border-color:var(--blue); color:var(--blue-deep); }
+.ssd-btn:focus-visible { outline:2px solid var(--blue); outline-offset:2px; }
+.ssd-btn b { font-family:var(--mono); font-weight:600; color:var(--blue-deep); margin-right:.35rem; }
+.ssd-btn.choice { border-color:var(--blue); transform:scale(calc(1 + .035 * var(--p, 0)));
+  box-shadow:0 0 0 calc(2px + 6px * var(--p, 0)) color-mix(in srgb, var(--blue) calc(55% - 55% * var(--p, 0)), transparent); }
+.ssd-btn.enter { opacity:0; transform:translateY(6px); }
+.ssd.narrow { padding:.9rem .6rem 1rem; }
+.ssd.narrow .ssd-sups { --sup-w:9.4rem; --file-x:.55rem; --file-w:5rem; }
+.ssd.narrow .sup-tub { height:6.9rem; padding:.6rem var(--file-x) .6rem; gap:.5rem; }
+.ssd.narrow .sup-head { font-size:.62rem; gap:.3rem; }
+.ssd.narrow .ssd-btn { font-size:.7rem; padding:.32rem .5rem; }
+
+/* ---- scene B: robot + supervisor on the left, the policy file on the right ---- */
+.gsd-grid { display:grid; grid-template-columns:minmax(0, 1.15fr) minmax(0, 1fr); gap:1.25rem; align-items:start; }
+.gsd .ssd-sups { --sup-w:15rem; }
+.gsd .sup-tub { margin-top:.4rem; height:9.4rem; border-radius:12px; }
+.sup-log { font:500 .7rem var(--mono); padding:.35rem .5rem; border-radius:6px; white-space:nowrap;
+  background:color-mix(in srgb, var(--white) 14%, transparent); }
+.sup-log b { color:var(--blue-light); font-weight:600; }
+.gsd .ssd-btn { line-height:1.2; padding-left:1.05rem; padding-right:1.05rem; }
+.gsd .ssd-btn b { display:block; margin:0; }
+.gsd .ssd-btn small { display:block; font-size:.72rem; color:var(--slate); margin-top:.1rem; }
+
+/* the policy file */
+.yml { padding-top:.6rem; }
+.yml .yf-name { font-size:.75rem; }
+.yml-sheet { position:relative; background:var(--white); border:1.5px solid var(--smoke); border-radius:3px;
+  padding:.7rem 0 .8rem; clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+  transition:background .5s, border-color .5s; }
+.yml-sheet::after { content:""; position:absolute; top:-1.5px; right:-1.5px; width:16px; height:16px; background:var(--mist);
+  border-left:1.5px solid var(--smoke); border-bottom:1.5px solid var(--smoke); box-sizing:border-box; }
+.yl { font:400 .8rem/1.6 var(--mono); white-space:pre; padding:0 .9rem; color:var(--graphite);
+  transition:background .4s, color .4s; }
+.yl .v { color:var(--ink); font-weight:600; }
+.yl.tint { background:color-mix(in srgb, var(--red) 9%, transparent); }
+.yl.focus { background:color-mix(in srgb, var(--blue) 14%, transparent); }
+.yl.focus .v { color:var(--blue-deep); }
+.yl .q { display:inline-block; min-width:1.6rem; text-align:center; color:#fff; background:var(--slate); border-radius:5px;
+  font-weight:600; transition:background .3s; }
+.yml.asking .yl .q { background:var(--blue); transform:scale(calc(1 + .1 * var(--p, 0)));
+  box-shadow:0 0 0 calc(2px + 5px * var(--p, 0)) color-mix(in srgb, var(--blue) calc(55% - 55% * var(--p, 0)), transparent); }
+.yml.bp .yml-sheet { background:transparent; border-color:var(--blue); }
+.yml.bp .yl, .yml.bp .yl .v, .yml.bp .yf-name { color:var(--blue); }
+.yml.pre { opacity:0; }
+.yml { transition:opacity .5s; }
+
+.gsd.narrow .gsd-grid { grid-template-columns:1fr; gap:.8rem; }
+.gsd.narrow .gsd-left .ssd-stage { max-width:24rem; margin:0 auto; }
+.gsd.narrow .yl { font-size:.72rem; padding:0 .7rem; }
+.gsd.narrow .ssd-sups { --sup-w:14rem; }
+.gsd.narrow .sup-tub { height:9.2rem; }
+</style>
+
+<style id="iframe-embed">
+html,body{min-height:100%;}
+body{margin:0;}
+.preview{max-width:none;margin:0;padding:1.25rem clamp(1rem,3vw,2rem);min-height:100vh;border:0;border-radius:0;box-sizing:border-box;}
+.preview-bar{position:sticky;top:0;z-index:2;background:var(--white);padding:.5rem 0;margin-bottom:.75rem;}
+</style>
+
+</head>
+<body>
+<div class="preview">
+  <div class="preview-bar"><button id="theme">Toggle theme</button></div>
+
+  <!-- ============ component: copy from here ============ -->
+  <figure class="ssd gsd" id="gsd" aria-label="Interactive: the same silence on a hard and an informational bridge">
+    <p class="ssd-cap" data-r="cap" aria-live="polite">&nbsp;</p>
+    <div class="gsd-grid">
+      <div class="gsd-left">
+        <svg class="ssd-stage" data-r="svg" viewBox="0 0 420 250" role="img"
+             aria-label="A ground robot has two bridges: the motor bridge (hard) and a work light (informational). When the motor bridge goes silent, the safety supervisor stops the robot. When only the light goes silent, the right response is to log it and keep working.">
+          <defs>
+            <linearGradient id="gsd-beam" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" style="stop-color:var(--blue-light);stop-opacity:.75"/>
+              <stop offset="1" style="stop-color:var(--blue-light);stop-opacity:0"/>
+            </linearGradient>
+          </defs>
+          <g data-r="scene"></g>
+        </svg>
+        <div class="ssd-sups" data-r="sups">
+          <div class="ssd-sup g pre" data-r="sup">
+            <div class="sup-tub"><div class="sup-head"><i></i>safety supervisor</div>
+              <div class="sup-log" data-r="log">led_bridge stale · <b>logged</b></div>
+              <div class="sup-ctl" data-r="ctl"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="yml pre" data-r="yml">
+        <span class="yf-name">safety_policy.yaml</span>
+        <div class="yml-sheet" data-r="sheet"></div>
+      </div>
+    </div>
+    <button type="button" class="ssd-replay" data-r="replay" aria-label="Replay" title="Replay" disabled>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
+    </button>
+    <noscript><p class="ssd-cap">A silent motor bridge (hard) must stop the robot. A silent work light (informational) is only logged: stopping for it would ground the robot for nothing.</p></noscript>
+  </figure>
+  <!-- ============ component: to here (+ script) ============ -->
+</div>
+
+<script>
+(() => {
+  const root = document.getElementById('gsd');
+  const q = r => root.querySelector(`[data-r="${r}"]`);
+  const svg = q('svg'), scene = q('scene'), capEl = q('cap'), sups = q('sups'), sup = q('sup');
+  const logEl = q('log'), ctl = q('ctl'), replay = q('replay'), yml = q('yml'), sheet = q('sheet');
+  const NS = 'http://www.w3.org/2000/svg';
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---- motion tokens --------------------------------------------------
+  const T_S = 300, T_M = 500, T_L = 800;
+  const EASE_IN = t => 1 - Math.pow(1 - t, 3);
+  const EASE_MOVE = t => t * t * (3 - 2 * t);
+  const LINEAR = t => t;
+
+  // ---- the policy file (values as in the article: hard timeout 150 ms) ----------------------
+  const POLICY = [
+    [0, 'safety_policy:'], [1, 'nodes:'],
+    [2, 'can_bridge:', null, 'hard'],
+    [3, 'criticality: ', 'hard', 'hard', 'crit'],
+    [3, 'heartbeat_timeout_ms: ', '150', 'hard', 'to'],
+    [3, 'on_timeout: ', 'platform_safe_stop', 'hard', 'act'],
+    [2, 'led_bridge:', null, 'info'],
+    [3, 'criticality: ', 'informational', 'info', 'crit'],
+    [3, 'heartbeat_timeout_ms: ', '5000', 'info', 'to'],
+    [3, 'on_timeout: ', '?', 'info', 'act'],
+  ];
+  const lines = POLICY.map(([ind, key, val, grp, role]) => {
+    const d = document.createElement('div');
+    d.className = 'yl'; if (grp) d.dataset.g = grp; if (role) d.dataset.role = role;
+    d.append('  '.repeat(ind) + key);
+    if (val) { const v = document.createElement('span'); v.className = val === '?' ? 'q' : 'v'; v.textContent = val; d.append(v); }
+    sheet.append(d);
+    return d;
+  });
+  const line = (g, role) => lines.find(l => l.dataset.g === g && l.dataset.role === role);
+  const group = g => lines.filter(l => l.dataset.g === g);
+  const infoAct = line('info', 'act');
+  const setInfoAct = v => { const s = infoAct.querySelector('.q, .v'); s.className = v === '?' ? 'q' : 'v'; s.textContent = v; };
+  const mark = (els, cls, on) => els.forEach(e => e.classList.toggle(cls, on));
+  const clearMarks = () => lines.forEach(l => l.classList.remove('tint', 'focus'));
+
+  function el(tag, attrs = {}, parent, text) {
+    const e = document.createElementNS(NS, tag);
+    for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+    if (text != null) e.textContent = text;
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function staleBadge(parent) {
+    const g = el('g', { opacity: 0 }, parent);
+    el('rect', { x: -29, y: -10, width: 58, height: 20, rx: 5, style: 'fill:var(--red)' }, g);
+    el('text', { x: 0, y: 4, 'text-anchor': 'middle', 'font-size': 11.5, 'font-weight': 600, fill: '#fff' }, g, 'STALE');
+    return g;
+  }
+  function icon(good, parent) {
+    const g = el('g', { opacity: 0 }, parent);
+    el('circle', { r: 13, style: `fill:var(${good ? '--blue' : '--red'})` }, g);
+    el('path', { d: good ? 'M-6,0 L-2,4.5 L6,-4.5' : 'M-5,-5 L5,5 M-5,5 L5,-5', fill: 'none', stroke: '#fff',
+                 'stroke-width': 2.6, 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+    return g;
+  }
+  function timer(parent, cx, cy, r, label, lx, ly, anchor) {
+    const txt = el('text', { x: lx, y: ly, 'text-anchor': anchor, 'font-size': 12, 'font-weight': 600, style: 'fill:var(--red)', opacity: 0 }, parent, label);
+    const bg = el('circle', { cx, cy, r, fill: 'none', style: 'stroke:var(--mist)', 'stroke-width': 3, opacity: 0 }, parent);
+    const fg = el('circle', { cx, cy, r, fill: 'none', style: 'stroke:var(--red)', 'stroke-width': 3, 'stroke-linecap': 'round',
+      pathLength: 1, 'stroke-dasharray': 1, 'stroke-dashoffset': 1, transform: `rotate(-90 ${cx} ${cy})`, opacity: 0 }, parent);
+    return { bg, fg, txt };
+  }
+
+  // ---- robot with a work light on a bracket; origin = centre of ground contact -------------
+  function robot(parent) {
+    const g = el('g', {}, parent);
+    // light beam, drawn first so it sits behind the robot
+    const beam = el('path', { d: 'M78,-126 L96,-110 L250,0 L122,0 Z', fill: 'url(#gsd-beam)' }, g);
+    // bracket: post from the body, arm forward
+    el('path', { d: 'M40,-84 L40,-140 L74,-140', fill: 'none', style: 'stroke:var(--graphite)', 'stroke-width': 5,
+                 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }, g);
+    const lampBody = el('path', { d: 'M66,-150 L92,-150 L100,-124 L74,-116 Z', style: 'fill:var(--ink)' }, g);
+    const lens = el('path', { d: 'M76,-119 L98,-126', style: 'stroke:var(--blue-light)', 'stroke-width': 5, 'stroke-linecap': 'round' }, g);
+    el('rect', { x: -80, y: -84, width: 160, height: 52, rx: 12, style: 'fill:var(--graphite)' }, g);
+    const wheels = [-46, 46].map(cx => {
+      el('circle', { cx, cy: -22, r: 22, style: 'fill:var(--ink)' }, g);
+      const hub = el('g', {}, g);
+      [0, 120, 240].forEach(a => el('line', { x1: cx, y1: -22, x2: cx, y2: -38, transform: `rotate(${a} ${cx} -22)`,
+        style: 'stroke:var(--slate)', 'stroke-width': 4, 'stroke-linecap': 'round' }, hub));
+      el('circle', { cx, cy: -22, r: 5, style: 'fill:var(--slate)' }, hub);
+      return { cx, hub };
+    });
+    // motor bridge (can_bridge): a module on the body, wired to both wheel motors; its LED is the heartbeat
+    el('path', { d: 'M-2,-58 L-46,-58 L-46,-40 M22,-58 L46,-58 L46,-40', fill: 'none', style: 'stroke:var(--slate)',
+                 'stroke-width': 2, 'stroke-linejoin': 'round' }, g);
+    el('rect', { x: -4, y: -76, width: 28, height: 26, rx: 4, style: 'fill:var(--ink)' }, g);
+    [-1, 6, 13, 20].forEach(x => {
+      el('line', { x1: x + 1, y1: -79, x2: x + 1, y2: -76, style: 'stroke:var(--slate)', 'stroke-width': 2 }, g);
+      el('line', { x1: x + 1, y1: -50, x2: x + 1, y2: -47, style: 'stroke:var(--slate)', 'stroke-width': 2 }, g);
+    });
+    const led = el('circle', { cx: 10, cy: -63, r: 5, style: 'fill:var(--blue)' }, g);
+    const ring = el('circle', { cx: 10, cy: -63, r: 5, fill: 'none', style: 'stroke:var(--blue)', 'stroke-width': 1.5 }, g);
+    const tHard = timer(g, 10, -63, 21, '150 ms', 10, -94, 'middle');
+    const tInfo = timer(g, 83, -134, 25, '5000 ms', 114, -150, 'start');
+    const staleHard = staleBadge(g), staleInfo = staleBadge(g);
+    const ok = icon(true, g), bad = icon(false, g);
+    return { g, wheels, led, ring, beam, lens, lampBody, tHard, tInfo, staleHard, staleInfo, ok, bad };
+  }
+
+  // ---- scene ------------------------------------------------------------------------------
+  const W = 420, H = 250, GROUND_Y = 232, RX = 150;
+  const ground = el('line', { class: 'ground', x1: 6, y1: GROUND_Y, x2: W - 6, y2: GROUND_Y, pathLength: 1, 'stroke-dasharray': 1, 'stroke-dashoffset': 1 }, scene);
+  const R = robot(scene);
+  const packet = el('g', { opacity: 0 }, scene);
+  el('rect', { x: -26, y: -12, width: 52, height: 24, rx: 7, style: 'fill:var(--blue)' }, packet);
+  el('text', { x: 0, y: 5, 'text-anchor': 'middle', 'font-size': 13, 'font-weight': 600, fill: '#fff' }, packet, 'stop');
+
+  function layout() { root.classList.toggle('narrow', root.clientWidth < 620); }
+  layout();
+  new ResizeObserver(layout).observe(root);
+
+  function placeSup() {
+    const Wd = sups.clientWidth, sw = svg.clientWidth, w = sup.offsetWidth;
+    const off = svg.getBoundingClientRect().left - sups.getBoundingClientRect().left;
+    sup.style.left = `${Math.max(0, Math.min(Wd - w, (RX / W) * sw + off - w / 2))}px`;
+    sups.style.height = `${sup.offsetHeight}px`;
+  }
+
+  // ---- state + tweens -------------------------------------------------------------------
+  const init = () => ({ flicker: false, wheel: 13, ground: 0, actors: 0, hardAlive: true, light: 1,
+    tHard: 0, tInfo: 0, staleHard: 0, staleInfo: 0, ok: 0, bad: 0, ask: 0, pt: 0, pop: 0 });
+  let S = init(), tweens = [], run = 0, p0 = [0, 0], p1 = [0, 0];
+
+  function tween(key, to, dur, ease = EASE_MOVE) {
+    if (reduced || dur === 0) { S[key] = to; return Promise.resolve(); }
+    return new Promise(res => tweens.push({ key, from: S[key], to, t0: performance.now(), dur, ease, res, run }));
+  }
+  const all = (...p) => Promise.all(p);
+  const sleep = ms => new Promise(res => tweens.push({ sleep: true, t0: performance.now(), dur: reduced ? Math.min(ms, 400) : ms, res, run }));
+  const guard = id => { if (id !== run) throw 'cancel'; };
+
+  // a failing fluorescent tube: a few stutters, then dark
+  async function flickerOut(id) {
+    if (reduced) { S.light = 0; return; }
+    for (const [v, ms] of [[0, 70], [1, 110], [.2, 60], [.9, 50], [0, 180], [.7, 70], [.1, 90], [.5, 40], [0, 1]]) {
+      S.light = v; await sleep(ms); guard(id);
+    }
+    S.flicker = true;
+  }
+  // after the first stutter the tube keeps trying: long dark gaps, short uneven flashes
+  let flickNext = 0;
+  function flickerTick(now) {
+    if (!S.flicker || reduced) return;
+    if (now < flickNext) return;
+    if (S.light > .05) { S.light = 0; flickNext = now + 90 + Math.random() * 420; }
+    else {
+      const burst = Math.random() < .5;
+      S.light = .35 + Math.random() * .6;
+      flickNext = now + (burst ? 30 + Math.random() * 40 : 60 + Math.random() * 120);
+    }
+  }
+
+  // ---- captions + controls ------------------------------------------------------------------
+  let capTimer;
+  const readTime = s => Math.min(2000, 1000 + s.length * 14);
+  async function say(s, id) { caption(s); await sleep(readTime(s) + T_S); guard(id); }
+  function caption(s) {
+    clearTimeout(capTimer);
+    if (reduced) { capEl.textContent = s; return; }
+    capEl.classList.add('out');
+    capTimer = setTimeout(() => {
+      capEl.textContent = s;
+      capEl.classList.remove('out'); capEl.classList.add('pre');
+      void capEl.offsetWidth;
+      capEl.classList.remove('pre');
+    }, T_S);
+  }
+  function buttons(list) {
+    ctl.innerHTML = '';
+    list.forEach(([html, fn, cls = ''], i) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = `ssd-btn ${cls} enter`; b.innerHTML = html;
+      b.addEventListener('click', fn);
+      ctl.appendChild(b);
+      setTimeout(() => b.classList.remove('enter'), 60 + i * 90);
+    });
+  }
+  const supState = st => { sup.classList.remove('alert', 'send'); if (st) sup.classList.add(st); };
+  const showLog = on => { logEl.style.display = on ? '' : 'none'; };
+  replay.addEventListener('click', () => start(false));
+
+  // ---- render loop ------------------------------------------------------------------------------
+  let last = performance.now(), wheelA = 0, hb = 0, clock = 0;
+  function frame(now) {
+    const dt = Math.min(.05, (now - last) / 1000); last = now;
+    tweens = tweens.filter(tw => {
+      if (tw.run !== run) return false;
+      const p = Math.min(1, (now - tw.t0) / tw.dur);
+      if (!tw.sleep) S[tw.key] = tw.from + (tw.to - tw.from) * tw.ease(p);
+      if (p >= 1) { tw.res(); return false; }
+      return true;
+    });
+    flickerTick(now);
+    wheelA += S.wheel * dt * (reduced ? 0 : 1); hb = (hb + dt) % .9; clock += dt;
+    const lift = (1 - S.actors) * 8, hp = hb / .9;
+    const blink = reduced ? 1 : (Math.sin(clock * 7) > -.2 ? 1 : .25);
+
+    ground.setAttribute('stroke-dashoffset', 1 - S.ground);
+    R.g.setAttribute('transform', `translate(${RX},${GROUND_Y + lift})`);
+    R.g.setAttribute('opacity', S.actors);
+    R.wheels.forEach(w => w.hub.setAttribute('transform', `rotate(${wheelA * 57.3} ${w.cx} -22)`));
+
+    R.led.style.fill = S.hardAlive ? 'var(--blue)' : 'var(--smoke)';
+    R.ring.setAttribute('r', 5 + 10 * hp);
+    R.ring.setAttribute('opacity', S.hardAlive && !reduced ? 1 - hp : 0);
+    R.beam.setAttribute('opacity', S.light);
+    R.lens.style.stroke = S.light > .5 ? 'var(--blue-light)' : 'var(--smoke)';
+    R.lens.setAttribute('opacity', .4 + .6 * S.light);
+
+    [[R.tHard, S.tHard], [R.tInfo, S.tInfo]].forEach(([t, v]) => {
+      const vis = v > 0 && v < 1 ? 1 : 0;
+      t.bg.setAttribute('opacity', vis); t.fg.setAttribute('opacity', vis); t.txt.setAttribute('opacity', vis);
+      t.fg.setAttribute('stroke-dashoffset', 1 - v);
+    });
+    const badge = (b, v, at) => {
+      b.setAttribute('opacity', v === 0 ? 0 : v < 1 ? .15 + .85 * v : blink);
+      b.setAttribute('transform', `${at} scale(${1 + 1.6 * (1 - v)})`);
+    };
+    badge(R.staleHard, S.staleHard, 'translate(-46,-66)');
+    badge(R.staleInfo, S.staleInfo, 'translate(84,-176)');
+
+    const ic = (g, v, x, y) => { g.setAttribute('transform', `translate(${x},${y}) scale(${.6 + .4 * v})`); g.setAttribute('opacity', v); };
+    ic(R.ok, S.ok, -58, -104); ic(R.bad, S.bad, -58, -104);
+
+    const pulse = ((reduced ? 0 : .5 - .5 * Math.cos(clock * 2 * Math.PI / 1.4)) * S.ask).toFixed(3);
+    sup.style.setProperty('--p', pulse); yml.style.setProperty('--p', pulse);
+
+    const px = p0[0] + (p1[0] - p0[0]) * S.pt, py = p0[1] + (p1[1] - p0[1]) * S.pt;
+    packet.setAttribute('transform', `translate(${px},${py})`);
+    packet.setAttribute('opacity', S.pop);
+
+    placeSup();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // the supervisor sends a command up to the wheels
+  async function send(id) {
+    const ppu = svg.clientWidth / W, sr = svg.getBoundingClientRect(), r = sup.getBoundingClientRect();
+    p0 = [(r.left + r.width / 2 - sr.left) / ppu, (r.top + 10 - sr.top) / ppu];
+    p1 = [RX, GROUND_Y - 22]; S.pt = 0;
+    await all(tween('pop', 1, T_S, EASE_IN), tween('pt', 1, T_L, EASE_MOVE)); guard(id);
+    await tween('pop', 0, T_S, EASE_IN); guard(id);
+  }
+
+  // ---- story -------------------------------------------------------------------------------------
+  async function start(first) {
+    const id = ++run; tweens = [];
+    S = init();
+    clearMarks(); setInfoAct('?'); yml.classList.remove('asking');
+    showLog(false); supState(); buttons([]);
+    replay.disabled = first;
+    try {
+      const intro = 'The same robot, now with a work light.\nTwo bridges: the motors and the light.';
+      caption(intro);
+      await sleep(readTime(intro) - 300); guard(id);
+      if (first && !reduced) {
+        sup.classList.remove('pre'); sup.classList.add('bp');
+        yml.classList.remove('pre'); yml.classList.add('bp');
+        await tween('ground', 1, T_L, EASE_IN); guard(id);
+        await sleep(T_S); guard(id);
+        sup.classList.remove('bp'); yml.classList.remove('bp');
+        await sleep(T_M); guard(id);
+      } else { sup.classList.remove('pre', 'bp'); yml.classList.remove('pre', 'bp'); S.ground = 1; }
+      await tween('actors', 1, T_M, EASE_IN); guard(id);
+      replay.disabled = false;
+      await sleep(900); guard(id);
+
+      await say('The supervisor’s policy gives each bridge\na criticality class.', id);
+      mark([line('hard', 'crit'), line('info', 'crit')], 'focus', true);
+      await sleep(1600); guard(id);
+      clearMarks();
+
+      // --- hard: the system acts
+      await say('The motor bridge goes silent.', id);
+      mark(group('hard'), 'tint', true);
+      S.hardAlive = false;
+      line('hard', 'to').classList.add('focus');
+      await tween('tHard', 1, T_L * 2, LINEAR); guard(id);      // short timeout
+      S.tHard = 0;
+      line('hard', 'to').classList.remove('focus');
+      await tween('staleHard', 1, T_L, EASE_IN); guard(id);
+      supState('alert');
+      await say('Hard: nothing else can stop the motors.\nThe supervisor stops the robot.', id);
+      line('hard', 'act').classList.add('focus');
+      supState('send');
+      await send(id);
+      supState();
+      await tween('wheel', 0, T_L, EASE_IN); guard(id);
+      await tween('ok', 1, T_S, EASE_IN); guard(id);
+      await sleep(1200); guard(id);
+
+      // --- rewind
+      await say('Rewind. This time only the light goes silent.', id);
+      clearMarks();
+      await all(tween('ok', 0, T_S), tween('staleHard', 0, T_S)); guard(id);
+      S.hardAlive = true;
+      await tween('wheel', 13, T_L, EASE_IN); guard(id);
+      await sleep(500); guard(id);
+
+      // --- informational: the reader decides
+      mark(group('info'), 'tint', true);
+      await flickerOut(id);
+      line('info', 'to').classList.add('focus');
+      await tween('tInfo', 1, T_L * 4, LINEAR); guard(id);      // a long timeout, the robot keeps driving
+      S.tInfo = 0;
+      line('info', 'to').classList.remove('focus');
+      await tween('staleInfo', 1, T_L, EASE_IN); guard(id);
+      supState('alert');
+      caption("You're the supervisor. The light is stale.\nWhat do you do?");
+      yml.classList.add('asking');
+      await tween('ask', 1, T_M, EASE_IN); guard(id);
+      choices();
+    } catch (e) { if (e !== 'cancel') throw e; }
+  }
+
+  function choices() {
+    buttons([
+      ['<b>platform_safe_stop</b><small>stop the robot</small>', () => choose('platform_safe_stop'), 'choice'],
+      ['<b>log_only</b><small>log it, keep working</small>', () => choose('log_only'), 'choice'],
+    ]);
+  }
+
+  async function choose(v, retry) {
+    const id = ++run; tweens = [];
+    buttons([]);
+    try {
+      S.ask = 0; yml.classList.remove('asking');
+      if (retry) {
+        await all(tween('bad', 0, T_S), tween('ok', 0, T_S)); guard(id);
+        showLog(false); supState('alert'); setInfoAct('?'); infoAct.classList.remove('focus');
+        if (S.wheel < 1) { await tween('wheel', 13, T_L, EASE_IN); guard(id); }
+        await sleep(T_S); guard(id);
+      }
+      setInfoAct(v); infoAct.classList.add('focus');
+      if (v === 'platform_safe_stop') {
+        await say('You stop the robot.', id);
+        supState('send');
+        await send(id);
+        supState('alert');
+        await tween('wheel', 0, T_L, EASE_IN); guard(id);
+        await tween('bad', 1, T_S, EASE_IN); guard(id);
+        caption('Nothing unsafe happened.\nA dead light just grounded the robot.');
+        await sleep(T_L); guard(id);
+        buttons([['Try <b style="display:inline">log_only</b>', () => choose('log_only', true)]]);
+      } else {
+        await say('You log it and let the robot work.', id);
+        supState();
+        showLog(true);
+        await sleep(T_M); guard(id);
+        await tween('ok', 1, T_S, EASE_IN); guard(id);
+        caption('Informational: logged,\nand the robot keeps working.');
+        await sleep(1800); guard(id);
+        caption('Criticality isn’t importance. It’s whether\nanyone is left to stop the hardware.');
+        await sleep(T_L); guard(id);
+        buttons([['Try <b style="display:inline">platform_safe_stop</b>', () => choose('platform_safe_stop', true)]]);
+      }
+    } catch (e) { if (e !== 'cancel') throw e; }
+  }
+
+  const io = new IntersectionObserver(es => {
+    if (es.some(e => e.isIntersecting)) { io.disconnect(); start(true); }
+  }, { threshold: .35 });
+  io.observe(root);
+})();
+
+// preview-only theme toggle
+document.getElementById('theme').onclick = () => {
+  const h = document.documentElement;
+  const dark = h.dataset.theme ? h.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  h.dataset.theme = dark ? 'light' : 'dark';
+};
+</script>
+</body>
+</html>

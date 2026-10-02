@@ -8,6 +8,7 @@
 | `maket/` | `model.revlev.org` (canonical). Хост `maket.revlev.org` → **301** на model (см. ниже). Intro: `maket/intro/` + `maket/img/intro/` — см. `maket/INTRO.md` |
 | `pcb/` | `pcb.revlev.org` |
 | `research/` | `research.revlev.org` (Cloudflare Pages, Hugo; см. `research/README.md`) |
+| `motion/` | `motion.revlev.org` (Cloudflare Pages, статика) |
 | `feedback/` | Cloudflare Worker → Telegram |
 
 ### 301: `maket.revlev.org` → `model.revlev.org` (не удалять)
@@ -41,6 +42,19 @@ Build settings (уже в проекте):
 Осталось один раз: Dashboard → project `research` → **Connect to Git** → `teterevlev/website`, затем push папки `research/` в `main` (или Upload assets из `research/public/`).
 
 Локально: `cd research && hugo server -D` — гайд: `research/README.md`.
+
+### Motion (статика → Pages)
+
+Pages project: **`motion`** (`motion-85y.pages.dev`). Domain: **`motion.revlev.org`** (CNAME → pages.dev).
+
+| Setting | Value |
+|---------|-------|
+| Root directory | `motion` |
+| Build command | _(пусто)_ |
+| Build output directory | _(пусто / корень `motion`)_ |
+| Production branch | `main` |
+
+Одностраничник-портфолио анимаций: видео + интерактивные демо.
 
 ## VPS (`ru` → `.ru`)
 
