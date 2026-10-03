@@ -210,7 +210,7 @@ research/
         cover-dark.jpg
   data/author.yaml     ← author bento / about / cards
   themes/revlev/       ← look & feel
-  static/              ← favicon, default og.jpg
+  static/              ← favicon, default og.png
   hugo.toml
   README.md            ← this guide
 ```
