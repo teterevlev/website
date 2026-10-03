@@ -476,7 +476,7 @@ video {
   align-items: center;
   width: 100%;
   margin-top: 0.5rem;
-  padding: 1rem;
+  padding: 2rem 1rem 1rem;
   border: 1px solid var(--blue);
   border-radius: 12px;
   background: var(--snow);
