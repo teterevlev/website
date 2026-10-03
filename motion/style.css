@@ -24,6 +24,7 @@
   --fs-sm: 0.8125rem;
   --fs-base: 1rem;
   --fs-lg: 1.125rem;
+  --fs-xl: 1.5rem;
   --fs-hero: clamp(1.75rem, 4vw, 2.5rem);
 
   --sp-sm: 0.75rem;
@@ -466,7 +467,115 @@ video {
   }
 }
 
-/* Window lighting open button */
+/* Window lighting — post-card thumb inside the same frame as .ssd demos */
+.demo-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: var(--sp-md);
+  align-items: center;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 1rem;
+  border: 1px solid var(--blue);
+  border-radius: 12px;
+  background: var(--snow);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--blue) 28%, transparent);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.demo-card:hover,
+.demo-card:focus-visible {
+  border-color: var(--mist);
+  box-shadow: none;
+}
+
+.demo-card:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.demo-card .ssd-tryit {
+  top: 0.5rem;
+  left: 0.5rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .demo-card:hover .ssd-tryit:not(:hover),
+  .demo-card:focus-within .ssd-tryit:not(:hover) {
+    padding-right: 0.72rem;
+  }
+
+  .demo-card:hover .ssd-tryit:not(:hover) .ssd-tryit-txt,
+  .demo-card:focus-within .ssd-tryit:not(:hover) .ssd-tryit-txt {
+    max-width: 0;
+    margin-left: 0;
+    opacity: 0;
+  }
+}
+
+.demo-card-media {
+  display: block;
+  position: relative;
+  width: 8.5rem;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 8px;
+  background: var(--ash);
+  flex-shrink: 0;
+  align-self: start;
+}
+
+.demo-card-media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+.demo-card-body {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.25rem;
+}
+
+.demo-card-title {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+  transition: color 0.2s ease;
+}
+
+.demo-card:hover .demo-card-title,
+.demo-card:focus-visible .demo-card-title {
+  color: var(--blue-deep);
+}
+
+.demo-card-summary {
+  margin: 0;
+  font-size: var(--fs-base);
+  line-height: 1.5;
+  color: var(--graphite);
+}
+
+@media (max-width: 640px) {
+  .demo-card {
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: var(--sp-sm);
+  }
+
+  .demo-card-media {
+    width: 6.5rem;
+  }
+}
+
+/* Legacy gate (unused for window lighting; keep if needed elsewhere) */
 .gate {
   display: flex;
   flex-direction: column;
