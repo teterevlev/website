@@ -82,10 +82,10 @@
   {{- else -}}{{- $ogType = "image/jpeg" -}}{{- end -}}
 {{- end -}}
 {{- if not $ogRes -}}
-  {{- $ogURL = "img/og.png" | absURL -}}
-  {{- $ogW = 2456 -}}
-  {{- $ogH = 1654 -}}
-  {{- $ogType = "image/png" -}}
+  {{- $ogURL = "img/og.jpg?v=2" | absURL -}}
+  {{- $ogW = 1200 -}}
+  {{- $ogH = 630 -}}
+  {{- $ogType = "image/jpeg" -}}
 {{- end -}}
 
 <meta property="og:type" content="{{ if .IsPage }}article{{ else }}website{{ end }}">
