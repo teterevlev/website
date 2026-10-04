@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="fig-svg" viewBox="0 0 960 420" width="960" height="420"
+     role="img" aria-labelledby="ev-title ev-desc">
+  <title id="ev-title">The key writes 97% of the letter; editors touched about 3%</title>
+  <desc id="ev-desc">Top bar: 1,300 cipher units by evidence class  427 match Tant's published table, 805 are supported in several word contexts, 54 are contextual or sparse, 14 are affected by defects on the plate. Bottom bar: the literal key output has 1,438 letters; about 44 letter positions were changed by 29 documented editorial interventions, about 3%.</desc>
+  <defs>
+    <style>
+      .ev-t { font-family: var(--font, "Inter", -apple-system, "Segoe UI", sans-serif); }
+      .ev-title { font-size: 20px; font-weight: 700; fill: var(--ink, #1A1D23); }
+      .ev-sub { font-size: 13px; fill: var(--graphite, #5C6370); }
+      .ev-label { font-size: 14px; font-weight: 600; fill: var(--ink, #1A1D23); }
+      .ev-legend { font-size: 13px; fill: var(--ink, #1A1D23); }
+      .ev-source { font-size: 11.5px; fill: var(--graphite, #5C6370); }
+      .ev-rule { stroke: var(--mist, #E8EAED); stroke-width: 1; }
+      .ev-published { fill: var(--blue-ink, #1B2F80); }
+      .ev-context { fill: var(--blue, #4A6CF7); }
+      .ev-sparse { fill: #C4922A; }
+      .ev-defect { fill: var(--alert, #D64545); }
+      .ev-kept { fill: var(--blue-deep, #2A4AD4); }
+      .ev-edited { fill: #C4922A; }
+    </style>
+  </defs>
+
+  <text class="ev-t ev-title" x="40" y="36">The key writes 97% of the letter; editors touched about 3%</text>
+  <text class="ev-t ev-sub" x="40" y="58">Marmont cipher, solution package v1.0.0</text>
+
+  <text class="ev-t ev-label" x="40" y="98">1,300 cipher units by strength of evidence</text>
+  <g id="bar-evidence">
+    <rect class="ev-published" x="40"    y="110" width="289.0" height="40"/>
+    <rect class="ev-context"   x="329.0" y="110" width="544.9" height="40"/>
+    <rect class="ev-sparse"    x="873.9" y="110" width="36.6"  height="40"/>
+    <rect class="ev-defect"    x="910.5" y="110" width="9.5"   height="40"/>
+  </g>
+  <g id="legend-evidence">
+    <rect class="ev-published" x="40"  y="168" width="14" height="14"/>
+    <text class="ev-t ev-legend" x="62"  y="180">427 units match Tant's published partial table</text>
+    <rect class="ev-context"   x="40"  y="194" width="14" height="14"/>
+    <text class="ev-t ev-legend" x="62"  y="206">805 units supported in several word contexts</text>
+    <rect class="ev-sparse"    x="500" y="168" width="14" height="14"/>
+    <text class="ev-t ev-legend" x="522" y="180">54 units: contextual or sparse evidence (48 signs)</text>
+    <rect class="ev-defect"    x="500" y="194" width="14" height="14"/>
+    <text class="ev-t ev-legend" x="522" y="206">14 units affected by defects on the plate</text>
+  </g>
+
+  <line class="ev-rule" x1="40" y1="234" x2="920" y2="234"/>
+
+  <text class="ev-t ev-label" x="40" y="268">Literal key output: 1,438 letters, produced by script</text>
+  <g id="bar-literal">
+    <rect class="ev-kept"   x="40"    y="280" width="853.1" height="40"/>
+    <rect class="ev-edited" x="893.1" y="280" width="26.9"  height="40"/>
+  </g>
+  <g id="legend-literal">
+    <rect class="ev-kept"   x="40"  y="338" width="14" height="14"/>
+    <text class="ev-t ev-legend" x="62"  y="350">Letters kept exactly as the key produces them</text>
+    <rect class="ev-edited" x="500" y="338" width="14" height="14"/>
+    <text class="ev-t ev-legend" x="522" y="350">H44 letter positions in 29 documented edits</text>
+  </g>
+
+  <text class="ev-t ev-source" x="40" y="395">Data: Church, Marmont Solution Package v1.0.0 (2026). Recomputed and verified by the author, 4 October 2026.</text>
+</svg>

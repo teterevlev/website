@@ -278,6 +278,11 @@ a:hover {
   border-bottom: 1px solid var(--mist);
 }
 
+/* No cover: don't leave an empty thumbnail column that squishes the title */
+.post-card:not(:has(.post-card-media)) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .post-card:first-child {
   padding-top: 0;
 }
@@ -375,6 +380,10 @@ img.theme-cover-dark {
   .post-card {
     grid-template-columns: 6.5rem minmax(0, 1fr);
     gap: var(--sp-sm);
+  }
+
+  .post-card:not(:has(.post-card-media)) {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .post-card-media {

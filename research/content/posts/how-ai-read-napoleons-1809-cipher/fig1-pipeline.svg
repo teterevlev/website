@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" class="fig-svg" viewBox="0 0 960 470" width="960" height="470"
+     role="img" aria-labelledby="pl-title pl-desc">
+  <title id="pl-title">Six stages from one scanned plate to a checkable key</title>
+  <desc id="pl-desc">Pipeline used to decipher the 1809 Marmont letter: transcribe the plate, pin the 33 published values, search the key by simulated annealing, promote 29 word-signs, check every value against the plate, then rerun the solver without Napoleonic texts. The output is a key and a transcription that produce the literal text deterministically.</desc>
+  <defs>
+    <marker id="pl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path class="pl-ah" d="M0 0L10 5L0 10z"/>
+    </marker>
+    <style>
+      .pl-t { font-family: var(--font, "Inter", -apple-system, "Segoe UI", sans-serif); }
+      .pl-title { font-size: 20px; font-weight: 700; fill: var(--ink, #1A1D23); }
+      .pl-sub { font-size: 13px; fill: var(--graphite, #5C6370); }
+      .pl-name { font-size: 15px; font-weight: 600; fill: var(--ink, #1A1D23); }
+      .pl-step { font-size: 15px; font-weight: 700; fill: var(--graphite, #5C6370); }
+      .pl-body { font-size: 12.5px; fill: var(--ink, #1A1D23); }
+      .pl-label { font-size: 14px; font-weight: 600; fill: var(--ink, #1A1D23); }
+      .pl-source { font-size: 11.5px; fill: var(--graphite, #5C6370); }
+      .pl-box { fill: var(--white, #FFFFFF); stroke: var(--smoke, #C4C8CF); stroke-width: 1.25; }
+      .pl-box-accent { fill: var(--alert-pale, #FDEEEE); stroke: var(--alert, #D64545); stroke-width: 2; }
+      .pl-band { fill: var(--ash, #F2F3F5); stroke: var(--mist, #E8EAED); stroke-width: 1; }
+      .pl-conn { fill: none; stroke: var(--slate, #8A8F98); stroke-width: 1.25; }
+      .pl-ah { fill: var(--slate, #8A8F98); }
+    </style>
+  </defs>
+
+  <text class="pl-t pl-title" x="20" y="36">Six stages from one scanned plate to a checkable key</text>
+  <text class="pl-t pl-sub" x="20" y="58">GPT-6 Astra, about six hours of model time · Source: Church, 2026</text>
+
+  <g id="stage-1">
+    <rect class="pl-box" x="20" y="80" width="290" height="110" rx="8"/>
+    <text class="pl-t pl-step" x="36" y="108">1</text>
+    <text class="pl-t pl-name" x="56" y="108">Transcribe</text>
+    <text class="pl-t pl-body" x="36" y="134">Plate cut into 24 row crops</text>
+    <text class="pl-t pl-body" x="36" y="154">Each distinct mark gets a label</text>
+    <text class="pl-t pl-body" x="36" y="174">1,310 units · 155 cipher signs</text>
+  </g>
+  <g id="stage-2">
+    <rect class="pl-box" x="335" y="80" width="290" height="110" rx="8"/>
+    <text class="pl-t pl-step" x="351" y="108">2</text>
+    <text class="pl-t pl-name" x="371" y="108">Pin what is known</text>
+    <text class="pl-t pl-body" x="351" y="134">33 values from Tant's partial table</text>
+    <text class="pl-t pl-body" x="351" y="154">CONSEQUENT kept as plaintext</text>
+    <text class="pl-t pl-body" x="351" y="174">About a third of units fixed</text>
+  </g>
+  <g id="stage-3">
+    <rect class="pl-box" x="650" y="80" width="290" height="110" rx="8"/>
+    <text class="pl-t pl-step" x="666" y="108">3</text>
+    <text class="pl-t pl-name" x="686" y="108">Search the key</text>
+    <text class="pl-t pl-body" x="666" y="134">Simulated annealing over sign values</text>
+    <text class="pl-t pl-body" x="666" y="154">Scored by French 3-, 4-, 5-grams</text>
+    <text class="pl-t pl-body" x="666" y="174">Corpus: Hugo, Dumas, Marmont</text>
+  </g>
+
+  <g id="stage-4">
+    <rect class="pl-box" x="20" y="250" width="290" height="110" rx="8"/>
+    <text class="pl-t pl-step" x="36" y="278">4</text>
+    <text class="pl-t pl-name" x="56" y="278">Promote word-signs</text>
+    <text class="pl-t pl-body" x="36" y="304">Signs that break good French</text>
+    <text class="pl-t pl-body" x="36" y="324">are retested as whole words</text>
+    <text class="pl-t pl-body" x="36" y="344">29 word-signs: de, que, vous&</text>
+  </g>
+  <g id="stage-5">
+    <rect class="pl-box" x="335" y="250" width="290" height="110" rx="8"/>
+    <text class="pl-t pl-step" x="351" y="278">5</text>
+    <text class="pl-t pl-name" x="371" y="278">Check against the plate</text>
+    <text class="pl-t pl-body" x="351" y="304">Each proposed value is tested</text>
+    <text class="pl-t pl-body" x="351" y="324">at every occurrence of the sign</text>
+    <text class="pl-t pl-body" x="351" y="344">Kept only if it works everywhere</text>
+  </g>
+  <g id="stage-6">
+    <rect class="pl-box-accent" x="650" y="250" width="290" height="110" rx="8"/>
+    <text class="pl-t pl-step" x="666" y="278">6</text>
+    <text class="pl-t pl-name" x="686" y="278">Attack the result</text>
+    <text class="pl-t pl-body" x="666" y="304">Rerun from scratch without</text>
+    <text class="pl-t pl-body" x="666" y="324">Marmont's memoirs or any</text>
+    <text class="pl-t pl-body" x="666" y="344">Napoleonic text ’ same reading</text>
+  </g>
+
+  <g id="connectors">
+    <path class="pl-conn" d="M310 135H333" marker-end="url(#pl-arrow)"/>
+    <path class="pl-conn" d="M625 135H648" marker-end="url(#pl-arrow)"/>
+    <path class="pl-conn" d="M795 190V220H165V248" marker-end="url(#pl-arrow)"/>
+    <path class="pl-conn" d="M310 305H333" marker-end="url(#pl-arrow)"/>
+    <path class="pl-conn" d="M625 305H648" marker-end="url(#pl-arrow)"/>
+    <path class="pl-conn" d="M795 360V378" marker-end="url(#pl-arrow)"/>
+  </g>
+
+  <g id="output">
+    <rect class="pl-band" x="20" y="380" width="920" height="50" rx="8"/>
+    <text class="pl-t pl-label" x="36" y="410">Output:</text>
+    <text class="pl-t pl-body" x="100" y="410">key.tsv + transcription.txt  ’  literal text (computed by script)  ’  29 documented edits  ’  reading</text>
+  </g>
+
+  <text class="pl-t pl-source" x="20" y="455">Stage 6 is reported by the author; its run is not included in the published package v1.0.0.</text>
+</svg>
