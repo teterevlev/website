@@ -140,4 +140,31 @@
     var id = location.hash.replace(/^#/, '');
     if (id && document.getElementById(id)) scrollToId(id);
   });
+
+  // Homepage only: muted looping autoplay. Category pages stay click-to-play.
+  if (!reduced && document.body.classList.contains('page-home')) {
+    document.querySelectorAll('.video-frame video').forEach(function (video) {
+      video.muted = true;
+      video.defaultMuted = true;
+      video.setAttribute('muted', '');
+      video.loop = true;
+      video.setAttribute('loop', '');
+      video.playsInline = true;
+      video.setAttribute('playsinline', '');
+      video.preload = 'auto';
+
+      function tryPlay() {
+        var playPromise = video.play();
+        if (playPromise && playPromise.catch) {
+          playPromise.catch(function () {});
+        }
+      }
+
+      tryPlay();
+      if (video.readyState < 2) {
+        video.addEventListener('loadeddata', tryPlay, { once: true });
+        video.addEventListener('canplay', tryPlay, { once: true });
+      }
+    });
+  }
 })();

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450" viewBox="0 0 800 450" role="img" aria-label="Graded stop preview">
+  <rect width="800" height="450" fill="#14171c"/>
+  <rect x="48" y="48" width="704" height="354" rx="18" fill="#1c2128" stroke="#2a313c"/>
+  <text x="400" y="110" text-anchor="middle" fill="#9aa3af" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18">platform_safe_stop</text>
+  <rect x="120" y="150" width="220" height="160" rx="14" fill="#2c333d"/>
+  <rect x="460" y="150" width="220" height="160" rx="14" fill="#111418" stroke="#E5484D" stroke-width="2"/>
+  <circle cx="230" cy="210" r="28" fill="#4da3ff"/>
+  <circle cx="570" cy="210" r="28" fill="#E5484D"/>
+  <text x="230" y="278" text-anchor="middle" fill="#e8eaed" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="600">log</text>
+  <text x="570" y="278" text-anchor="middle" fill="#e8eaed" font-family="Inter, system-ui, sans-serif" font-size="20" font-weight="600">ground</text>
+  <text x="400" y="360" text-anchor="middle" fill="#e8eaed" font-family="Inter, system-ui, sans-serif" font-size="28" font-weight="600">Graded stop</text>
+</svg>
