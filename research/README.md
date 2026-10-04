@@ -124,11 +124,14 @@ Inline SVG from the page bundle so fill/stroke pick up CSS variables (light/dark
 
 ### Video
 
-Page-bundle video with muted autoplay loop:
+Page-bundle video with muted autoplay loop. Optional `poster` and `caption`:
 
 ````markdown
 {{< video src="demo.mp4" >}}
+{{< video src="demo.mp4" poster="demo-poster.jpg" caption="Video. Short caption ([1](https://example.com/))." >}}
 ````
+
+Footnotes (`[^id]`) are not available inside shortcode params — use a normal markdown link for citations in captions.
 
 ### Tables → cards
 

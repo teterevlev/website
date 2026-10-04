@@ -23,6 +23,8 @@ summary: "In September 2026, GPT-6 Astra read a 217-year-old Napoleonic cipher f
 
 A homophonic cipher (homophonic substitution cipher) replaces each plaintext letter with one of several interchangeable signs, so that frequent letters do not stand out[^homophonic]. In the Marmont letter, E and T each have nine signs. Counting sign frequencies, the classic first step of codebreaking, therefore reveals almost nothing.
 
+{{< video src="napoleon-frequency.mp4" poster="napoleon-frequency-poster.jpg" caption="Video. Why frequency analysis fails on a homophonic cipher: in the Marmont letter, E has nine interchangeable signs [\[1\]](https://carter.church/writeups/the-letter-to-marmont/)." >}}
+
 The Marmont cipher is also a nomenclator (nomenclator cipher): some signs stand for whole words rather than letters. In this letter 29 signs encode words such as *de*, *que*, *les*, *vous* and *général*, two encode a doubled *s*, and several are nulls that mean nothing[^church]. A solver that assumes one sign equals one letter produces broken French wherever a word-sign appears.
 
 ## Was it really Napoleon's letter?

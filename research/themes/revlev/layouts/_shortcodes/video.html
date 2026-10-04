@@ -1,11 +1,30 @@
+{{- /*
+  Page-bundle video (muted autoplay loop). Optional poster + caption.
+  {{< video src="demo.mp4" >}}
+  {{< video src="demo.mp4" poster="demo-poster.jpg" caption="Video. … ([1](https://…))." >}}
+  Note: Goldmark footnotes are not available inside shortcode params; use a normal link for citations.
+*/ -}}
 {{- $src := .Get "src" -}}
+{{- $posterName := .Get "poster" -}}
+{{- $caption := .Get "caption" -}}
 {{- $res := .Page.Resources.GetMatch $src -}}
 {{- if not $res -}}
   {{- errorf "video shortcode: resource %q not found in %s" $src .Page.File.Path -}}
 {{- end -}}
+{{- $poster := false -}}
+{{- with $posterName -}}
+  {{- $poster = $.Page.Resources.GetMatch . -}}
+  {{- if not $poster -}}
+    {{- errorf "video shortcode: poster %q not found in %s" . $.Page.File.Path -}}
+  {{- end -}}
+{{- end -}}
+{{- if $caption -}}
+<figure class="fig fig-video">
+{{- end -}}
 <video
   class="prose-video"
   src="{{ $res.RelPermalink }}"
+  {{- with $poster }} poster="{{ .RelPermalink }}"{{ end }}
   autoplay
   muted
   loop
@@ -14,4 +33,10 @@
   disableremoteplayback
   preload="metadata"
 ></video>
+{{- with $caption }}
+  <figcaption>{{ . | markdownify }}</figcaption>
+{{- end -}}
+{{- if $caption -}}
+</figure>
+{{- end -}}
 {{- /* muted is required for reliable autoplay; pointer-events:none blocks context menu */ -}}

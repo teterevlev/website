@@ -493,6 +493,15 @@ img.theme-cover-dark {
   pointer-events: none;
 }
 
+.fig-video {
+  margin: 1.75em 0;
+}
+
+.fig-video .prose-video {
+  max-width: 100%;
+  width: 100%;
+}
+
 .prose hr {
   margin: 2em 0;
   border: none;
