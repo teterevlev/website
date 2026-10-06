@@ -1,6 +1,7 @@
 ---
 title: "How AI read Napoleon's 1809 cipher letter — and how we checked it"
 date: 2026-10-04
+lastmod: 2026-10-06
 draft: false
 image: cover.jpg
 description: "An independent offline check of Carter Church's GPT-6 Astra decipherment of the 1809 Marmont letter: what the cipher is, how the pipeline worked, and what the published package actually proves."
@@ -8,6 +9,12 @@ summary: "In September 2026, GPT-6 Astra read a 217-year-old Napoleonic cipher f
 ---
 
 {{< theme-cover light="cover.jpg" dark="cover-dark.jpg" alt="A small robot with a magnifying glass studies a ciphered parchment next to a key and a grid of decoded signs" >}}
+
+*Published: 4 October 2026 · Updated: 6 October 2026*
+
+{{< update date="6 October 2026" >}}
+Readers asked what the published package can't show — the search history, revised sign classifications and held-out validation. [See what's missing and what I've asked the author ↓](#update-6-october-2026-questions-from-readers)
+{{< /update >}}
 
 **In short:** In September 2026, engineer Carter Church used OpenAI's GPT-6 Astra to read a ciphered letter sent to General Marmont in 1809, from one scanned image, in about six hours of model time[^church]. We downloaded the published solution package and ran its scripts offline: the key reproduces the literal text byte for byte, and 97% of the letters reach the final reading unchanged[^package].
 
@@ -151,6 +158,16 @@ Where the model's own memory cannot be removed, these steps confine it to indivi
 **Did Napoleon introduce the metric system?** No. The Revolution adopted it in 1795–1799. Napoleon kept it for the state and schools, but in 1812 allowed traditional unit names, redefined in metric terms, in retail trade; full metric use returned in 1840[^french-units].
 
 **What else did Napoleon build that the letter relied on?** A centralized administration, the Civil Code of 1804, state lycées from 1802 with compulsory mathematics, and an extended Chappe optical telegraph reaching Milan, Venice and Amsterdam by 1810[^napoleon-org][^selin].
+
+{{< update date="6 October 2026" title="Questions from readers" >}}
+Readers' comments pointed to gaps that this article didn't cover. The published package (v1.0.0) contains the results of the pipeline described above — the transcription, the final key and the per-sign evidence — but not the solver that produced them. That means the stages in Figure 1 are the author's account; I verified their outputs, not the process. Specifically, the package does not include:
+
+- **The search history.** There are no intermediate keys or rejected mappings. For 42 "contextual" signs, only the chosen value is recorded, not the alternatives it beat.
+- **A record of revised sign classifications.** The transcription went from 175 provisional labels to 155 signs, and 29 signs were reclassified from letters to whole words, but the package doesn't show what was revised, when or why. The author's write-up mentions a symbol ledger that isn't in v1.0.0.
+- **Held-out validation.** No test is documented in which the key was fitted on part of the text and checked on the rest. Without the solver, I can't run one myself.
+
+I've asked the author about these materials and will update this article when he replies. Thanks to the readers whose questions made this section necessary.
+{{< /update >}}
 
 [^church]: Church, C. [Breaking the Marmont Cipher, 1809](https://carter.church/writeups/the-letter-to-marmont/). 18 September 2026.
 [^package]: Church, C. [Marmont Solution Package v1.0.0](https://carter.church/writeups/the-letter-to-marmont/Marmont_Solution_v1.0.0.zip). 2026. Files used: `README.md`, `METHODS.md`, `CREDITS.md`, `VERIFICATION.json`, `inputs/editorial_interventions.tsv`, `verify.py`, `reproduce.py`.

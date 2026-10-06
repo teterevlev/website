@@ -407,6 +407,67 @@ img.theme-cover-dark {
   color: var(--ink);
 }
 
+/* Soft article updates — matches site chips/eyebrows, no accent bar */
+.article-update {
+  margin: 1.75em 0;
+  padding: 1.2rem 1.25rem 1.3rem;
+  border-radius: 12px;
+  background: var(--ash);
+}
+
+.article-update > :first-child {
+  margin-top: 0;
+}
+
+.article-update > :last-child {
+  margin-bottom: 0;
+}
+
+.article-update-eyebrow {
+  margin: 0 0 0.4rem;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--blue-deep);
+}
+
+.article-update-title {
+  margin: 0 0 0.7rem;
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--ink);
+}
+
+.article-update-body > :first-child {
+  margin-top: 0;
+}
+
+.article-update-body > :last-child {
+  margin-bottom: 0;
+}
+
+.article-update-body p {
+  margin: 0.55em 0;
+}
+
+.article-update-body ul {
+  margin: 0.6em 0;
+}
+
+.article-update a {
+  color: var(--blue-deep);
+  text-decoration: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--blue) 35%, transparent);
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+
+.article-update a:hover {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+}
+
 .post-header {
   margin-bottom: var(--sp-lg);
   padding-bottom: var(--sp-lg);

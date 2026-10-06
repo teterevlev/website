@@ -1,0 +1,31 @@
+{{- /*
+  Soft article update callout (site-native, no accent bar).
+  {{< update date="6 October 2026" >}}
+  Teaser with a [link ↓](#anchor).
+  {{< /update >}}
+
+  {{< update date="6 October 2026" title="Questions from readers" >}}
+  Full correction text…
+  {{< /update >}}
+*/ -}}
+{{- $date := .Get "date" -}}
+{{- $title := .Get "title" -}}
+{{- $id := .Get "id" -}}
+{{- if and $title (not $id) -}}
+  {{- if $date -}}
+    {{- $id = printf "update-%s-%s" ($date | anchorize) ($title | anchorize) -}}
+  {{- else -}}
+    {{- $id = printf "update-%s" ($title | anchorize) -}}
+  {{- end -}}
+{{- end -}}
+<aside class="article-update">
+  {{- if or $date (not $title) -}}
+  <p class="article-update-eyebrow">{{- with $date -}}Update · {{ . }}{{- else -}}Update{{- end -}}</p>
+  {{- end -}}
+  {{- with $title -}}
+  <h2 class="article-update-title"{{ with $id }} id="{{ . }}"{{ end }}>{{ . }}</h2>
+  {{- end -}}
+  <div class="article-update-body">
+    {{ .Inner | markdownify }}
+  </div>
+</aside>

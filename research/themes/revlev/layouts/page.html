@@ -4,7 +4,12 @@
     <p class="post-meta">
       <a href="{{ "/" | relURL }}">Research</a>
       <span aria-hidden="true">/</span>
+      {{- if gt .Lastmod.Unix .Date.Unix }}
+      <span>Published: <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 January 2006" }}</time>
+      · Updated: <time datetime="{{ .Lastmod.Format "2006-01-02" }}">{{ .Lastmod.Format "2 January 2006" }}</time></span>
+      {{- else }}
       <time datetime="{{ .Date.Format "2006-01-02" }}">{{ .Date.Format "2 Jan 2006" }}</time>
+      {{- end }}
     </p>
     <h1 class="page-title">{{ .Title }}</h1>
     {{ with .Params.summary }}
