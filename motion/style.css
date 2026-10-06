@@ -761,8 +761,7 @@ video {
   transform: translateY(-1px);
 }
 
-.see-more:hover .see-more-label,
-.see-more:hover .see-more-arrow {
+.see-more:hover .see-more-label {
   color: var(--blue-deep);
 }
 
