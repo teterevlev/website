@@ -1071,6 +1071,30 @@
 
         </aside>
       </article>
+
+      <article class="media-item">
+        <div class="media-meta">
+          <h2>Window lighting — live zones</h2>
+          <p>Toggle lighting zones and watch the response. Fullscreen interactive motion, not a still.</p>
+        </div>
+        <button
+          type="button"
+          class="demo-card"
+          data-demo-src="../../demos/window-light/"
+          data-demo-title="Window lighting">
+          <span class="ssd-tryit" aria-hidden="true">
+            <svg class="ssd-tryit-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11"/><path d="M12 11V4.5a1.5 1.5 0 0 1 3 0V11"/><path d="M15 11V6.5a1.5 1.5 0 0 1 3 0V14a7 7 0 0 1-7 7h-1a6 6 0 0 1-5.2-3L4 14.5a1.5 1.5 0 0 1 2.4-1.8L8 15V11a1.5 1.5 0 0 1 3 0"/></svg>
+            <span class="ssd-tryit-txt">try it</span>
+          </span>
+          <span class="demo-card-media" aria-hidden="true">
+            <img src="../../img/lightning.png" alt="" width="2868" height="1528" loading="lazy" decoding="async">
+          </span>
+          <span class="demo-card-body">
+            <span class="demo-card-title">Window lighting</span>
+            <span class="demo-card-summary">Switch zones — the light responds.</span>
+          </span>
+        </button>
+      </article>
     </section>
   </main>
 
@@ -1083,6 +1107,14 @@
       <a href="../../">Motion</a>
     </div>
   </footer>
+
+  <div class="demo-overlay" id="demo-overlay" hidden aria-hidden="true">
+    <div class="demo-overlay-bar">
+      <div class="demo-overlay-title" id="demo-overlay-title">Demo</div>
+      <button type="button" class="demo-overlay-close" id="demo-overlay-close" aria-label="Close demo">×</button>
+    </div>
+    <iframe id="demo-frame" title="Interactive demo" loading="lazy"></iframe>
+  </div>
 
   <script src="../../main.js"></script>
 </body>

@@ -1,14 +1,14 @@
-# Blueprint explainers — voice-led
+# Sales videos — voice-led blueprint
 
-Home category: **Blueprint explainers** (solo square, no category page).  
+Home category: **Sales videos** (solo square, no category page).  
 Piece title: **Voice-led blueprint — one sheet**  
 File: `video/real-estate_en.mp4` (1080×1080)
 
-Marketing / selling motion — not research diagram explainers. Write in motion-graphics semantics only. Multi-language re-timing is process detail, not a public claim.
+Promotional / sales motion — not research explainers. Write in motion-graphics semantics only. Multi-language re-timing is process detail, not a public claim.
 
 ## Home blurb (used on `index.html`)
 
-Voice first: the narrator’s take is never cut or padded; every beat lands on a spoken word as the camera glides across one continuous sheet. Outline→fill traces, paper cut-outs with real shadows, marker notes — never fades or wipes, never repeating the voice, end card holds.
+Sales motion on one continuous sheet: the narrator’s take is never cut or padded; every beat lands on a spoken word as the camera glides. Outline→fill traces, paper cut-outs with real shadows, marker notes — never fades or wipes, never repeating the voice, end card holds.
 
 ## Full brief (E-E-A-T)
 
