@@ -166,5 +166,53 @@
         video.addEventListener('canplay', tryPlay, { once: true });
       }
     });
+
+    // YouTube Shorts / embeds: muted loop, only while in view
+    function ytEmbedSrc(id, autoplay) {
+      var q = 'playsinline=1&rel=0&modestbranding=1&loop=1&playlist=' + encodeURIComponent(id);
+      if (autoplay) q = 'autoplay=1&mute=1&' + q;
+      return 'https://www.youtube.com/embed/' + encodeURIComponent(id) + '?' + q;
+    }
+
+    var ytFrames = document.querySelectorAll('.video-frame iframe[data-yt-id]');
+    if (ytFrames.length) {
+      ytFrames.forEach(function (frame) {
+        var id = frame.getAttribute('data-yt-id');
+        if (!id) return;
+        frame.src = ytEmbedSrc(id, false);
+      });
+
+      if ('IntersectionObserver' in window) {
+        var ytIo = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            var frame = entry.target;
+            var id = frame.getAttribute('data-yt-id');
+            if (!id) return;
+            var wantPlay = entry.isIntersecting && entry.intersectionRatio >= 0.35;
+            var isPlaying = frame.getAttribute('data-yt-playing') === '1';
+            if (wantPlay === isPlaying) return;
+            frame.setAttribute('data-yt-playing', wantPlay ? '1' : '0');
+            frame.src = ytEmbedSrc(id, wantPlay);
+          });
+        }, { threshold: [0, 0.35, 0.6] });
+
+        ytFrames.forEach(function (frame) { ytIo.observe(frame); });
+      } else {
+        ytFrames.forEach(function (frame) {
+          var id = frame.getAttribute('data-yt-id');
+          if (!id) return;
+          frame.setAttribute('data-yt-playing', '1');
+          frame.src = ytEmbedSrc(id, true);
+        });
+      }
+    }
+  } else {
+    // Still set a playable embed src when autoplay is off
+    document.querySelectorAll('.video-frame iframe[data-yt-id]').forEach(function (frame) {
+      var id = frame.getAttribute('data-yt-id');
+      if (!id) return;
+      frame.src = 'https://www.youtube.com/embed/' + encodeURIComponent(id) +
+        '?playsinline=1&rel=0&modestbranding=1';
+    });
   }
 })();
