@@ -733,7 +733,7 @@ video {
   margin-bottom: 0;
 }
 
-.media-item--split .video-frame--portrait {
+.media-item--split .video-frame {
   max-width: none;
   margin-inline: 0;
   width: 100%;
@@ -750,6 +750,11 @@ video {
 
   .media-item--split .video-frame--portrait {
     max-width: 16rem;
+    margin-inline: auto;
+  }
+
+  .media-item--split .video-frame:not(.video-frame--portrait):not(.video-frame--wide) {
+    max-width: 20rem;
     margin-inline: auto;
   }
 }
