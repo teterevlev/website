@@ -676,9 +676,15 @@ video {
   margin-inline: auto;
 }
 
-.video-frame video {
+.video-frame video,
+.video-frame iframe {
   width: 100%;
   height: 100%;
+  border: 0;
+  display: block;
+}
+
+.video-frame video {
   object-fit: contain;
 }
 
@@ -720,6 +726,11 @@ video {
   grid-template-columns: minmax(0, 14rem) minmax(0, 1fr);
   gap: 1.25rem 1.5rem;
   align-items: start;
+}
+
+.media-item--split > .media-item-kicker {
+  grid-column: 1 / -1;
+  margin-bottom: 0;
 }
 
 .media-item--split .video-frame--portrait {

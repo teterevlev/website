@@ -7,6 +7,7 @@
 - `index.html` / `style.css` / `main.js` — лендинг в узкой колонке
 - `video/` — MP4-тизеры
 - `demos/` — фрагменты safe-stop / graded-stop встраиваются как на research (с «try it»); window-light — fullscreen
+- `notes/` — брифы по категориям (motion-graphics семантика, E-E-A-T)
 
 
 ## Локально
